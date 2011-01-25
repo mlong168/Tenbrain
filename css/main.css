@@ -1,0 +1,12 @@
+#welcome_message {
+	position: absolute;
+	width: 15em;
+	height: 2em;
+	top: 3em; right: 0; left: 0;
+	margin: 0 auto;
+	text-align: center;
+	border: 3px dashed orange;
+	font: 1.5em bold Verdana, Arial, Sans-Serif;
+	line-height: 2em;
+	color: green;
+}
