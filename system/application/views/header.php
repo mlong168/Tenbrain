@@ -17,3 +17,7 @@
 	<?php endif; ?>
 </head>
 <body>
+
+<div id="header">
+	<div class="title">TenBrain - Save your brain, while saving the money!</div>
+</div>

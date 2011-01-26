@@ -1,12 +1,112 @@
-#welcome_message {
-	position: absolute;
-	width: 15em;
-	height: 2em;
-	top: 3em; right: 0; left: 0;
-	margin: 0 auto;
-	text-align: center;
-	border: 3px dashed orange;
-	font: 1.5em bold Verdana, Arial, Sans-Serif;
-	line-height: 2em;
-	color: green;
+body {
+	margin: 0;
+	padding: 0;
+	font-family: Verdana, Arial, Sans-Serif;
 }
+
+#header {
+	padding: 1em 3em;
+	font: bold 2em/2em Verdana, Arial, Sans-Serif;
+}
+
+#main {
+	padding: 4em 0;
+	background: #fff url('/css/images/gray_background.png') repeat-x;
+	border-top: 3px solid #C5D4D8;
+	border-bottom: 3px solid #6DCFF6;
+	position: relative;
+	z-index: 4;
+}
+
+.selection_message {
+	margin: 0 0 2em;
+	text-align: center;
+	font: 24px Verdana, Arial, Sans-Serif;
+	color: #009CDC;
+}
+
+.selections {
+	width: 900px;
+	margin: 0 auto;
+}
+
+.selection_item {
+	display: block;
+	float: left;
+	width: 250px;
+	height: 250px;
+	margin: 25px;
+	text-decoration: none;
+}
+
+.control {
+	display: block;
+	background: url('/css/images/controls.png') no-repeat scroll;
+}
+
+.control.selection_button {
+	width: 232px;
+	height: 50px;
+	padding: 8px 0;
+	background-position: 0 0;
+	font: bold 1.2em/1.3em Verdana, Arial, Sans-Serif;
+	color: white;
+	text-align: center;
+}
+
+.tenstack {
+	display: block;
+	margin: 0 0 3px 25px;
+	height: 53px;
+	background: url('/css/images/tenstacks.png') no-repeat scroll;
+	text-indent: -9999px;
+}
+
+.tenstack.business { background-position: 0 0; width: 80px; }
+.tenstack.enterprise { background-position: -85px 0; width: 60px; }
+.tenstack.web { background-position: -160px 0; width: 90px; }
+
+.helper {
+	position: absolute;
+	right: 0;
+	top: 100px;
+	width: 34px;
+	height: 34px;
+	background-position: -124px -73px;
+}
+
+#footer {
+	padding: 0 3em;
+	height: 150px;
+	background: url('/css/images/blue_background.png') repeat-x;
+	position: relative;
+	z-index: 3;
+}
+
+.social_icon {
+	display: block;
+	width: 32px;
+	height: 26px;
+	float: right;
+	margin: 0 0 0 1em;
+	border: 2px solid white;
+	border-top: none;
+	position: relative;
+	top: -12px;
+	opacity: 0.5;
+	text-indent: -9999px;
+}
+
+.social_icon.rss {background-position: 0 -73px; }
+.social_icon.facebook {background-position: -37px -73px; }
+.social_icon.twitter {background-position: -75px -73px; }
+
+#copyright {
+	clear: right;
+	display: block;
+	margin: 3em 0 1em;
+	float: right;
+	font: bold 0.8em/2em Verdana, Arial, Sans-Serif;
+}
+
+.clearfix { clear: both; }
