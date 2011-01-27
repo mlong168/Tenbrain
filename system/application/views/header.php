@@ -6,18 +6,18 @@
 	
 	<?php if(count($styles)): ?>
 		<?php foreach($styles as $name): ?>
-			<link rel="stylesheet" type="text/css" href="<?php echo base_url() . 'css/' . $name; ?>.css" />
+			<link rel="stylesheet" type="text/css" href="<?php echo base_url() . 'css/' . $name ?>.css" />
 		<?php endforeach; ?>
 	<?php endif; ?>
 	
 	<?php if(count($scripts)): ?>
 		<?php foreach($scripts as $name): ?>
-			<script type="text/javascript" src="<?php echo base_url() . 'js/' . $name; ; ?>.js"></script>
+			<script type="text/javascript" src="<?php echo base_url() . 'js/' . $name ?>.js"></script>
 		<?php endforeach; ?>
 	<?php endif; ?>
 </head>
 <body>
 
 <div id="header">
-	<div class="title">TenBrain - Save your brain, while saving the money!</div>
+	<span class="title">| Save your Brain, While saving Money! |</span>
 </div>

@@ -5,22 +5,16 @@
 		'scripts'	=> array('jquery-1.4.4.min', 'jquery-ui-1.8.9.custom.min', 'main'),
 	));
 ?>
-
 <div id="main">
 	<p class="selection_message">Choose one of the options below:</p>
 	<div class="selections">
-		<a class="selection_item" href="g">
-			<span class="tenstack business">.</span>
-			<span class="control selection_button">Business<br />Application</span>
+	<?php foreach($selections as $class => $data): ?>
+		<a class="selection_item<?php echo $data['disabled'] ? ' disabled' : '' ?>"
+			href="<?php echo base_url() . ($data['disabled'] ? 'sorry' : $next . '/' . $class) ?>">
+			<span class="selection_image <?php echo $type . ' ' . $class ?>">.</span>
+			<span class="control selection_button <?php echo $data['type'] ?>"><?php echo $data['text'] ?></span>
 		</a>
-		<a class="selection_item" href="h">
-			<span class="tenstack enterprise">.</span>
-			<span class="control selection_button">Enterprise<br />Application</span>
-		</a>
-		<a class="selection_item" href="k">
-			<span class="tenstack web">.</span>
-			<span class="control selection_button">Web<br />Application</span>
-		</a>
+	<?php endforeach; ?>
 	</div>
 	<div class="control helper"></div>
 	<div class="clearfix"></div>

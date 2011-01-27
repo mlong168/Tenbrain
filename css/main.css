@@ -1,19 +1,27 @@
 body {
 	margin: 0;
 	padding: 0;
+	background-color: #00B1E8;
 	font-family: Verdana, Arial, Sans-Serif;
 }
 
 #header {
-	padding: 1em 3em;
-	font: bold 2em/2em Verdana, Arial, Sans-Serif;
+	padding: 50px 3em 4em;
+	font: 17px "Times New Roman", Times, serif;
+	color: grey;
+	background: #fff url('/css/images/logo.png') no-repeat 6em 30px;
+}
+
+.title {
+	margin-left: 255px;
+	vertical-align: middle;
 }
 
 #main {
 	padding: 4em 0;
 	background: #fff url('/css/images/gray_background.png') repeat-x;
-	border-top: 3px solid #C5D4D8;
-	border-bottom: 3px solid #6DCFF6;
+	border-top: 2px solid #C5D4D8;
+	border-bottom: 2px solid #6DCFF6;
 	position: relative;
 	z-index: 4;
 }
@@ -34,37 +42,98 @@ body {
 	display: block;
 	float: left;
 	width: 250px;
-	height: 250px;
-	margin: 25px;
+	margin: 2em 25px 5em;
 	text-decoration: none;
+	outline: none;
 }
+.selection_item.disabled { opacity: 0.5; }
 
 .control {
 	display: block;
 	background: url('/css/images/controls.png') no-repeat scroll;
 }
 
-.control.selection_button {
+.control.selection_button, .control.reject_button {
 	width: 232px;
 	height: 50px;
 	padding: 8px 0;
+	text-align: center;
+}
+
+.control.selection_button {
 	background-position: 0 0;
-	font: bold 1.2em/1.3em Verdana, Arial, Sans-Serif;
 	color: white;
+}
+.control.reject_button {
+	background-position: 0 -115px;
+	color: #009CDC;
+}
+.control.selection_button.small, .control.reject_button.small { font: normal 1.5em/2em Verdana, Arial, Sans-Serif; }
+.control.selection_button.big, .control.reject_button.big { font: bold 1.2em/1.3em Verdana, Arial, Sans-Serif; }
+
+.control.arrow {
+	float: left;
+	width: 20px;
+	height: 19px;
+	margin: 3em 4em 0;
+	background-position: -178px -71px;
+}
+
+.selection_image {
+	display: block;
+	margin: 0 0 3px 25px;
+	text-indent: -9999px;
+}
+
+.selected_item {
+	float: left;
+}
+
+.selection_text {
+	font: 20px Verdana, Arial, Sans-Serif;
+	color: #009CDC;
 	text-align: center;
 }
 
 .tenstack {
-	display: block;
-	margin: 0 0 3px 25px;
 	height: 53px;
 	background: url('/css/images/tenstacks.png') no-repeat scroll;
-	text-indent: -9999px;
 }
-
 .tenstack.business { background-position: 0 0; width: 80px; }
 .tenstack.enterprise { background-position: -85px 0; width: 60px; }
 .tenstack.web { background-position: -160px 0; width: 90px; }
+
+.deployment {
+	height: 52px;
+	background: url('/css/images/deployments.png') no-repeat scroll;
+}
+.deployment.desktop { background-position: 0 0; width: 102px; }
+.deployment.enterprise { background-position: -112px 0; width: 80px; }
+.deployment.cloud { background-position: -205px 0; width: 140px; }
+
+.os {
+	height: 53px;
+	background: url('/css/images/os.png') no-repeat scroll;
+}
+.os.linux { background-position: 0 0; width: 70px; }
+.os.windows { background-position: -77px 0; width: 78px; }
+.os.mac { background-position: -172px 0; width: 67px; }
+
+.vm {
+	height: 53px;
+	background: url('/css/images/vm.png') no-repeat scroll;
+}
+.vm.vmware { background-position: 0 0; width: 110px; }
+.vm.citrix { background-position: -123px 0; width: 120px; }
+.vm.kvm { background-position: -260px 0; width: 130px; }
+
+.providers {
+	height: 53px;
+	background: url('/css/images/providers.png') no-repeat scroll;
+}
+.providers.gogrid { background-position: 0 0; width: 118px; }
+.providers.rackspace { background-position: -130px 0; width: 110px; }
+.providers.amazon { background-position: -245px 0; width: 125px; }
 
 .helper {
 	position: absolute;
@@ -73,6 +142,16 @@ body {
 	width: 34px;
 	height: 34px;
 	background-position: -124px -73px;
+}
+
+.confirm_dialogue {
+	width: 600px;
+	margin: 2em auto;
+}
+
+.confirm_dialogue a.control.small {
+	float: left;
+	margin: 0 1em;
 }
 
 #footer {
@@ -102,11 +181,11 @@ body {
 .social_icon.twitter {background-position: -75px -73px; }
 
 #copyright {
-	clear: right;
 	display: block;
-	margin: 3em 0 1em;
-	float: right;
-	font: bold 0.8em/2em Verdana, Arial, Sans-Serif;
+	position: absolute;
+	right: 3.35em;
+	bottom: 2em;
+	font: bold 0.9em Verdana, Arial, Sans-Serif;
 }
 
 .clearfix { clear: both; }
