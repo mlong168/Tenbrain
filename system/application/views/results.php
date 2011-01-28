@@ -19,12 +19,13 @@
 	<?php endforeach; ?>	
 	<div class="clearfix"></div>
 	</div>
+	
 	<div class="confirm_dialogue">
-		<a class="control reject_button small">Change this</a>
+		<a class="control reject_button small" href="<?php echo base_url() ?>">Change this</a>
 		<a class="control selection_button small">Confirm</a>
 	</div>
-	<div class="control helper"></div>
+	
 	<div class="clearfix"></div>
 </div>
-
+<?php $this->load->view('help') ?>
 <?php $this->load->view('footer') ?>

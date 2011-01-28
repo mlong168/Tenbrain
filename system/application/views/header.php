@@ -20,4 +20,18 @@
 
 <div id="header">
 	<span class="title">| Save your Brain, While saving Money! |</span>
+		<form id="login_form" action="<?php echo base_url() . 'login' ?>" method="post">
+			<p>
+				<label for="username" class="login_label">Username</label>
+				<input id="username" class="control input" name="username" type="text" size="25" />
+			</p>
+			<p>
+				<label for="password" class="login_label">Password</label>
+				<input id="password" class="control input" name="password" type="password" size="25" />
+			</p>
+			<p>
+				<a id="register" href="/register">Register</a>
+				<input type="submit" class="login_button" id="login_submit" value="Log in" />
+			</p>
+		</form>
 </div>

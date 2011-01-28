@@ -13,4 +13,57 @@ $(function(){
 			}, 200);
 		})
 	});
+	
+	(function(){
+		var helper = $('#helper'),
+			message = helper.children('.help_message'),
+			modulars = $('.overlay'),
+			overlays = {
+				back: modulars.filter('.back'),
+				front: modulars.filter('.front')
+			},
+			initials = {
+				width: helper.width(),
+				height: helper.height()
+			},
+			start = {
+				width: initials.width + 'px',
+				height: initials.height + 'px',
+				opacity: helper.css('opacity')
+			},
+			end = {
+				width: initials.width * 7 + 'px',
+				height: initials.height * 6 + 'px',
+				opacity: '1'
+			};
+			
+		helper.hover(function(){
+			helper.animate(end, 'slow');
+		}, function(){
+			setTimeout(function(){
+				helper.animate(start, {
+					duration: 200
+					// ,
+					// complete: function(){
+						// helper.stop();
+					// }
+				});
+			}, 500);
+		}).click(function(){
+			overlays.back.fadeTo('fast', 0.5, function(){
+				overlays.front.show();
+			});
+		});
+		
+		overlays.back.click(function(){
+			modulars.hide();
+		});
+		
+		$(document).keydown(function(event){
+			if(event.which === 27)
+			{
+				modulars.hide();
+			}
+		});
+	})();
 });

@@ -1,6 +1,7 @@
 body {
 	margin: 0;
 	padding: 0;
+	position: relative;
 	background-color: #00B1E8;
 	font-family: Verdana, Arial, Sans-Serif;
 }
@@ -26,12 +27,13 @@ body {
 	z-index: 4;
 }
 
-.selection_message {
+.selection_message, .error_message {
 	margin: 0 0 2em;
 	text-align: center;
 	font: 24px Verdana, Arial, Sans-Serif;
-	color: #009CDC;
 }
+.selection_message { color: #009CDC; }
+.error_message { color: red; }
 
 .selections {
 	width: 900px;
@@ -58,6 +60,7 @@ body {
 	height: 50px;
 	padding: 8px 0;
 	text-align: center;
+	text-decoration: none;
 }
 
 .control.selection_button {
@@ -77,6 +80,23 @@ body {
 	height: 19px;
 	margin: 3em 4em 0;
 	background-position: -178px -71px;
+}
+
+#login_form {
+	position: absolute;
+	top: 10px;
+	right: 4em;
+	text-align: right;
+}
+
+.control.input {
+	display: inline-block;
+	border: none;
+	width: 152px;
+	height: 20px;
+	padding: 1px 10px;
+	background-position: 0 -188px;
+	outline: none;
 }
 
 .selection_image {
@@ -135,13 +155,33 @@ body {
 .providers.rackspace { background-position: -130px 0; width: 110px; }
 .providers.amazon { background-position: -245px 0; width: 125px; }
 
-.helper {
+#helper {
 	position: absolute;
-	right: 0;
-	top: 100px;
-	width: 34px;
-	height: 34px;
-	background-position: -124px -73px;
+	z-index: 5;
+	right: 0; top: 240px;
+	width: 38px;
+	height: 36px;
+	background: #009CDC url('/css/images/helper.png') no-repeat right top;
+	opacity: 0.5;
+	color: white;
+	overflow: hidden;
+	cursor: pointer;
+}
+
+#helper .help_header {
+	display: inline-block;
+	text-align: center;
+	margin: 0.8em 0 0 2.5em;
+	font-weight: bold;
+	border-bottom: 2px dashed white;
+}
+
+#helper .help_message {
+	display: block;
+	text-align: justify;
+	text-indent: 1.5em;
+	margin: 1em;
+	overflow-y: auto;
 }
 
 .confirm_dialogue {
@@ -160,6 +200,21 @@ body {
 	background: url('/css/images/blue_background.png') repeat-x;
 	position: relative;
 	z-index: 3;
+}
+
+#menu {
+	margin-left: 3em;
+	padding-top: 2em;
+	font: bold 13px Arial, Verdana, Sanf-serif;
+}
+
+#menu .item {
+	display: inline-block;
+	padding: 0 0 0.1em 0.1em;
+	border-bottom: 1px dashed white;
+	margin-right: 1em;
+	color: white;
+	text-decoration: none;
 }
 
 .social_icon {
@@ -183,9 +238,37 @@ body {
 #copyright {
 	display: block;
 	position: absolute;
-	right: 3.35em;
+	right: 4em;
 	bottom: 2em;
-	font: bold 0.9em Verdana, Arial, Sans-Serif;
+	font: 12px Arial, Verdana, Sans-Serif;
+	color: white;
+}
+
+.overlay {
+	display: none;
+	position: fixed;
+	top: 0; right: 0; bottom: 0; left: 0;
+	width: auto;
+	height: auto;	
+}
+
+.overlay.back {
+	z-index: 10;
+	background: #000;
+}
+
+.overlay.front {
+	z-index: 11;
+	background: #fff;
+	margin: 5em 20%;
+	padding: 2em;
+}
+
+.help_title {
+	color: #009CDC;
+	font-weight: bold;
+	display: block;
+	margin-bottom: 1em;
 }
 
 .clearfix { clear: both; }

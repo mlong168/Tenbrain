@@ -44,9 +44,9 @@ $route['default_controller'] = "selection";
 $route['scaffolding_trigger'] = "";
 
 $route['select'] = "selection/index";
-$route['select/(:any)'] = "selection/index/$1";
-$route['select/(:any)/(:any)'] = "selection/index/$1/$2";
-$route['select/(:any)/(:any)/(:any)'] = "selection/index/$1/$2/$3";
+$route['about'] = "miscellaneous/about";
+$route['apology'] = "miscellaneous/apology";
+$route['error'] = "miscellaneous/error";
 
 
 /* End of file routes.php */
