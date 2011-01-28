@@ -6,7 +6,12 @@
 	));
 ?>
 <div id="main">
+	<span class="info_image error">Error</span>
 	<p class="error_message">An error occured</p>
+	<p class="explanation">
+		We are terribly sorry, an error occured<br />
+		Please try again from <a href="<?php echo base_url() ?>">the start</a>
+	</p>
 	
 	<div class="clearfix"></div>
 </div>

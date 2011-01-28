@@ -6,7 +6,12 @@
 	));
 ?>
 <div id="main">
-	<p class="selection_message">Apology</p>
+	<span class="info_image info">Apology</span>
+	<p class="selection_message narrow">Apology</p>
+	<p class="explanation">
+		We are sorry, currently we do not support this option<br />
+		We are working as fast as we can to make it available to you!
+	</p>
 	
 	<div class="clearfix"></div>
 </div>

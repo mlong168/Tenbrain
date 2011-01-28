@@ -6,7 +6,11 @@
 	));
 ?>
 <div id="main">
-	<p class="selection_message">About us:</p>
+	<span class="info_image info">Info</span>
+	<p class="selection_message narrow">About us</p>
+	<p class="explanation">
+		TenBrain is an online deployment and integration platform for Open Source and SaaS Applications
+	</p>
 	
 	<div class="clearfix"></div>
 </div>

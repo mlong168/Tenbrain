@@ -6,12 +6,12 @@
 	));
 ?>
 <div id="main">
-	<p class="selection_message">You have selected:</p>
-	<div class="selections">
+	<p class="selection_message wide">You have selected:</p>
+	<div class="results">
 	<?php foreach($results as $class => $text): ?>
 		<div class="selected_item">
 			<span class="selection_image <?php echo $class?>">.</span>
-			<div class="selection_text"><?php echo str_replace('<br />', ' ', $text) ?></div>
+			<div class="selection_text final"><?php echo str_replace('<br />', ' ', $text) ?></div>
 		</div>
 		<?php if($text !== end($results)): ?>
 			<div class="control arrow"></div>

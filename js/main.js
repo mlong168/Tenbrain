@@ -41,13 +41,7 @@ $(function(){
 			helper.animate(end, 'slow');
 		}, function(){
 			setTimeout(function(){
-				helper.animate(start, {
-					duration: 200
-					// ,
-					// complete: function(){
-						// helper.stop();
-					// }
-				});
+				helper.animate(start, 'fast');
 			}, 500);
 		}).click(function(){
 			overlays.back.fadeTo('fast', 0.5, function(){

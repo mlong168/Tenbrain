@@ -6,7 +6,7 @@
 	));
 ?>
 <div id="main">
-	<p class="selection_message">Choose one of the options below:</p>
+	<p class="selection_message wide">Choose one of the options below:</p>
 	<div class="selections">
 	<?php foreach($selections as $class => $data): ?>
 		<a class="selection_item<?php echo $data['disabled'] ? ' disabled' : '' ?>"
