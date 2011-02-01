@@ -5,7 +5,7 @@
 		'scripts'	=> array('jquery-1.4.4.min', 'jquery-ui-1.8.9.custom.min', 'main'),
 	));
 ?>
-<div id="main">
+<div class="main small_content">
 	<p class="selection_message wide">Choose one of the options below:</p>
 	<div class="selections">
 	<?php foreach($selections as $class => $data): ?>

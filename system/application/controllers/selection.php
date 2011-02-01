@@ -7,6 +7,12 @@ class Selection extends Controller {
 	function __construct()
 	{
 		parent::Controller();
+		
+		$this->load->helper(array('language', 'url'));
+        $this->load->library(array('account/authentication'));
+		$this->load->model(array('account/account_model'));
+		$this->lang->load(array('general'));
+		
 		$this->_variants = array(
 			'tenstack'		=> array(
 				'business'	=> array(

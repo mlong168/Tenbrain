@@ -29,14 +29,15 @@ body {
 	vertical-align: middle;
 }
 
-#main {
-	padding: 4em 0;
+.main {
 	background: #fff url('/css/images/gray_background.png') repeat-x;
 	border-top: 2px solid #C5D4D8;
 	border-bottom: 2px solid #6DCFF6;
 	position: relative;
 	z-index: 4;
 }
+.main.small_content { padding: 4em 0; }
+.main.big_content { padding: 1em 0; }
 
 .selection_message, .error_message {
 	text-align: center;
@@ -106,7 +107,7 @@ body {
 	padding: 0;
 }
 
-#login_submit, #register {
+.login_submit, .register {
 	border: none;
 	border-bottom: 2px dashed #009CDC;
 	display: inline-block;
@@ -114,12 +115,12 @@ body {
 	margin: 0 0.5em;
 }
 
-#login_submit {
+.login_submit {
 	color: #009CDC;
 	background: #fff;
 }
 
-#register {
+.register {
 	color: #009CDC;
 	text-decoration: none;
 }

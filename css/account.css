@@ -1,0 +1,27 @@
+h2, h3 {
+	text-align: center;
+}
+
+.reg_form {
+	width: 500px;
+	margin: 0 auto;
+}
+
+.signup_form {
+	width: 300px;
+	margin: 0 auto;
+}
+
+.input_wrapper {
+	text-align: right;
+}
+
+.form_input {
+	border: 1px;
+}
+
+.third_parties {
+	list-style-type: none;
+	width: 300px;
+	margin: 0 auto;
+}

@@ -103,7 +103,7 @@ $config['enable_hooks'] = FALSE;
 | http://codeigniter.com/user_guide/general/creating_libraries.html
 |
 */
-$config['subclass_prefix'] = 'TENBRAIN_';
+$config['subclass_prefix'] = 'MY_';
 
 
 /*
@@ -148,10 +148,10 @@ $config['permitted_uri_chars'] = 'a-z 0-9~%.:_\-';
 | use segment based URLs.
 |
 */
-$config['enable_query_strings'] = FALSE;
-$config['controller_trigger'] 	= 'c';
-$config['function_trigger'] 	= 'm';
-$config['directory_trigger'] 	= 'd'; // experimental not currently in use
+$config['enable_query_strings'] = TRUE;
+$config['controller_trigger'] 	= 'cx';
+$config['function_trigger'] 	= 'mx';
+$config['directory_trigger'] 	= 'dx'; // experimental not currently in use
 
 /*
 |--------------------------------------------------------------------------
@@ -173,7 +173,7 @@ $config['directory_trigger'] 	= 'd'; // experimental not currently in use
 | your log files will fill up very fast.
 |
 */
-$config['log_threshold'] = 0;
+$config['log_threshold'] = 1;
 
 /*
 |--------------------------------------------------------------------------
@@ -217,7 +217,7 @@ $config['cache_path'] = '';
 | enabled you MUST set an encryption key.  See the user guide for info.
 |
 */
-$config['encryption_key'] = "";
+$config['encryption_key'] = "xbKjXT56a9Fbqvfr4ztdF2gbQ7vM7zKhe4sGwZ6x";
 
 /*
 |--------------------------------------------------------------------------
@@ -232,12 +232,12 @@ $config['encryption_key'] = "";
 |
 */
 $config['sess_cookie_name']		= 'tenbrain_session';
-$config['sess_expiration']		= 7200;
+$config['sess_expiration']		= 0;
 $config['sess_encrypt_cookie']	= FALSE;
-$config['sess_use_database']	= FALSE;
-$config['sess_table_name']		= 'ci_sessions';
+$config['sess_use_database']	= TRUE;
+$config['sess_table_name']		= 'ci_session';
 $config['sess_match_ip']		= FALSE;
-$config['sess_match_useragent']	= TRUE;
+$config['sess_match_useragent']	= FALSE;
 $config['sess_time_to_update'] 	= 300;
 
 /*
