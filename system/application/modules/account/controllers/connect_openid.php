@@ -18,6 +18,11 @@ class Connect_openid extends Controller {
         $this->load->library(array('account/authentication'));
 		$this->load->model(array('account/account_model', 'account_openid_model'));
 		$this->load->language(array('general', 'account/sign_in', 'account/account_linked', 'account/connect_third_party'));
+		
+		// by slavko - enable GET
+		$query_string = substr(strrchr($_SERVER['REQUEST_URI'], "?"), 1);
+		parse_str($query_string, $_GET);
+		$_SERVER['QUERY_STRING'] = $query_string;
 	}
 	
 	function index()
@@ -41,10 +46,9 @@ class Connect_openid extends Controller {
 		{
 			// Complete authentication process using server response
 			$response = $consumer->complete(site_url('account/connect_openid'));
-			
 			// Check the response status
 			if ($response->status == Auth_OpenID_SUCCESS) 
-			{
+			{			
 				// Check if user has connect the openid to a3m
 				if ($user = $this->account_openid_model->get_by_openid($response->getDisplayIdentifier()))
 				{

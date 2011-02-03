@@ -94,12 +94,20 @@ body {
 	background-position: -178px -71px;
 }
 
-#login_form {
+.account_area {
 	position: absolute;
 	top: 1em;
 	right: 4em;
-	text-align: right;
 	font: 13px Verdana, Arial, Sans-serif;
+	text-align: right;
+}
+
+.signed_in_controls {
+	margin: 1em 0;
+}
+
+.welcome_message {
+	margin: 0 0.5em;	
 }
 
 .form_contents {

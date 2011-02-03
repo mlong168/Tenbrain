@@ -28,7 +28,7 @@ $config['sign_up_auto_sign_in'] 				= TRUE;
 | Sign Out
 |--------------------------------------------------------------------------
 */
-$config['sign_out_view_enabled'] 				= TRUE;
+$config['sign_out_view_enabled'] 				= FALSE;
 
 /*
 |--------------------------------------------------------------------------
@@ -59,7 +59,7 @@ $config['openid_what_is_url'] 					= 'http://openidexplained.com/';
 */
 $config['password_reset_expiration'] 			= 1800;
 $config['password_reset_secret'] 				= '';
-$config['password_reset_email'] 				= 'no-reply@a3m.mushmellow.com';
+$config['password_reset_email'] 				= 'admin@tenbrain.com';
 
 		
 /* End of file account.php */

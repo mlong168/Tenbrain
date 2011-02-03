@@ -7,13 +7,26 @@ h2, h3 {
 	margin: 0 auto;
 }
 
-.signup_form {
-	width: 300px;
+.account_form {
 	margin: 0 auto;
 }
+.account_form.signup{ width: 300px; }
+.account_form.signin{ width: 400px; }
 
 .input_wrapper {
 	text-align: right;
+}
+
+.input_wrapper.center {
+	text-align: center;
+}
+
+.input_wrapper.left {
+	text-align: left;
+}
+
+.account_error {
+	color: red;
 }
 
 .form_input {
@@ -24,4 +37,8 @@ h2, h3 {
 	list-style-type: none;
 	width: 300px;
 	margin: 0 auto;
+}
+
+.openid {
+	width: 90%;
 }

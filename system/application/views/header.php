@@ -21,18 +21,29 @@
 <div id="header">
 	<a href="<?php echo base_url() ?>" id="logo">Home</a>
 	<span class="title">| Save your Brain, While saving Money! |</span>
-		<form id="login_form" action="<?php echo base_url() . 'account/sign_up' ?>" method="post">
+	
+	<div class="account_area">
+	<?php if($this->authentication->is_signed_in()): ?>
+		<div class="signed_in_controls">
+			<span class="welcome_message">Welcome, <?php echo $this->user->username ?>!</span><br />
+			<a class="register" href="/account/sign_out">Sign out</a>
+			<a class="register" href="/account/profile">Profile</a>
+		</div>
+	<?php else: ?>
+		<?php echo form_open('/account/sign_in', array('id'	=> 'login_form')) ?>
 			<p class="form_contents">
-				<label for="username" class="login_label">Username</label>
-				<input id="username" class="control input" name="username" type="text" size="25" />
+				<label for="username" class="login_label">Username/Email</label>
+				<input id="username" name="sign_in_username_email" class="control input" name="username" type="text" size="25" />
 			</p>
 			<p class="form_contents">
 				<label for="password" class="login_label">Password</label>
-				<input id="password" class="control input" name="password" type="password" size="25" />
+				<input id="password" name="sign_in_password" class="control input" name="password" type="password" size="25" />
 			</p>
 			<p class="form_contents">
 				<a class="register" href="/account/sign_up">Register</a>
 				<input type="submit" class="login_submit" value="Log in" />
 			</p>
-		</form>
+		<?php echo form_close() ?>
+	<?php endif; ?>
+	</div>
 </div>

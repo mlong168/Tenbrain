@@ -9,8 +9,7 @@
 	<div class="reg_form">
 		<h2><?php echo lang('sign_up_page_name') ?></h2>
 		<h3><?php echo lang('sign_up_heading'); ?></h3>
-		<?php echo form_open(uri_string(), array('class' => 'signup_form')); ?>
-			
+		<?php echo form_open(uri_string(), array('class' => 'account_form signup')); ?>			
 			<p class="input_wrapper">
 				<?php echo form_label(lang('sign_up_username'), 'sign_up_username'); ?>
 				<?php echo form_input(array(
@@ -20,9 +19,9 @@
 						'value'		=> set_value('sign_up_username'),
 						'maxlength'	=> '24'
 					)); ?>
-				<?php echo form_error('sign_up_username'); ?>
+				<p class="input_wrapper center account_error"><?php echo form_error('sign_up_username'); ?></p>
 				<?php if (isset($sign_up_username_error)) : ?>
-				<span class="field_error"><?php echo $sign_up_username_error; ?></span>
+				<p class="input_wrapper center account_error"><?php echo $sign_up_username_error; ?></p>
 				<?php endif; ?>
 			</p>
 			<p class="input_wrapper">
@@ -33,7 +32,7 @@
 						'class'		=> 'control input',
 						'value' => set_value('sign_up_password')
 					)); ?>
-				<?php echo form_error('sign_up_password'); ?>
+				<p class="input_wrapper center account_error"><?php echo form_error('sign_up_password'); ?></p>
 			</p>
 			<p class="input_wrapper">
 				<?php echo form_label(lang('sign_up_email'), 'sign_up_email'); ?>
@@ -44,9 +43,9 @@
 						'value' => set_value('sign_up_email'),
 						'maxlength' => '160'
 					)); ?>
-				<?php echo form_error('sign_up_email'); ?>
+				<p class="input_wrapper center account_error"><?php echo form_error('sign_up_email'); ?></p>
 				<?php if (isset($sign_up_email_error)) : ?>
-				<span class="field_error"><?php echo $sign_up_email_error; ?></span>
+				<p class="input_wrapper center account_error"><?php echo $sign_up_email_error; ?></p>
 				<?php endif; ?>
 			</p>
 			
@@ -56,9 +55,7 @@
 				</p>
 				
 				<?php if (isset($sign_up_recaptcha_error)) : ?>
-				<p class="input_wrapper">
-					<span class="field_error"><?php echo $sign_up_recaptcha_error; ?></span>
-				</p>
+				<p class="input_wrapper center account_error"><?php echo $sign_up_recaptcha_error; ?></p>
 				<?php endif; ?>			
 			<?php endif; ?>
 			
@@ -71,7 +68,7 @@
 			</p>
 			
 		<?php echo form_close(); ?>
-		<p class="input_wrapper">
+		<p class="input_wrapper center">
 			<?php echo lang('sign_up_already_have_account'); ?>
 			<?php echo anchor('account/sign_in', lang('sign_up_sign_in_now'), array('class' => 'register')); ?>
 		</p>
