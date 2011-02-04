@@ -31,7 +31,7 @@ class Facebook_lib {
 		));
 		
 		// Check for Facebook session
-		if ($this->fb->getSession()) 
+		if ($this->fb->getSession())
 		{
 			try 
 			{

@@ -326,5 +326,18 @@ $config['rewrite_short_tags'] = FALSE;
 $config['proxy_ips'] = '';
 
 
+
+/*
+|--------------------------------------------------------------------------
+| Config item from a3m auth library
+| Moved here because of the need of it's use in all of the pages (list of providers must be vieved in login area)
+|--------------------------------------------------------------------------
+|
+| represents the selection of available third party authentication providers
+|
+*/
+$config['third_party_auth_providers'] 			= array('facebook', 'twitter', 'google', 'openid');
+
+
 /* End of file config.php */
 /* Location: ./system/application/config/config.php */

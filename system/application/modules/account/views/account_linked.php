@@ -1,17 +1,12 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-<title><?php echo lang('linked_page_name'); ?></title>
-<base href="<?php echo base_url(); ?>" />
-<link rel="shortcut icon" href="<?php echo base_url(); ?>favicon.ico" />
-<link type="text/css" rel="stylesheet" href="resource/app/css/960gs.css" />
-<link type="text/css" rel="stylesheet" href="resource/app/css/style.css" />
-</head>
-<body class="account_linked">
-<?php echo $this->load->view('header'); ?>
+<?php
+	$this->load->view('header', array(
+		'title'		=> 'Welcome',
+		'styles'	=> array('main', 'account'),
+		'scripts'	=> array('jquery-1.4.4.min', 'jquery-ui-1.8.9.custom.min', 'main'),
+	));
+?>
+<div class="main big_content">
 <?php echo $this->load->view('account/account_menu'); ?>
-<div class="container_12">
 	<div class="grid_12">
 		<h2><?php echo lang('linked_page_name'); ?></h2>
 	</div>
@@ -106,20 +101,24 @@
             <?php endif; ?>
         <?php endif; ?>
 	</div>
-    <div class="prefix_1 grid_5">
-        <h3><?php echo lang('linked_link_with_your_account_from'); ?></h3>
-		<?php if ($this->session->flashdata('linked_error')) : ?>
-        <div class="form_error"><?php echo $this->session->flashdata('linked_error'); ?></div>
-        <?php endif; ?>
-        <ul class="third_party">
-            <?php foreach($this->config->item('third_party_auth_providers') as $provider) : ?>
-            <li class="third_party <?php echo $provider; ?>"><?php echo anchor('account/connect_'.$provider, lang('connect_'.$provider), 
-                array('title'=>sprintf(lang('connect_with_x'), lang('connect_'.$provider)))); ?></li>
-            <?php endforeach; ?>
-        </ul>
-	</div>
-	<div class="clear"></div>
+	<h3><?php echo lang('linked_link_with_your_account_from'); ?></h3>
+	<?php if ($this->session->flashdata('linked_error')) : ?>
+	<div class="form_error"><?php echo $this->session->flashdata('linked_error'); ?></div>
+	<?php endif; ?>
+	<ul class="third_parties">
+		<?php foreach($this->config->item('third_party_auth_providers') as $provider) : ?>
+		<li class="control third_party big <?php echo $provider; ?>">
+			<?php echo anchor('account/connect_'.$provider,
+				lang('connect_'.$provider), 
+				array(
+					'title'	=> sprintf(lang('connect_with_x'), lang('connect_'.$provider)),
+					'class'	=> 'social'
+				)
+			); ?>
+		</li>
+		<?php endforeach; ?>
+	</ul>
+	<div class="clearfix"></div>
 </div>
+<?php echo $this->load->view('help'); ?>
 <?php echo $this->load->view('footer'); ?>
-</body>
-</html>

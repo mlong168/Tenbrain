@@ -3,7 +3,6 @@
 class Selection extends Controller {
 
 	private $_variants;
-	public $user;
 	
 	function __construct()
 	{
@@ -13,11 +12,6 @@ class Selection extends Controller {
         $this->load->library(array('account/authentication'));
 		$this->load->model(array('account/account_model'));
 		$this->lang->load(array('general'));
-				
-		if($this->authentication->is_signed_in())
-		{
-			$this->user = $this->account_model->get_by_id($this->session->userdata('account_id'));
-		}
 		
 		$this->_variants = array(
 			'tenstack'		=> array(
@@ -120,7 +114,6 @@ class Selection extends Controller {
 		
 		$type = 'tenstack';
 		$this->load->view('selection', array(
-			'user'			=> $this->user,
 			'type'			=> $type,
 			'next'			=> 'selection/deployment',
 			'selections'	=> $this->_variants[$type]

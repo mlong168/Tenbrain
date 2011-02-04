@@ -31,7 +31,7 @@
 				<?php echo form_input(array(
 						'name' => 'connect_openid_url',
 						'id' => 'connect_openid_url',
-						'class' => 'openid',
+						'class' => 'openid_url',
 						'value' => set_value('connect_openid_url')
 					)); ?>
 				<p class="input_wrapper center account_error"><?php echo form_error('connect_openid_url'); ?></p>

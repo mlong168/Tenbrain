@@ -12,7 +12,7 @@ $config['ssl_enabled'] 							= FALSE;
 | Sign In
 |--------------------------------------------------------------------------
 */
-$config['sign_in_recaptcha_enabled'] 			= FALSE;
+$config['sign_in_recaptcha_enabled'] 			= TRUE;
 $config['sign_in_recaptcha_offset'] 			= 3;
 
 /*
@@ -44,7 +44,7 @@ $config['openid_yahoo_discovery_endpoint'] 		= 'http://www.yahoo.com/';
 | Third Party Auth
 |--------------------------------------------------------------------------
 */
-$config['third_party_auth_providers'] 			= array('facebook', 'twitter', 'google', 'yahoo', 'openid');
+// $config['third_party_auth_providers'] 			= array('facebook', 'twitter', 'google', 'openid');
 $config['openid_what_is_url'] 					= 'http://openidexplained.com/';
 
 /*

@@ -17,6 +17,11 @@ class Reset_password extends Controller {
         $this->load->library(array('account/authentication', 'account/recaptcha', 'form_validation'));
 		$this->load->model(array('account/account_model'));
 		$this->load->language(array('general', 'account/reset_password'));
+		
+		// by slavko - enable GET
+		$query_string = substr(strrchr($_SERVER['REQUEST_URI'], "?"), 1);
+		parse_str($query_string, $_GET);
+		$_SERVER['QUERY_STRING'] = $query_string;
 	}
 	
 	/**

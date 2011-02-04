@@ -17,6 +17,11 @@ class Connect_twitter extends Controller {
         $this->load->library(array('account/authentication', 'account/twitter_lib'));
 		$this->load->model(array('account/account_model', 'account_twitter_model'));
 		$this->load->language(array('general', 'account/sign_in', 'account/account_linked', 'account/connect_third_party'));
+		
+		// by slavko - enable GET
+		$query_string = substr(strrchr($_SERVER['REQUEST_URI'], "?"), 1);
+		parse_str($query_string, $_GET);
+		$_SERVER['QUERY_STRING'] = $query_string;
 	}
 	
 	function index()
