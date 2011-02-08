@@ -61,7 +61,7 @@ class Authentication {
 			redirect($this->CI->input->get('continue')); 
 		}
 		
-		redirect('');
+		redirect('/control_panel');
 	}
 	
 	// --------------------------------------------------------------------

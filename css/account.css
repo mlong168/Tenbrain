@@ -19,12 +19,8 @@ h2, h3 {
 	margin: 1em 0 0.2em 0;
 }
 
-.input_wrapper.center {
+.center {
 	text-align: center;
-}
-
-.input_wrapper.left {
-	text-align: left;
 }
 
 .account_error {
@@ -104,11 +100,6 @@ h2, h3 {
 	width: 90%;
 }
 
-.account_menu {
-	list-atyle-type: none;
-	text-align: center;
-}
-.account_menu li {
-	display: inline-block;
-	margin: 0 1em;
+.profile_content {
+	margin: 1em 2em;
 }

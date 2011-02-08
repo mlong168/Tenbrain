@@ -5,6 +5,11 @@ class Miscellaneous extends Controller {
 	function __construct()
 	{
 		parent::Controller();
+		
+		$this->load->helper(array('language'));
+        $this->load->library(array('account/authentication'));
+		$this->load->model(array('account/account_model'));
+		$this->lang->load(array('general'));
 	}
 	
 	function index()

@@ -1,63 +1,50 @@
-<?php
-	$this->load->view('header', array(
-		'title'		=> 'Welcome',
-		'styles'	=> array('main', 'account'),
-		'scripts'	=> array('jquery-1.4.4.min', 'jquery-ui-1.8.9.custom.min', 'main'),
-	));
-?>
-<div class="main big_content">
-<?php echo $this->load->view('account/account_menu'); ?>
-	<div class="grid_12">
-		<h2><?php echo lang('password_page_name'); ?></h2>
-	</div>
-	<div class="clear"></div>
-	<div class="grid_12">
-		<?php echo form_open(uri_string()); ?>
-		<?php echo form_fieldset(); ?>
-		<?php if ($this->session->flashdata('password_info')) : ?>
-		<div class="grid_8 alpha">
-			<div class="form_info"><?php echo $this->session->flashdata('password_info'); ?></div>
-		</div>
-		<div class="clear"></div>
-		<?php endif; ?>
-		<?php echo lang('password_safe_guard_your_account'); ?>
-		<div class="grid_2 alpha">
-			<?php echo form_label(lang('password_new_password'), 'password_new_password'); ?>
-		</div>
-		<div class="grid_6 omega">
-			<?php echo form_password(array(
-					'name' => 'password_new_password',
-					'id' => 'password_new_password',
-					'value' => set_value('password_new_password'),
-					'autocomplete' => 'off'
-				)); ?>
-			<?php echo form_error('password_new_password'); ?>
-		</div>
-		<div class="clear"></div>
-		<div class="grid_2 alpha">
-			<?php echo form_label(lang('password_retype_new_password'), 'password_retype_new_password'); ?>
-		</div>
-		<div class="grid_6 omega">
-			<?php echo form_password(array(
-					'name' => 'password_retype_new_password',
-					'id' => 'password_retype_new_password',
-					'value' => set_value('password_retype_new_password'),
-					'autocomplete' => 'off'
-				)); ?>
-			<?php echo form_error('password_retype_new_password'); ?>
-		</div>
-		<div class="clear"></div>
-		<div class="prefix_2 grid_6 alpha">
-			<?php echo form_button(array(
-					'type' => 'submit',
-					'class' => 'button',
-					'content' => lang('password_change_my_password')
-				)); ?>
-		</div>
-		<?php echo form_fieldset_close(); ?>
-		<?php echo form_close(); ?>
-	</div>
-	<div class="clear"></div>
+<?php echo doctype('xhtml1-trans') ?>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>TenBrain - Save your Brain, While saving Money! - Profile</title>
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url() ?>css/main.css" />
+	<link rel="stylesheet" type="text/css" href="<?php echo base_url() ?>css/account.css" />
+</head>
+<body>
+
+<div class="profile_content">
+	<h2><?php echo lang('password_page_name'); ?></h2><br />
+	<?php echo form_open(uri_string()); ?>
+	
+	<?php if ($this->session->flashdata('password_info')) : ?>
+		<p<?php echo $this->session->flashdata('password_info'); ?></p>
+	<?php endif; ?>
+	
+	<?php echo lang('password_safe_guard_your_account'); ?>
+	<p class="input_wrapper center">
+		<?php echo form_label(lang('password_new_password'), 'password_new_password'); ?>:
+		<?php echo form_password(array(
+				'name' => 'password_new_password',
+				'id' => 'password_new_password',
+				'value' => set_value('password_new_password'),
+				'autocomplete' => 'off'
+			)); ?>
+		<p class="input_wrapper center account_error"><?php echo form_error('password_new_password'); ?></p>
+	</p>
+	<p class="input_wrapper center">
+		<?php echo form_label(lang('password_retype_new_password'), 'password_retype_new_password'); ?>
+		<?php echo form_password(array(
+				'name' => 'password_retype_new_password',
+				'id' => 'password_retype_new_password',
+				'value' => set_value('password_retype_new_password'),
+				'autocomplete' => 'off'
+			)); ?>
+		<p class="input_wrapper center account_error"><?php echo form_error('password_retype_new_password'); ?></p>
+	</p>
+	<p class="input_wrapper center">
+		<?php echo form_button(array(
+				'type' => 'submit',
+				'class' => 'login_submit',
+				'content' => lang('password_change_my_password')
+			)); ?>
+	</p>
+	<?php echo form_close(); ?>
 </div>
-<?php echo $this->load->view('help'); ?>
-<?php echo $this->load->view('footer'); ?>
+
+</body></html>
