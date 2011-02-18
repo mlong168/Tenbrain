@@ -23,20 +23,83 @@ html, body {
 #logo {
 	display: inline-block;
 	margin-top: 1.1em;
-/* 	width: 256px;
+	width: 256px;
 	height: 69px;
-	background: url('/css/images/logo1-19.png') no-repeat; */
-	width: 243px;
+	background: url('/css/images/logo1-19.png') no-repeat;
+	/* width: 243px;
 	height: 46px;
-	background: url('/css/images/logo2-19.png') no-repeat;
+	background: url('/css/images/logo2-19.png') no-repeat; */
 	text-indent: -9999px;
 	vertical-align: middle;
 	outline: none;
 }
 
-.account_area {
+#account_area {
+	position: absolute;
+	top: 2em;
+	right: 0;
+}
+
+#top_account_buttons {
+	padding: 2px 0;
+}
+
+#signin_opener {
+	cursor: pointer;
+	position: relative;
+	z-index: 11;
+	-moz-user-select: none;
+	-webkit-user-select: none;
+	user-select: none;	
+}
+#signin_opener.active {
+	background: transparent;
+	/* color: #1A9ED9; */
+	color: #fff;
+}
+
+#signin_controls {
+	display: none;
+	position: absolute;
+	right: 0;
+	top: 0;
+	z-index: 10;
+	width: 200px;
+	padding: 10px;
+	padding-top: 20px;
+	/* background: #ECECEC; */
+	background: #25B4E8;
+	border: none;
+}
+
+#signin_controls p, #signin_controls label {
+	/* color: #1A9ED9; */
+	color: #fff;
+}
+
+#sign_in {
 	float: right;
-	text-align: right;
+	background: #fff;
+	color: #25B4E8;
+	opacity: 0.7;
+}
+#sign_in:hover {
+	opacity: 1;
+}
+
+.signin_control {
+	width: 184px;
+	/* border: 1px solid #1A9ED9; */
+	border: none;
+	background: #fff;
+	padding: 0.2em 0.5em;
+	-moz-border-radius: 1em;
+	-webkit-border-radius: 1em;
+	border-radius: 1em;
+}
+
+.third_party_header {
+	font-size: 12px;
 }
 
 #footer_icon_hider {
@@ -86,6 +149,10 @@ html, body {
 #copyright .copyright {
 	font: 12px Arial, Verdana, Sans-Serif;
 	color: white;
+}
+
+#login_form {
+	display: none;
 }
 
 .title {
@@ -171,10 +238,20 @@ html, body {
 	margin: 0.5em 0;
 	padding: 0;
 }
+.form_contents.right {
+	text-align: right;
+}
+.form_contents.centered {
+	text-align: center;
+}
+.form_contents.small {
+	margin: 0;
+	font-size: 10px;
+}
 
 .underlined_dash {
 	border: none;
-	border-bottom: 2px dashed #009CDC;
+	border-bottom: 1px dashed #009CDC;
 	display: inline-block;
 	padding: 0 0.1em 0.1em;
 	margin: 0 0.5em;
@@ -191,11 +268,11 @@ html, body {
 }
 
 .login_submit {
-	background: #1A9ED9;
+	background: #25B4E8;
 	color: #fff;
 	border: none;
 	font-weight: bold;
-	padding: 0.2em 0.4em;
+	padding: 0.1em 0.4em 0.2em;
 }
 
 .control.input {
@@ -356,12 +433,12 @@ html, body {
 }
 
 .overlay.back {
-	z-index: 10;
+	z-index: 100;
 	background: #000;
 }
 
 .overlay.front {
-	z-index: 11;
+	z-index: 101;
 	background: #fff;
 	margin: 5em 20%;
 	padding: 2em;

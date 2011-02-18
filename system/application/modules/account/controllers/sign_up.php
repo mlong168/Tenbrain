@@ -16,7 +16,7 @@ class Sign_up extends Controller {
 		$this->load->helper(array('language', 'account/ssl', 'url'));
         $this->load->library(array('account/authentication', 'account/recaptcha', 'form_validation'));
 		$this->load->model(array('account/account_model', 'account/account_details_model'));
-		$this->load->language(array('general', 'account/sign_up', 'account/connect_third_party'));
+		$this->load->language(array('general', 'account/sign_up', 'account/connect_third_party', 'account/email_validate'));
 	}
 	
 	/**
@@ -75,6 +75,19 @@ class Sign_up extends Controller {
 				
 				// Add user details (auto detected country, language, timezone)
 				$this->account_details_model->update($user_id);
+				
+				$account = $this->account_model->get_by_id($user_id);
+				
+				// send the welcome email
+				$this->load->library('email');
+				$email_validate_url = site_url('account/validate_email?id='.$account->id.'&token='.sha1($account->id.$this->config->item('password_reset_secret')));
+				
+				// Send validation email
+				$this->email->from($this->config->item('password_reset_email'), lang('validate_email_sender'));
+				$this->email->to($account->email);
+				$this->email->subject(lang('welcome_email_subject'));
+				$this->email->message($this->load->view('email_validate', array('username' => $account->username, 'email_validate_url' => anchor($email_validate_url, $email_validate_url)), TRUE));
+				@$this->email->send();
 				
 				// Auto sign in?
 				if ($this->config->item("sign_up_auto_sign_in"))

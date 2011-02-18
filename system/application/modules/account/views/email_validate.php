@@ -1,0 +1,1 @@
+<?php echo sprintf(lang('validate_email_text'), $username, $email_validate_url); ?>

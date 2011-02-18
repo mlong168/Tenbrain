@@ -65,16 +65,16 @@ h2, h3 {
 .third_party.small {
 	width: 26px;
 	height: 26px;
-	margin-left: 0.5em;
+	margin-right: 20px;
 }
-.third_party.small.facebook { background-position: 0 -318px; }
-/* .third_party.small.facebook:hover { background-position: 0 -318px; } */
-.third_party.small.twitter { background-position: -31px -318px; }
-/* .third_party.small.twitter:hover { background-position: -30px -318px; } */
-.third_party.small.openid { background-position: -63px -318px; }
-/* .third_party.small.openid:hover { background-position: -110px -318px; } */
-.third_party.small.google { background-position: -94px -318px; }
-/* .third_party.small.google:hover { background-position: -165px -318px; } */
+.third_party.small.facebook { background-position: 0 -312px; }
+.third_party.small.facebook:hover { background-position: 0 -343px; }
+.third_party.small.twitter { background-position: -31px -312px; }
+.third_party.small.twitter:hover { background-position: -31px -343px; }
+.third_party.small.openid { background-position: -63px -312px; }
+.third_party.small.openid:hover { background-position: -63px -343px; }
+.third_party.small.google { background-position: -94px -312px; }
+.third_party.small.google:hover { background-position: -94px -343px; }
 
 .third_party .social {
 	display: block;
@@ -87,14 +87,10 @@ h2, h3 {
 }
 
 .signin_social {
-	display: inline-block;
-	vertical-align: middle;
 	list-style-type: none;
 	margin: 0;
 	padding: 0;
 }
-
-.third_party_header { vertical-align: middle; }
 
 .openid_url {
 	width: 90%;
@@ -102,4 +98,13 @@ h2, h3 {
 
 .profile_content {
 	margin: 1em 2em;
+}
+
+#footnote {
+	position: absolute;
+	text-align: center;
+}
+
+#details-panel p, #details-panel h2 {
+	padding: 0.5em;
 }

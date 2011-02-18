@@ -60,4 +60,29 @@ $(function(){
 			}
 		});
 	})();
+	
+	(function(){
+		var signin_button = $('#signin_opener'),
+			signin_form = $('#signin_controls'),
+			mouse_inside = false;
+		signin_button.add(signin_form).hover(function(){
+			mouse_inside = true;
+		}, function(){
+			mouse_inside = false;
+		});
+		
+		signin_button.click(function(){
+			signin_form.toggle();
+			signin_button.toggleClass('active');
+		});
+		
+		$(document).click(function(){
+			if(!mouse_inside)
+			{
+				signin_form.hide();
+				signin_button.removeClass('active');
+			}
+		})
+		
+	})();
 });

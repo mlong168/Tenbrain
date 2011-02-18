@@ -251,6 +251,18 @@ class Account_model extends Model {
 		$this->db->update('a3m_account', array('suspendedon' => NULL), array('id' => $account_id));
 	}
 	
+	/**
+	 * Verify user email
+	 *
+	 * @access public
+	 * @param int $account_id
+	 * @return void
+	 */
+	function set_verifiedon($account_id)
+	{
+		$this->db->update('a3m_account', array('verifiedon' => mdate('%Y-%m-%d %H:%i:%s', now())), array('id' => $account_id));
+	}
+	
 }
 
 

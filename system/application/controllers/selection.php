@@ -17,29 +17,29 @@ class Selection extends Controller {
 			'tenstack'		=> array(
 				'business'	=> array(
 					'type'		=> 'big',
-					'disabled'	=> false,
-					'text'		=> 'Business<br />Application'
+					'disabled'	=> true,
+					'text'		=> 'Business<br />Stack'
 				),
 				'enterprise'=>  array(
 					'type'		=> 'big',
-					'disabled'	=> false,
-					'text'		=> 'Enterprise<br />Application'
+					'disabled'	=> true,
+					'text'		=> 'Enterprise<br />Stack'
 				),
 				'web'		=>  array(
 					'type'		=> 'big',
 					'disabled'	=> false,
-					'text'		=> 'Web<br />Application'
+					'text'		=> 'UC<br />Stack'
 				)
 			),
 			'deployment'	=> array(
 				'desktop'	=>  array(
 					'type'		=> 'big',
-					'disabled'	=> false,
+					'disabled'	=> true,
 					'text'		=> 'Desktop<br />Deployment'
 				),
 				'enterprise'=> array(
 					'type'		=> 'big',
-					'disabled'	=> false,
+					'disabled'	=> true,
 					'text'		=> 'Enterprise<br />Deployment'
 				),
 				'cloud'		=> array(
@@ -56,29 +56,29 @@ class Selection extends Controller {
 				),
 				'windows'	=> array(
 					'type'		=> 'small',
-					'disabled'	=> false,
+					'disabled'	=> true,
 					'text'		=> 'Windows'
 				),
 				'mac'		=> array(
 					'type'		=> 'small',
-					'disabled'	=> false,
+					'disabled'	=> true,
 					'text'		=> 'Mac'
 				)
 			),
 			'vm'			=> array(
 				'vmware'	=> array(
 					'type'		=> 'small',
-					'disabled'	=> false,
+					'disabled'	=> true,
 					'text'		=> 'Vmware'
 				),
 				'citrix'	=> array(
 					'type'		=> 'small',
-					'disabled'	=> false,
+					'disabled'	=> true,
 					'text'		=> 'Citrix Xen'
 				),
 				'kvm'		=> array(
 					'type'		=> 'small',
-					'disabled'	=> false,
+					'disabled'	=> true,
 					'text'		=> 'Kvm'
 				)
 			),
