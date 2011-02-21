@@ -14,7 +14,7 @@
 	<a href="/" id="logo">Home</a>
 	<div id="account_area">
 		<div class="signed_in_controls">
-			<span class="welcome_message">Welcome, slavko!</span>
+			<span class="welcome_message">Welcome, <?php echo $this->account_model->get_by_id($this->session->userdata('account_id'))->username ?>!</span>
 			<a class="blue underlined_dash" href="/account/sign_out">Sign out</a>
 		</div>
 	</div>
@@ -28,11 +28,6 @@
 	
 	<div id="running_instances-details">
 		<h2>Your running instances</h2>
-		<p>This page shows the instances you deployed.</p>
-	</div>
-	
-	<div id="pending_instances-details">
-		<h2>Instances that pending to be launched</h2>
 		<p>This page shows the instances you deployed.</p>
 	</div>
 	

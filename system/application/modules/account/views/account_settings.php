@@ -21,46 +21,46 @@
 	<div class="input_wrapper center">
 		<?php echo form_label(lang('settings_email'), 'settings_email'); ?>
 		<?php echo form_input(array(
-				'name' => 'settings_email',
-				'id' => 'settings_email',
-				'value' => set_value('settings_email') ? set_value('settings_email') : (isset($account->email) ? $account->email : ''),
-				'maxlength' => 160
+				'name'		=> 'settings_email',
+				'id'		=> 'settings_email',
+				'value'		=> set_value('settings_email') ? set_value('settings_email') : (isset($account->email) ? $account->email : ''),
+				'maxlength'	=> 160
 			)); ?>
 		<p class="input_wrapper center account_error">
 		<?php echo form_error('settings_email'); ?>
 		<?php if (isset($settings_email_error)) : ?>
 		<span class="field_error"><?php echo $settings_email_error; ?></span>
 		<?php endif; ?>
-		<p>
+		</p>
 	</div>
 	
 	<div class="input_wrapper center">
 		<?php echo form_label(lang('settings_fullname'), 'settings_fullname'); ?>
 		<?php echo form_input(array(
-				'name' => 'settings_fullname',
-				'id' => 'settings_fullname',
-				'value' => set_value('settings_fullname') ? set_value('settings_fullname') : (isset($account_details->fullname) ? $account_details->fullname : ''),
-				'maxlength' => 160
+				'name'		=> 'settings_fullname',
+				'id'		=> 'settings_fullname',
+				'value'		=> set_value('settings_fullname') ? set_value('settings_fullname') : (isset($account_details->fullname) ? $account_details->fullname : ''),
+				'maxlength'	=> 160
 			)); ?>
 		<p class="input_wrapper center account_error"><?php echo form_error('settings_fullname'); ?></p>
 	</div>
 	<div class="input_wrapper center">
 		<?php echo form_label(lang('settings_firstname'), 'settings_firstname'); ?>
 		<?php echo form_input(array(
-				'name' => 'settings_firstname',
-				'id' => 'settings_firstname',
-				'value' => set_value('settings_firstname') ? set_value('settings_firstname') : (isset($account_details->firstname) ? $account_details->firstname : ''),
-				'maxlength' => 80
+				'name'		=> 'settings_firstname',
+				'id'		=> 'settings_firstname',
+				'value'		=> set_value('settings_firstname') ? set_value('settings_firstname') : (isset($account_details->firstname) ? $account_details->firstname : ''),
+				'maxlength'	=> 80
 			)); ?>
 		<p class="input_wrapper center account_error"><?php echo form_error('settings_firstname'); ?></p>
 	</div>
 	<div class="input_wrapper center">
 		<?php echo form_label(lang('settings_lastname'), 'settings_lastname'); ?>
 		<?php echo form_input(array(
-				'name' => 'settings_lastname',
-				'id' => 'settings_lastname',
-				'value' => set_value('settings_lastname') ? set_value('settings_lastname') : (isset($account_details->lastname) ? $account_details->lastname : ''),
-				'maxlength' => 80
+				'name'		=> 'settings_lastname',
+				'id'		=> 'settings_lastname',
+				'value'		=> set_value('settings_lastname') ? set_value('settings_lastname') : (isset($account_details->lastname) ? $account_details->lastname : ''),
+				'maxlength'	=> 80
 			)); ?>
 		<p class="input_wrapper center account_error"><?php echo form_error('settings_lastname'); ?></p>
 	</div>
@@ -114,10 +114,10 @@
 	<div class="input_wrapper center">
 		<?php echo form_label(lang('settings_postalcode'), 'settings_postalcode'); ?>
 		<?php echo form_input(array(
-				'name' => 'settings_postalcode',
-				'id' => 'settings_postalcode',
-				'value' => set_value('settings_postalcode') ? set_value('settings_postalcode') : (isset($account_details->postalcode) ? $account_details->postalcode : ''),
-				'maxlength' => 40
+				'name'		=> 'settings_postalcode',
+				'id'		=> 'settings_postalcode',
+				'value'		=> set_value('settings_postalcode') ? set_value('settings_postalcode') : (isset($account_details->postalcode) ? $account_details->postalcode : ''),
+				'maxlength'	=> 40
 			)); ?>
 		<p class="input_wrapper center account_error"><?php echo form_error('settings_postalcode'); ?></p>
 	</div>
@@ -159,10 +159,11 @@
 	</div>
 	<p class="input_wrapper center">
 		<?php echo form_button(array(
-				'type' => 'submit',
-				'class' => 'login_submit',
-				'content' => lang('settings_save')
-			)); ?>
+			'name'		=> 'submit',
+			'type'	=> 'submit',
+			'class'	=> 'login_submit',
+			'content'	=> lang('settings_save')
+		)); ?>
 	</p>
 	<?php echo form_close(); ?>
 </div>

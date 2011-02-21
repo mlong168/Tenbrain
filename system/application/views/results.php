@@ -22,7 +22,7 @@
 	
 	<div class="confirm_dialogue">
 		<a class="control reject_button small" href="<?php echo base_url() ?>">Change this</a>
-		<a class="control selection_button small">Confirm</a>
+		<a class="control selection_button small" href="/selection/confirm">Confirm</a>
 	</div>
 	
 	<div class="clearfix"></div>

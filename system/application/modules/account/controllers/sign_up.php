@@ -16,7 +16,7 @@ class Sign_up extends Controller {
 		$this->load->helper(array('language', 'account/ssl', 'url'));
         $this->load->library(array('account/authentication', 'account/recaptcha', 'form_validation'));
 		$this->load->model(array('account/account_model', 'account/account_details_model'));
-		$this->load->language(array('general', 'account/sign_up', 'account/connect_third_party', 'account/email_validate'));
+		$this->load->language(array('general', 'account/sign_up', 'account/connect_third_party', 'account/welcome_email'));
 	}
 	
 	/**
@@ -80,13 +80,16 @@ class Sign_up extends Controller {
 				
 				// send the welcome email
 				$this->load->library('email');
-				$email_validate_url = site_url('account/validate_email?id='.$account->id.'&token='.sha1($account->id.$this->config->item('password_reset_secret')));
+				$welcome_email_url = site_url('control_panel');
 				
 				// Send validation email
-				$this->email->from($this->config->item('password_reset_email'), lang('validate_email_sender'));
+				$this->email->from($this->config->item('password_reset_email'), lang('welcome_email_sender'));
 				$this->email->to($account->email);
 				$this->email->subject(lang('welcome_email_subject'));
-				$this->email->message($this->load->view('email_validate', array('username' => $account->username, 'email_validate_url' => anchor($email_validate_url, $email_validate_url)), TRUE));
+				$this->email->message($this->load->view('welcome_email', array(
+					'username'			=> $account->username,
+					'welcome_email_url'	=> anchor($welcome_email_url, $welcome_email_url)
+				), TRUE));
 				@$this->email->send();
 				
 				// Auto sign in?

@@ -20,10 +20,10 @@
 	<p class="input_wrapper center">
 		<?php echo form_label(lang('profile_username'), 'profile_username'); ?>
 		<?php echo form_input(array(
-				'name' => 'profile_username',
-				'id' => 'profile_username',
-				'value' => set_value('profile_username') ? set_value('profile_username') : (isset($account->username) ? $account->username : ''),
-				'maxlength' => '24'
+				'name'		=> 'profile_username',
+				'id'		=> 'profile_username',
+				'value'		=> set_value('profile_username') ? set_value('profile_username') : (isset($account->username) ? $account->username : ''),
+				'maxlength'	=> '24'
 			)); ?>
 		<?php echo form_error('profile_username'); ?>
 		<?php if (isset($profile_username_error)) : ?>
@@ -32,14 +32,15 @@
 	</p>
 	<div class="input_wrapper center">
 		<?php echo form_label(lang('profile_picture'), 'profile_picture'); ?>
-			<?php if (isset($account_details->picture)) : ?>
-			<img src="<?php echo $account_details->picture; ?>?t=<?php echo md5(time()); ?>" alt="" /> <?php echo anchor('account/account_profile/index/delete', lang('profile_delete_picture')); ?>
-			<?php else : ?>
-			<img src="resource/app/img/default-picture.gif" alt="" />
-			<?php endif; ?>
+		<?php if (isset($account_details->picture)) : ?>
+			<img id="profile_picture" src="<?php echo $account_details->picture; ?>?t=<?php echo md5(time()); ?>" alt="" /> <?php echo anchor('account/account_profile/index/delete', lang('profile_delete_picture')); ?>
+		<?php else : ?>
+			<img id="profile_picture" src="resource/app/img/default-picture.gif" alt="" />
+		<?php endif; ?>
+		
 		<?php echo form_upload(array(
-			'name' => 'account_picture_upload',
-			'id' => 'account_picture_upload'
+			'name'	=> 'account_picture_upload',
+			'id'	=> 'account_picture_upload'
 		)); ?>
 		<p><small><?php echo lang('profile_picture_guidelines'); ?></small></p>
 		<?php if (isset($profile_picture_error)) : ?>
@@ -48,10 +49,11 @@
 	</div>
 	<p class="input_wrapper center">
 		<?php echo form_button(array(
-				'type' => 'submit',
-				'class' => 'login_submit',
-				'content' => lang('profile_save')
-			)); ?>
+			'name'		=> 'submit',
+			'type'		=> 'submit',
+			'class'		=> 'login_submit',
+			'content'	=> lang('profile_save')
+		)); ?>
 	</p>
 	<?php echo form_close(); ?>
 </div>

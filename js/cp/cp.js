@@ -9,11 +9,11 @@ Ext.onReady(function(){
 		region: 'center',
 		layout: 'card',
 		margins: '2 5 5 0',
-		activeItem: 0,
+		activeItem: 5,
 		border: false,
 		items: [
 			// from cloud.js:
-			welcome, running_instances, pending_instances, terminated_instances, stopped_instances, available_images,
+			welcome, running_instances, terminated_instances, stopped_instances, available_images,
 			// from profile.js:
 			account_profile, account_settings, account_password, account_linked
 		]
@@ -34,7 +34,7 @@ Ext.onReady(function(){
         useArrows: true,
         
         loader: new Ext.tree.TreeLoader({
-            dataUrl:'js/cp/menu.json'
+            dataUrl:'/control_panel/menu'
         }),
         
         root: new Ext.tree.AsyncTreeNode()

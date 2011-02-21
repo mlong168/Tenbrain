@@ -1,13 +1,8 @@
 [{
     text:'Instances Management',
-    expanded: true,
     children:[{
         text:'Running Instances',
         id:'running_instances',
-        leaf: true
-    }, {
-        text:'Pending Instances',
-        id:'pending_instances',
         leaf: true
     }, {
         text:'Stopped instances',
@@ -20,6 +15,7 @@
     }]
 }, {
     text:'Available Images',
+    expanded: true,
     children:[{
         text:'Images available for deployment',
         id:'available_images',

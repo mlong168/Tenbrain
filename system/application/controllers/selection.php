@@ -178,7 +178,19 @@ class Selection extends Controller {
 		$dep = $deploy_aliases[$deployment];
 		if(in_array($finals, array_keys($this->_variants[$dep])))
 		{
-			$tenstack = $this->session->userdata('tenstack');			
+			$tenstack = $this->session->userdata('tenstack');
+			
+			$this->session->unset_userdata('tenstack');
+			$this->session->unset_userdata('deployment');
+			
+			$this->session->set_userdata(array(
+				'selection' => array(
+					'tenstack'		=> $tenstack,
+					'deployment'	=> $deployment,
+					'finals'		=> $dep // ????????????
+				)
+			));
+			
 			$this->load->view('results', array(
 				'results'	=> array(
 					'tenstack ' . $tenstack		=> $this->_variants['tenstack'][$tenstack]['text'],
@@ -193,6 +205,21 @@ class Selection extends Controller {
 				'message' => 'selection failed'
 			));
 		}
+	}
+	
+	function confirm()
+	{
+		if(!$this->authentication->is_signed_in())
+		{
+			$this->session->set_userdata('sign_in_redirect', '/control_panel');
+			redirect('account/sign_in');
+		}
+		/*
+			!!!!!!!!!!!!!!!!!!!!
+			deploy smth here! show the up-and-running instance immediately
+		*/
+		
+		redirect('/control_panel');
 	}
 }
 

@@ -17,32 +17,31 @@
 	<?php endif; ?>
 	
 	<?php echo lang('password_safe_guard_your_account'); ?>
-	<p class="input_wrapper center">
+	<div class="input_wrapper center">
 		<?php echo form_label(lang('password_new_password'), 'password_new_password'); ?>:
 		<?php echo form_password(array(
-				'name' => 'password_new_password',
-				'id' => 'password_new_password',
-				'value' => set_value('password_new_password'),
-				'autocomplete' => 'off'
+				'name'	=> 'password_new_password',
+				'id'	=> 'password_new_password',
+				'value'	=> set_value('password_new_password')
 			)); ?>
 		<p class="input_wrapper center account_error"><?php echo form_error('password_new_password'); ?></p>
-	</p>
-	<p class="input_wrapper center">
+	</div>
+	<div class="input_wrapper center">
 		<?php echo form_label(lang('password_retype_new_password'), 'password_retype_new_password'); ?>
 		<?php echo form_password(array(
-				'name' => 'password_retype_new_password',
-				'id' => 'password_retype_new_password',
-				'value' => set_value('password_retype_new_password'),
-				'autocomplete' => 'off'
+				'name'	=> 'password_retype_new_password',
+				'id'	=> 'password_retype_new_password',
+				'value'	=> set_value('password_retype_new_password')
 			)); ?>
 		<p class="input_wrapper center account_error"><?php echo form_error('password_retype_new_password'); ?></p>
-	</p>
+	</div>
 	<p class="input_wrapper center">
 		<?php echo form_button(array(
-				'type' => 'submit',
-				'class' => 'login_submit',
-				'content' => lang('password_change_my_password')
-			)); ?>
+			'name'		=> 'submit',
+			'type'		=> 'submit',
+			'class'		=> 'login_submit',
+			'content'	=> lang('password_change_my_password')
+		)); ?>
 	</p>
 	<?php echo form_close(); ?>
 </div>
