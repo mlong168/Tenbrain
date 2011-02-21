@@ -96,6 +96,14 @@ h2, h3 {
 	width: 90%;
 }
 
+.linked_account {
+	text-align: center;
+	margin-bottom: 0.5em;
+}
+.linked_account .picture { float: none; }
+.linked_account .caption { vertical-align: middle; }
+.linked_account .linked_link { display: block; }
+
 .profile_content {
 	margin: 1em 2em;
 }
