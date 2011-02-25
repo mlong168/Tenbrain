@@ -187,7 +187,7 @@ class Selection extends Controller {
 				'selection' => array(
 					'tenstack'		=> $tenstack,
 					'deployment'	=> $deployment,
-					'finals'		=> $dep // ????????????
+					$dep			=> $finals // ????????????
 				)
 			));
 			
@@ -211,13 +211,19 @@ class Selection extends Controller {
 	{
 		if(!$this->authentication->is_signed_in())
 		{
-			$this->session->set_userdata('sign_in_redirect', '/control_panel');
+			$this->session->set_userdata('sign_in_redirect', '/selection/confirm');
 			redirect('account/sign_in');
 		}
-		/*
-			!!!!!!!!!!!!!!!!!!!!
-			deploy smth here! show the up-and-running instance immediately
-		*/
+		
+		if($this->session->userdata('selection'))
+		{
+			/**
+			 * do smth. based on the selection here (i.e., load the model for the chosen provider, take options into account, etc.)
+			 */
+			$this->load->model('Amazon_model', 'amazon');
+			$this->amazon->launch_instance('ami-6e7c8d07', 't1.micro', 'TenBrain UC Stack for ' . $this->account_model->get_by_id($this->session->userdata('account_id'))->username);
+			$this->session->unset_userdata('selection');
+		}
 		
 		redirect('/control_panel');
 	}

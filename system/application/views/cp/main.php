@@ -6,8 +6,10 @@
 			'jquery-1.4.4.min',
 			'jquery-ui-1.8.9.custom.min',
 			'extjs/adapter/jquery/ext-jquery-adapter',
-			'extjs/ext-all', // switch to ext-all on production!
-			'cp/cloud', 'cp/profile', 'cp/cp')
+			'extjs/ext-all',
+			'cp/snapshots', 'cp/cloud', 'cp/profile', 'cp/cp'
+		),
+		'active_menu_item'	=> $active_menu_item
 	));
 ?>
 <div id="header">
@@ -43,6 +45,11 @@
 	
 	<div id="available_images-details">
 		<h2>Images available for deployment</h2>
+		<p>This page shows the images available for deployment.</p>
+	</div>
+	
+	<div id="snapshots-details">
+		<h2>Snapshots</h2>
 		<p>This page shows the images available for deployment.</p>
 	</div>
 	

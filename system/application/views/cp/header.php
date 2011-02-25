@@ -10,6 +10,10 @@
 		<?php endforeach; ?>
 	<?php endif; ?>
 	
+	<script type="text/javascript">
+		var active_menu_item = <?php echo (int)$active_menu_item ?>;
+	</script>
+	
 	<?php if(isset($scripts) && count($scripts)): ?>
 		<?php foreach($scripts as $name): ?>
 			<script type="text/javascript" src="<?php echo base_url() . 'js/' . $name ?>.js"></script>

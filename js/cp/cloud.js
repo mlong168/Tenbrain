@@ -1,7 +1,6 @@
 // main operational object singleton:
 var Cloud = function(){
-	var container,
-	images = function(){
+	var images = function(){
 		var record = Ext.data.Record.create([
 			'id',
 			'image_id',
@@ -34,8 +33,9 @@ var Cloud = function(){
 			'type',
 			'root_device'
 		]),
-		// states = ['pending', 'running', 'shutting-down', 'terminated', 'stopping', 'stopped'],
-		states = ['pending', 'running', 'terminated', 'stopped'],
+		// all available states: ['pending', 'running', 'shutting-down', 'terminated', 'stopping', 'stopped']
+		// 'running' state here also represents unstable states - pending, shutting-down, stopping
+		states = ['running', 'terminated', 'stopped'],
 		stores = {};
 		for(var i = states.length; i--;)
 		{
@@ -50,6 +50,35 @@ var Cloud = function(){
 		})
 		}
 		return stores;
+	}(),
+	reload_instances_until_stable = function(){
+		var init_timeout = 5000, interval = init_timeout, minimum_interval = 1000, jump = 1000;
+		return function(state, step){
+			state = state || 'running';
+			step = step || jump;
+				
+			if(this !== reload_instances_until_stable)
+			{
+				interval = init_timeout;
+			}
+			
+			instances[state].reload({
+				callback: function(r){
+					for(var i = r.length; i--;)
+					{
+						if(r[i].data.state !== state)
+						{
+							setTimeout(function(){
+								reload_instances_until_stable.call(reload_instances_until_stable, state, step);
+							}, interval);
+							if(interval > minimum_interval && interval - step > 0) interval -= step;
+							break;
+						}
+					}
+				}
+			});
+			return false;
+		};
 	}();
 	
 	return {
@@ -69,17 +98,27 @@ var Cloud = function(){
 				}
 			}
 		},
+		reload_instances_until_stable: reload_instances_until_stable,
 		get_images: function(){
 			return images;
 		}
 	};
 }();
 
-// link helper function:, menus
-var link_wrapper = function(link){
-	return '<a target="_blank" href="http://' + link + '/">' + link + '</a>';
-},
-instances_menu_handler = function(item){
+// layouts:
+var welcome = {
+	id: 'welcome-panel',
+	title: 'Welcome to TenBrain!',
+	layout: 'fit',
+	bodyStyle: 'padding:25px',
+	contentEl: 'welcome-div'  // pull existing content from the page
+};
+
+/**
+ * instances stuff goes here
+ */
+// menus:
+var instances_menu_handler = function(item){
 	item.parentMenu.items.each(function(it){
 		var id = it.id, action = id.substr(0, id.indexOf('_'));
 		if($.inArray(action, it.enabled_after) !== -1)
@@ -108,7 +147,7 @@ instances_menu_handler = function(item){
 			{
 				Ext.Msg.alert('A problem occured while processing your request. Please try again');
 			}
-			Cloud.reload_instances()
+			Cloud.reload_instances_until_stable();
 		},
 		error: function(){
 			Ext.Msg.alert('A problem occured while processing your request. Please try again');
@@ -116,72 +155,84 @@ instances_menu_handler = function(item){
 	});
 },
 instances_menu = new Ext.menu.Menu({
-	items: [
-		{
-			text: 'Management',
-			menu: {
-				items: [{
-					text: '1'
-				}, {
-					text: '2'
-				}, {
-					text: '3'
-				}]
-			}
-		}, '-', {
-			text: 'Actions',
-			menu: {
-				items: [{
-					id: 'terminate_instance',
-					enabled_after: ['start'],
-					text: 'Terminate',
-					handler: instances_menu_handler
-				}, {
-					text: 'Start',
-					id: 'start_instance',
-					enabled_after: ['stop', 'terminate', 'reboot'],
-					handler: instances_menu_handler
-				}, {
-					text: 'Stop',
-					id: 'stop_instance',
-					enabled_after: ['start', 'terminate'],
-					handler: instances_menu_handler
-				}, {
-					text: 'Reboot',
-					id: 'reboot_instance',
-					enabled_after: ['start', 'stop', 'terminate', 'reboot'],
-					handler: instances_menu_handler
-				}]
-			}
-		}, '-', {
-			text: 'Monitoring',
-			menu: {
-				items: [{
-					text: '1'
-				}, {
-					text: '2'
-				}, {
-					text: '3'
-				}]
-			}
+	items: [{
+		text: 'Management',
+		menu: {
+			items: [{
+				text: 'Create Snapshot',
+				handler: function(){
+					instances_menu.hide();
+					Snapshots.create(instances_menu.selected_instance_id);
+				}
+			}, {
+				text: 'View Snapshots',
+				handler: function(){
+					instances_menu.hide();
+					Snapshots.show_instance_snapshots(instances_menu.selected_instance_id);					
+				}
+			}]
 		}
-	],
+	}, '-', {
+		text: 'Actions',
+		menu: {
+			items: [{
+				id: 'terminate_instance',
+				enabled_after: ['start'],
+				text: 'Terminate',
+				handler: instances_menu_handler
+			}, {
+				text: 'Start',
+				id: 'start_instance',
+				enabled_after: ['stop', 'terminate', 'reboot'],
+				handler: instances_menu_handler
+			}, {
+				text: 'Stop',
+				id: 'stop_instance',
+				enabled_after: ['start', 'terminate'],
+				handler: instances_menu_handler
+			}, {
+				text: 'Reboot',
+				id: 'reboot_instance',
+				enabled_after: ['start', 'stop', 'terminate', 'reboot'],
+				handler: instances_menu_handler
+			}]
+		}
+	}, '-', {
+		text: 'Monitoring',
+		menu: {
+			items: [{
+				text: '1'
+			}, {
+				text: '2'
+			}, {
+				text: '3'
+			}]
+		}
+	}],
 	ref_grid: null,
 	selected_instance_id: null
-}),
+});
+
+// renderers:
+var link_wrapper = function(link){
+	return '<a target="_blank" href="http://' + link + '/">' + link + '</a>';
+},
+statesman = function(value, metadata, record, rowIndex, colIndex, store){
+	if(record.data.state !== 'running')
+	{
+		metadata.css = 'grid-loader';
+	}
+	else
+	{
+		// return '<input type="checkbox">';
+	}
+	// return false;
+};
 
 // layouts:
-welcome = {
-	id: 'welcome-panel',
-	title: 'Welcome to TenBrain!',
+var running_instances_grid = new Ext.grid.GridPanel({
 	layout: 'fit',
-	bodyStyle: 'padding:25px',
-	contentEl: 'welcome-div'  // pull existing content from the page
-},
-running_instances = new Ext.grid.GridPanel({
-	id: 'running_instances-panel',
-	title: 'Your currently running instances',
-	layout: 'fit',
+	border: false,
 	store: Cloud.get_instances('running'),
 	bbar: {
 		xtype: 'toolbar',
@@ -209,6 +260,49 @@ running_instances = new Ext.grid.GridPanel({
 	cm: new Ext.grid.ColumnModel({
 		defaultSortable: false,
 		columns: [
+			{width: 25, fixed: true, renderer: statesman},
+			{header: "Name", dataIndex: 'name', width: 150},
+			{header: "Link to instance root", dataIndex: 'dns_name', width: 250, renderer: link_wrapper},
+			{header: "IP Address", dataIndex: 'ip_address', width: 120},
+			{header: "State", dataIndex: 'state', width: 100},
+			{header: "Virtualization", dataIndex: 'virtualization', width: 100},
+			{header: "Type", dataIndex: 'type', width: 100},
+			{header: "Root Device", dataIndex: 'root_device', width: 100}
+		]
+	})
+});
+
+var running_instances = new Ext.Panel({
+	id: 'running_instances-panel',
+	title: 'Your currently running instances',
+	layout: 'fit',
+	items: [running_instances_grid, Snapshots.get_creator(), Snapshots.get_instance_snapshots()],
+	activeItem: 1
+})
+
+var stopped_instances = new Ext.grid.GridPanel({
+	id: 'stopped_instances-panel',
+	title: 'Instances that have been stopped',
+	layout: 'fit',
+	store: Cloud.get_instances('stopped'),
+	view: new Ext.grid.GridView({
+		forceFit: true,
+		emptyText: '<p style="text-align: center">You do not currently have any stopped instance</p>'
+	}),
+	bbar: {
+		xtype: 'toolbar',
+		items: ['->', {
+			xtype: 'button',
+			text: 'Refresh List',
+			handler: function(){
+				Cloud.get_instances('stopped').reload();
+			}
+		}]
+	},	
+	cm: new Ext.grid.ColumnModel({
+		defaultSortable: false,
+		columns: [
+			{width: 25, fixed: true, renderer: statesman},
 			{header: "Name", dataIndex: 'name', width: 150},
 			{header: "Link to instance root", dataIndex: 'dns_name', width: 250, renderer: link_wrapper},
 			{header: "IP Address", dataIndex: 'ip_address', width: 120},
@@ -250,43 +344,23 @@ terminated_instances = new Ext.grid.GridPanel({
 			{header: "Root Device", dataIndex: 'root_device', width: 100}
 		]
 	})
-}),
-stopped_instances = new Ext.grid.GridPanel({
-	id: 'stopped_instances-panel',
-	title: 'Instances that have been stopped',
-	layout: 'fit',
-	store: Cloud.get_instances('stopped'),
-	view: new Ext.grid.GridView({
-		forceFit: true,
-		emptyText: '<p style="text-align: center">You do not currently have any stopped instance</p>'
-	}),
-	bbar: {
-		xtype: 'toolbar',
-		items: ['->', {
-			xtype: 'button',
-			text: 'Refresh List',
-			handler: function(){
-				Cloud.get_instances('stopped').reload();
-			}
-		}]
-	},	
-	cm: new Ext.grid.ColumnModel({
-		defaultSortable: false,
-		columns: [
-			{header: "Name", dataIndex: 'name', width: 150},
-			{header: "Link to instance root", dataIndex: 'dns_name', width: 250, renderer: link_wrapper},
-			{header: "IP Address", dataIndex: 'ip_address', width: 120},
-			{header: "State", dataIndex: 'state', width: 100},
-			{header: "Virtualization", dataIndex: 'virtualization', width: 100},
-			{header: "Type", dataIndex: 'type', width: 100},
-			{header: "Root Device", dataIndex: 'root_device', width: 100}
-		]
-	})
-}),
+});
 
-instance_types = new Ext.data.ArrayStore({
-	fields: ['type'],
-	data: [['t1.micro'], ['m1.small'], ['m1.large'], ['m1.xlarge'], ['m2.xlarge'], ['m2.2xlarge'], ['m2.4xlarge'], ['c1.medium'], ['c1.xlarge'], ['cc1.4xlarge'], ['cg1.4xlarge']]
+var instance_types = new Ext.data.ArrayStore({
+	fields: ['type', 'banned', 'reason'],
+	data: [
+		['t1.micro', false, ''],
+		['m1.small', true, 'Not available in a free version'],
+		['m1.large', true, 'Not available in a free version'],
+		['m1.xlarge', true, 'Not available in a free version'],
+		['m2.xlarge', true, 'Not available in a free version'],
+		['m2.2xlarge', true, 'Not available in a free version'],
+		['m2.4xlarge', true, 'Not available in a free version'],
+		['c1.medium', true, 'Not available in a free version'],
+		['c1.xlarge', true, 'Not available in a free version'],
+		['cc1.4xlarge', true, 'Not available in a free version'],
+		['cg1.4xlarge', true, 'Not available in a free version']
+	]
 }),
 
 deploy_configurator = new Ext.FormPanel({
@@ -318,10 +392,16 @@ deploy_configurator = new Ext.FormPanel({
 		displayField: 'type',
 		valueField: 'type',
 		allowBlank: false,
-		width: 150
+		width: 150,
+		tpl: '<tpl for="."><div ext:qtip="{reason}" class="x-combo-list-item">{type}</div></tpl>',
+		listeners: {
+			beforeselect: function(combo, record){
+				return !record.data.banned; // false if not selectable
+			}
+		}
 	}, {
 		xtype: 'hidden',
-		name: 'image_id',		
+		name: 'image_id'
 	}],
 
 	buttons: [{
@@ -339,7 +419,7 @@ deploy_configurator = new Ext.FormPanel({
 					{
 						Ext.Msg.alert('A problem occured while deploying your selected image');
 					}
-					Cloud.reload_instances();
+					Cloud.reload_instances_until_stable('running');
 				},
 				failure: function(form, action){
 					Ext.Msg.alert('A problem occured while deploying your selected image');
@@ -412,3 +492,5 @@ available_images = new Ext.Panel({
 	items: [images_grid, deploy_configurator],
 	activeItem: 1
 });
+
+Cloud.reload_instances_until_stable('running');

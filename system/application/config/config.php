@@ -233,7 +233,7 @@ $config['encryption_key'] = "xbKjXT56a9Fbqvfr4ztdF2gbQ7vM7zKhe4sGwZ6x";
 |
 */
 $config['sess_cookie_name']		= 'tenbrain_session';
-$config['sess_expiration']		= 0;
+$config['sess_expiration']		= 43200;
 $config['sess_encrypt_cookie']	= FALSE;
 $config['sess_use_database']	= TRUE;
 $config['sess_table_name']		= 'ci_session';

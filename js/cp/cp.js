@@ -9,11 +9,11 @@ Ext.onReady(function(){
 		region: 'center',
 		layout: 'card',
 		margins: '2 5 5 0',
-		activeItem: 5,
+		activeItem: active_menu_item,
 		border: false,
 		items: [
 			// from cloud.js:
-			welcome, running_instances, terminated_instances, stopped_instances, available_images,
+			welcome, running_instances, terminated_instances, stopped_instances, available_images, snapshots,
 			// from profile.js:
 			account_profile, account_settings, account_password, account_linked
 		]

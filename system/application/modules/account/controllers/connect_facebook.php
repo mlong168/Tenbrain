@@ -51,16 +51,16 @@ class Connect_facebook extends Controller {
 					// Store user's facebook data in session
 					$this->session->set_userdata('connect_create', array(
 						array(
-							'provider' => 'facebook', 
-							'provider_id' => $this->facebook_lib->user['id']
+							'provider'		=> 'facebook', 
+							'provider_id'	=> $this->facebook_lib->user['id']
 						), 
 						array(
-							'fullname' => $this->facebook_lib->user['name'],
-							'firstname' => $this->facebook_lib->user['first_name'],
-							'lastname' => $this->facebook_lib->user['last_name'],
-							'gender' => $this->facebook_lib->user['gender'],
-							'dateofbirth' => $this->facebook_lib->user['birthday'],
-							'picture' => 'http://graph.facebook.com/'.$this->facebook_lib->user['id'].'/picture'
+							'fullname'		=> $this->facebook_lib->user['name'],
+							'firstname'		=> $this->facebook_lib->user['first_name'],
+							'lastname'		=> $this->facebook_lib->user['last_name'],
+							'gender'		=> $this->facebook_lib->user['gender'],
+							'dateofbirth'	=> $this->facebook_lib->user['birthday'],
+							'picture'		=> 'http://graph.facebook.com/' . $this->facebook_lib->user['id'] . '/picture'
 							// $this->facebook_lib->user['link']
 							// $this->facebook_lib->user['bio']
 							// $this->facebook_lib->user['timezone']
@@ -84,7 +84,7 @@ class Connect_facebook extends Controller {
 		}
 		
 		// Redirect to login url
-		header("Location: ".$this->facebook_lib->fb->getLoginUrl(array('req_perms' => 'user_birthday')));
+		header("Location: " . $this->facebook_lib->fb->getLoginUrl(array('req_perms' => 'user_birthday')));
 	}
 	
 }

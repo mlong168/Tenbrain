@@ -5,6 +5,17 @@
 	<title>TenBrain - Save your Brain, While saving Money! - Profile</title>
 	<link rel="stylesheet" type="text/css" href="<?php echo base_url() ?>css/main.css" />
 	<link rel="stylesheet" type="text/css" href="<?php echo base_url() ?>css/account.css" />
+
+	<?php if ($this->session->flashdata('linked_info') || $this->session->flashdata('linked_error')) : ?>
+		<?php $this->session->set_userdata('linked_accounts_active', true) ?>
+		<script type="text/javascript">
+			if(top === self) // if not in an iframe
+			{
+				document.location.assign('<?php echo base_url() ?>control_panel');
+			}
+		</script>
+	<?php endif; ?>
+
 </head>
 <body>
 
@@ -22,10 +33,10 @@
 		<?php if ($facebook_links) : ?>
 			<?php foreach ($facebook_links as $facebook_link) : ?>
 				<div class="linked_account">
-					<div class="control third_party big picture facebook"></div>
+					<div class="control third_party big picture centered facebook"></div>
 					<span class="caption"><?php echo lang('connect_facebook'); ?></span>
 						<?php if ($num_of_linked_accounts != 1) : ?>
-							<?php echo form_open(uri_string(), array('class' => 'remove')); ?>
+							<?php echo form_open(uri_string(), array('class' => 'centered')); ?>
 								<?php echo form_hidden('facebook_id', $facebook_link->facebook_id); ?>
 								<?php echo form_button(array(
 										'type'		=> 'submit',
@@ -42,10 +53,10 @@
 		<?php if ($twitter_links) : ?>
 			<?php foreach ($twitter_links as $twitter_link) : ?>
 				<div class="linked_account">
-					<div class="control third_party big picture twitter"></div>
+					<div class="control third_party big picture centered twitter"></div>
 					<span class="caption"><?php echo lang('connect_twitter'); ?></span>
 						<?php if ($num_of_linked_accounts != 1) : ?>
-							<?php echo form_open(uri_string(), array('class' => 'remove')); ?>
+							<?php echo form_open(uri_string(), array('class' => 'centered')); ?>
 								<?php echo form_hidden('twitter_id', $twitter_link->twitter_id); ?>
 								<?php echo form_button(array(
 										'type'		=> 'submit',

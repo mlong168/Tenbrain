@@ -116,3 +116,7 @@ h2, h3 {
 #details-panel p, #details-panel h2 {
 	padding: 0.5em;
 }
+
+.grid-loader {
+	background: url('images/grid_loader.gif') no-repeat center center;
+}

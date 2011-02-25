@@ -14,9 +14,17 @@ class Control_panel extends Controller {
 	
 	function index()
 	{
+		$active_menu = 1;
+		if ($this->session->userdata('linked_accounts_active'))
+		{
+			$active_menu = 8; // linked accounts
+		}
+		
 		if($this->authentication->is_signed_in())
 		{
-			$this->load->view('cp/main');
+			$this->load->view('cp/main', array(
+				'active_menu_item' => $active_menu
+			));
 		}
 		else
 		{
@@ -26,10 +34,13 @@ class Control_panel extends Controller {
 	
 	function menu()
 	{
+		$profile_active = (bool) $this->session->userdata('linked_accounts_active');
+		$this->session->unset_userdata('linked_accounts_active');
+		
 		$menu = array(
 			array(
 				'text'		=> 'Instances Management',
-				'expanded'	=> true,
+				'expanded'	=> !$profile_active,
 				'children'	=> array(
 					array(
 						'text'	=> 'Running Instances',
@@ -57,11 +68,22 @@ class Control_panel extends Controller {
 						'leaf'	=> true
 					)
 				)
+			),
+			array(
+				'text'		=> 'Snapshots',
+				'children'	=> array(
+					array(
+						'text'	=> 'Created Snapshots',
+						'id'	=> 'snapshots',
+						'leaf'	=> true
+					)
+				)
 			)
 		);
 		
 		$profile_menu = array(
 			'text'		=> 'Your Profile',
+			'expanded'	=> $profile_active,
 			'children'	=> array(
 				array(
 					'text'	=> 'Profile Information',
