@@ -4,6 +4,16 @@
 // }
 Ext.onReady(function(){
 	Ext.QuickTips.init();
+	
+	// welcome panel
+	var welcome = {
+		id: 'welcome-panel',
+		title: 'Welcome to TenBrain!',
+		layout: 'fit',
+		bodyStyle: 'padding:25px',
+		contentEl: 'welcome-div'  // pull existing content from the page
+	};	
+	
 	var content_panel = {
 		id: 'content-panel',
 		region: 'center',
@@ -13,7 +23,7 @@ Ext.onReady(function(){
 		border: false,
 		items: [
 			// from cloud.js:
-			welcome, running_instances, terminated_instances, stopped_instances, available_images, snapshots,
+			welcome, running_instances, terminated_instances, stopped_instances, Images.get_grid(), Snapshots.get_panel(),
 			// from profile.js:
 			account_profile, account_settings, account_password, account_linked
 		]

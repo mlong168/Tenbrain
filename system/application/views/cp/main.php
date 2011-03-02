@@ -7,7 +7,7 @@
 			'jquery-ui-1.8.9.custom.min',
 			'extjs/adapter/jquery/ext-jquery-adapter',
 			'extjs/ext-all',
-			'cp/snapshots', 'cp/cloud', 'cp/profile', 'cp/cp'
+			'cp/instances', 'cp/images', 'cp/snapshots', 'cp/profile', 'cp/cp'
 		),
 		'active_menu_item'	=> $active_menu_item
 	));

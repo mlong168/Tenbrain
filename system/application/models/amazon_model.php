@@ -12,10 +12,47 @@ class Amazon_model extends Model {
 		$this->load->helper('amazon_sdk/sdk');
 		
 		$this->ec2 = new AmazonEC2();
-		$this->username = $this->account_model->get_by_id($this->session->userdata('account_id'))->username;
+		$this->username = $this->authentication->is_signed_in()
+			? $this->account_model->get_by_id($this->session->userdata('account_id'))->username
+			: 'anonymous';
 	}
 	
-	function describe_instances($state)
+	private function die_with_error($error_message)
+	{
+		header('Content-type: application/json');
+		echo json_encode(array(
+			'success'		=> false,
+			'error_message'	=> $error_message
+		));
+		die;
+	}
+	
+	private function test_response($response)
+	{
+		if(!$response->isOK())
+		{
+			$error = $response->body->Error();
+			$this->die_with_error((string) $error[0]->Message);
+		}
+	}
+	
+	private function extract_name_from_tagset($tagset)
+	{
+		$name = '';
+		foreach($tagset as $item)
+		{
+			$item = $item->item;
+			if((string) $item->key === 'Name')
+			{
+				$name = (string) $item->value;
+				break;
+			}
+			
+		}
+		return $name;
+	}
+	
+	public function describe_instances($state)
 	{
 		$states_filter = array();
 		if($state === 'running')
@@ -34,10 +71,11 @@ class Amazon_model extends Model {
 				array('Name' => 'key-name', 'Value' => $this->username),
 			)
 		));
+		
+		$this->test_response($response);
 
 		$instances = array();
-		$ok = $response->isOK();
-		if($ok && count($response->body->item()) > 1)
+		if(count($response->body->item()) > 1)
 		{
 			$list = $response->body->instanceId();
 
@@ -85,22 +123,14 @@ class Amazon_model extends Model {
 		// );		
 		
 		return array(
-			'success'	=> $ok,
+			'success'	=> true,
 			'instances'	=> $instances
 		);
 	}
 	
-	function describe_images()
+	public function describe_images()
 	{
-		$response = $this->ec2->describe_images(array(
-			'Filter' => array(
-				array('Name' => 'name',		'Value' => 'Cvoice'	 )
-				// array('Name' => 'architecture',		'Value' => 'x86_64'	 ),
-				// array('Name' => 'image-type',		  'Value' => 'machine'	),
-				// array('Name' => 'root-device-type',	'Value' => 'ebs'		),
-				// array('Name' => 'virtualization-type', 'Value' => 'paravirtual'),
-			)
-		));
+		$response = $this->ec2->describe_images(array('Owner' => 'self'));
 		
 		$images = array();
 		$ok = $response->isOK();
@@ -135,7 +165,7 @@ class Amazon_model extends Model {
 		);
 	}
 	
-	function launch_instance($image_id, $type, $name)
+	public function launch_instance($image_id, $type, $name)
 	{
 		$username = $this->username;		
 		$response = $this->ec2->describe_key_pairs(array(
@@ -151,68 +181,67 @@ class Amazon_model extends Model {
 			'InstanceType'	=> $type,
 			
 			'BlockDeviceMapping' => array(
-				'DeviceName'				=> '/dev/sda',
+				'DeviceName'				=> '/dev/sda1',
 				'Ebs.DeleteOnTermination'	=> true
-			)
-			
+			)			
 		));
 		
-		$launch_status = $response->isOK();
-		if($launch_status)
-		{
-			$instance_id = $response->body->instanceId();
-			$instance_id = (string) $instance_id[0];
-			
-			$tag_response = $this->ec2->create_tags($instance_id, array(
-				array('Key' => 'Name', 'Value' => $name)
-			));
-		}
+		$this->test_response($response);
 		
-		return $launch_status;
+		$instance_id = $response->body->instanceId();
+		$instance_id = (string) $instance_id[0];
+		
+		$tag_response = $this->ec2->create_tags($instance_id, array(
+			array('Key' => 'Name', 'Value' => $name)
+		));
+		
+		return true;
 	}
 
-	function terminate_instance($instance_id)
+	public function terminate_instance($instance_id)
 	{
 		$response = $this->ec2->terminate_instances($instance_id);
+		$this->test_response($response);
 
-		return $response->isOK();
+		return true;
 	}
 
-	function start_instance($instance_id)
+	public function start_instance($instance_id)
 	{
 		$response = $this->ec2->start_instances($instance_id);
+		$this->test_response($response);
 
-		return $response->isOK();
+		return true;
 	}
 
-	function stop_instance($instance_id)
+	public function stop_instance($instance_id)
 	{
 		$response = $this->ec2->stop_instances($instance_id);
+		$this->test_response($response);
 
-		return $response->isOK();
+		return true;
 	}
 
-	function reboot_instance($instance_id)
+	public function reboot_instance($instance_id)
 	{
 		$response = $this->ec2->reboot_instances($instance_id);
+		$this->test_response($response);
 
-		return $response->isOK();
+		return true;
 	}
 	
-	function get_instance_volume($instance_id)
+	private function get_instance_volume($instance_id)
 	{
 		$response = $this->ec2->describe_instance_attribute($instance_id, 'blockDeviceMapping');
-		$ok = $response->isOK();
-		$volume_id = '';
-		if($ok)
-		{
-			$volume_ids = $response->body->volumeId();
-			$volume_id = (string) $volume_ids[0];
-		}
+		$this->test_response($response);
+		
+		$volume_id = $response->body->volumeId();
+		$volume_id = (string) $volume_id[0];
+		
 		return $volume_id;
 	}
 	
-	function created_snapshots($instance_id = false)
+	public function created_snapshots($instance_id = false)
 	{
 		$filter = array(
 			array('Name' => 'tag:User', 'Value' => $this->username)
@@ -220,114 +249,243 @@ class Amazon_model extends Model {
 		if($instance_id)
 		{
 			$volume_id = $this->get_instance_volume($instance_id);
-			if(!empty($volume_id))
-			{
-				$filter []= array('Name' => 'volume-id', 'Value' => $volume_id);
-			}
-			else
-			{
-				// fucked up getting the volume id
-			}
+			$filter []= array('Name' => 'volume-id', 'Value' => $volume_id);
 		}
 		$response = $this->ec2->describe_snapshots(array(
 			'Owner'		=> 'self',
 			'Filter'	=> $filter
 		));
+		$this->test_response($response);
 		
 		$snapshots = array();
-		$ok = $response->isOK();
-		
-		if($ok)
+		$i = 0;
+		foreach($response->body->snapshotSet->item as $node)
 		{
-			$list = $response->body->snapshotSet();			
-			if($list->count())
+			$tags = $node->tagSet;
+			$name = '<i>not set</i>';
+			if($tags->count())
 			{
-				$list->each(function($node, $i, &$snapshots)
+				foreach($tags->item as $item)
 				{
-					$node = $node->item;
-					$tags = $node->tagSet;
-					$name = '<i>not set</i>';
-					if($tags->count())
+					if((string) $item->key === 'Name')
 					{
-						$name_ary = $tags->xpath("item[key='Name']/value");
-						$name = (string) $name_ary[0];
+						$name = (string) $item->value;
 					}
-					$time = (string) $node->startTime;
-					$time = date('Y-m-d H:i', strtotime($time));
-					$snapshots[] = array(
-						'id'				=> $i,
-						'name'				=> $name,
-						'snapshot_id'		=> (string) $node->snapshotId,
-						'capacity'			=> (string) $node->volumeSize . 'GB',
-						'description'		=> (string) $node->description,
-						'status'			=> (string) $node->status,
-						'progress'			=> (string) $node->progress,
-						'started'			=> $time
-						// ''				=> (string) $node->,
-					);
-
-				}, $snapshots);
+				}
+				// $name_ary = $tags->xpath("item[key='Name']/value");
+				// $name = (string) $name_ary[0];
 			}
+			$time = (string) $node->startTime;
+			$time = date('Y-m-d H:i', strtotime($time));
+			$snapshots[] = array(
+				'id'				=> $i,
+				'name'				=> $name,
+				'snapshot_id'		=> (string) $node->snapshotId,
+				'capacity'			=> (string) $node->volumeSize . 'GB',
+				'description'		=> (string) $node->description,
+				'status'			=> (string) $node->status,
+				'progress'			=> (string) $node->progress,
+				'started'			=> $time
+				// ''				=> (string) $node->,
+			);
+			$i++;
 		}
 		
 		return array(
-			'success'	=> $ok,
+			'success'	=> true,
 			'snapshots'	=> $snapshots
 		);		
 	}
 	
-	function create_snapshot($instance_id, $name, $description = 'sample description')
+	private function get_snapshot_volume($snapshot_id = false)
+	{
+		if(!$snapshot_id) $this->die_with_error('No snapshot specified');
+		
+		$response = $this->ec2->describe_snapshots(array('SnapshotId' => $snapshot_id));
+		$this->test_response($response);
+		
+		return (string) $response->body->volumeId()->first();
+	}
+	
+	private function get_snapshot_instance($snapshot_id = false, $describe = false)
+	{
+		$response = $this->ec2->describe_instances(array(
+			'Filter' => array(
+				array('Name' => 'block-device-mapping.volume-id', 'Value' => $this->get_snapshot_volume($snapshot_id)),
+			)
+		));
+		$this->test_response($response);
+		
+		$instances = array();
+		if(count($response->body->item()) > 1)
+		{
+			$list = $response->body->instanceId();
+
+			$results = $list->map(function($node){
+				return $node->parent();
+			});
+
+			$results->each(function($node, $i, &$instances){
+				$tags = $node->tagSet;
+				$name = '<i>not set</i>';
+				if($tags->count())
+				{
+					$name_ary = $tags->xpath("item[key='Name']/value");
+					$name = (string) $name_ary[0];
+				}
+				$instances[] = array(
+					'id'				=> $i,
+					'name'				=> $name,
+					'instance_id'		=> (string) $node->instanceId,
+					'dns_name'			=> (string) $node->dnsName,
+					'ip_address'		=> (string) $node->ipAddress,
+					'image_id'			=> (string) $node->imageId,
+					'state'				=> (string) $node->instanceState->name,
+					'virtualization'	=> (string) $node->virtualizationType,
+					'type'				=> (string) $node->instanceType,
+					'root_device'		=> (string) $node->rootDeviceType
+					// ''				=> (string) $node->,
+				);
+			}, $instances);
+		}
+		
+		return $describe ? $instances : $instances[0]['instance_id'];
+	}
+	
+	public function describe_snapshot_instance($snapshot_id = false)
+	{
+		if(!$snapshot_id) $this->die_with_error('No snapshot specified');
+		
+		$instances = $this->get_snapshot_instance($snapshot_id, true);
+		return array(
+			'success'	=> true,
+			'instances'	=> $instances
+		);
+	}
+	
+	public function create_snapshot($instance_id, $name, $description = 'sample description')
 	{
 		$response = $this->ec2->describe_volumes(array(
 			'Filter' => array(
 				array('Name' => 'attachment.instance-id', 'Value' => $instance_id)
 			)
 		));
-		
-		$ok = $response->isOK();
-		if($ok)
+		$this->test_response($response);		
+		if(!$response->body->volumeSet()->first()->count())
 		{
-			$volume = $response->body->volumeId()->map_string();
-			$snap = $this->ec2->create_snapshot($volume[0], $description);
-			
-			$ok = $snap->isOK();
-			if($ok)
-			{
-				$snap_id = $snap->body->snapshotId()->map_string();
-				$snap_id = $snap_id[0];
-			
-				$tag_response = $this->ec2->create_tags($snap_id, array(
-					array('Key' => 'Name', 'Value' => $name),
-					array('Key' => 'User', 'Value' => $this->username)
-				));
-			}
+			$this->die_with_error('The snapshot could not be created from an instance yet');
 		}
 		
-		return $ok;
+		$volume_id = $response->body->volumeId()->map_string();
+		$response = $this->ec2->create_snapshot($volume_id[0], $description);
+		$this->test_response($response);
+		
+		$snap_id = $response->body->snapshotId()->map_string();
+		$snap_id = $snap_id[0];
+	
+		$tag_response = $this->ec2->create_tags($snap_id, array(
+			array('Key' => 'Name', 'Value' => $name),
+			array('Key' => 'User', 'Value' => $this->username)
+		));
+		
+		return true;
 	}
 	
-	function test()
+	public function delete_snapshot($snapshot_id = false)
 	{
-		// $response = $this->ec2->describe_volumes(array(
-			// 'VolumeId' => 'vol-54d1bb3c'
-		// ));
-		// $response = $this->ec2->describe_instances(array(
-			// 'Filter' => array(
-				// array('Name' => 'key-name', 'Value' => 'slavko'),
-			// )
-		// ));
-		// $response = $this->ec2->run_instances('ami-6e7c8d07', 1, 1, array(
-			// 'KeyName'		=> 'tenbrain',
-			// 'InstanceType'	=> 't1.micro',
-			
-			// 'BlockDeviceMapping' => array(
-				// 'VirtualName'				=> 'slavko',
-				// 'DeviceName'				=> '/dev/sda',
-				// 'Ebs.DeleteOnTermination'	=> true
-			// )
-			
-		// ));
+		if(!$snapshot_id) $this->die_with_error('No snapshot specified');
 		
+		$response = $this->ec2->delete_snapshot($snapshot_id);
+		$this->test_response($response);
+		
+		return true;
+	}
+	
+	/*
+	 * restores snapshot to new instance
+	 * returns new instance's parameners along with the old one's
+	 */
+	private function restore_snapshot($snapshot_id, $name = '')
+	{	
+		$response = $this->ec2->describe_instances(array(
+			'Filter' => array(
+				array('Name' => 'block-device-mapping.volume-id', 'Value' => $this->get_snapshot_volume($snapshot_id))
+			)
+		));
+		$this->test_response($response);
+		
+		$old_instance = $response->body->instancesSet();
+		if(!$old_instance) $this->die_with_error('The instance this snapshot was created off has been terminated');
+		
+		$old_instance = $old_instance->first()->item;
+		
+		$old_instance = array(
+			'id'		=> (string) $old_instance->instanceId,
+			'image_id'	=> (string) $old_instance->imageId,
+			'key_name'	=> (string) $old_instance->keyName,
+			'type'		=> (string) $old_instance->instanceType,
+			'name'		=> $this->extract_name_from_tagset($old_instance->tagSet)
+			// ''	=> (string) $old_instance->
+		);
+		
+		$response = $this->ec2->run_instances($old_instance['image_id'], 1, 1, array(
+			'KeyName'		=> $old_instance['key_name'],
+			'InstanceType'	=> $old_instance['type'],
+			
+			'BlockDeviceMapping' => array(
+				'DeviceName'				=> '/dev/sda',
+				'Ebs.DeleteOnTermination'	=> true,
+				'Ebs.SnapshotId'			=> $snapshot_id
+			)
+		));
+		$this->test_response($response);
+		
+		$new_instance_id = $response->body->instanceId()->map_string();
+		$new_instance_id = $new_instance_id[0];
+		
+		$tag_response = $this->ec2->create_tags($new_instance_id, array(
+			array('Key' => 'Name', 'Value' => empty($name) ? $old_instance['name'] : $name)
+		));
+		
+		return array(
+			'success'			=> true,
+			'old_instance_id'	=> $old_instance['id'],
+			'new_instance_id'	=> $new_instance_id
+		);
+	}
+	
+	public function restore_snapshot_to_corresponding_instance($snapshot_id = false)
+	{
+		$new = $this->restore_snapshot($snapshot_id);
+		if(!$new['success'])
+		{
+			$this->die_with_error('Sorry, a problem has occurred while restoring your snapshot');
+		}
+		
+		$this->terminate_instance($new['old_instance_id']);
+		
+		$response = $this->ec2->describe_snapshots(array('SnapshotId' => $snapshot_id));
+		$this->test_response($response);
+		
+		$name = '';
+		$set = $response->body->snapshotSet()->first()->item;
+		$name = $this->extract_name_from_tagset($set->tagSet);
+		$description = (string) $set->description;
+		
+		$this->delete_snapshot($snapshot_id);
+		// $this->create_snapshot($new['new_instance_id'], $name, $description);
+		
+		return true;
+	}
+	
+	public function restore_snapshot_to_new_instance($snapshot_id, $name)
+	{
+		$this->restore_snapshot($snapshot_id, $name);
+		return true;		
+	}
+	
+	public function test()
+	{		
 		// var_dump($response->isOK());
 		echo PHP_EOL;
 		// print_r($response->body);

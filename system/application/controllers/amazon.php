@@ -31,8 +31,8 @@ class Amazon extends Controller {
 	{
 		error_reporting(E_ALL);
 		header('Content-type: text/plain');
-		print_r($this->amazon->created_snapshots('i-152b0e79'));
-		// print_r($this->amazon->created_snapshots());
+		// print_r($this->amazon->restore_snapshot_to_corresponding_instance('snap-baa114d6'));
+		print_r($this->amazon->created_snapshots());
 		die(PHP_EOL . 'voila! this is an amazon controller index function');
 	}
 
@@ -73,9 +73,21 @@ class Amazon extends Controller {
 
 	function terminate_instance()
 	{
-		echo json_encode(array(
-			'success' => $this->amazon->terminate_instance($this->input->post('instance_id'))
-		));
+		$instances = $this->input->post('instances');
+		if($instances)
+		{
+			$instances = json_decode($instances);
+			foreach($instances as $instance)
+			{
+				$this->amazon->terminate_instance($instance);
+			}			
+		}
+		$instance = $this->input->post('instance_id');
+		if($instance)
+		{
+			$this->amazon->terminate_instance($instance);
+		}
+		echo json_encode(array('success' => true));
 	}
 
 	function start_instance()
@@ -87,21 +99,50 @@ class Amazon extends Controller {
 
 	function stop_instance()
 	{
-		echo json_encode(array(
-			'success' => $this->amazon->stop_instance($this->input->post('instance_id'))
-		));
+		$instances = $this->input->post('instances');
+		if($instances)
+		{
+			$instances = json_decode($instances);
+			foreach($instances as $instance)
+			{
+				$this->amazon->stop_instance($instance);
+			}			
+		}
+		$instance = $this->input->post('instance_id');
+		if($instance)
+		{
+			$this->amazon->stop_instance($instance);
+		}
+		echo json_encode(array('success' => true));
 	}
 
 	function reboot_instance()
 	{
-		echo json_encode(array(
-			'success' => $this->amazon->reboot_instance($this->input->post('instance_id'))
-		));
+		$instances = $this->input->post('instances');
+		if($instances)
+		{
+			$instances = json_decode($instances);
+			foreach($instances as $instance)
+			{
+				$this->amazon->reboot_instance($instance);
+			}			
+		}
+		$instance = $this->input->post('instance_id');
+		if($instance)
+		{
+			$this->amazon->reboot_instance($instance);
+		}
+		echo json_encode(array('success' => true));
 	}
 
 	function created_snapshots()
 	{
 		echo json_encode($this->amazon->created_snapshots($this->input->post('instance_id')));
+	}
+
+	function snapshot_instance()
+	{
+		echo json_encode($this->amazon->describe_snapshot_instance($this->input->post('snapshot_id')));
 	}
 	
 	function create_snapshot()
@@ -111,6 +152,44 @@ class Amazon extends Controller {
 				$this->input->post('instance_id'),
 				$this->input->post('name'),
 				$this->input->post('description')
+			)
+		));
+	}
+	
+	function delete_snapshot()
+	{
+		$snaps = $this->input->post('snapshots');
+		if($snaps)
+		{
+			$snaps = json_decode($snaps);
+			foreach($snaps as $snap)
+			{
+				$this->amazon->delete_snapshot($snap);
+			}			
+		}
+		$snap = $this->input->post('snapshot_id');
+		if($snap)
+		{
+			$this->amazon->delete_snapshot($snap);
+		}
+		echo json_encode(array(
+			'success' => true
+		));
+	}
+	
+	function restore_snapshot_to_corresponding_instance()
+	{
+		echo json_encode(array(
+			'success' => $this->amazon->restore_snapshot_to_corresponding_instance($this->input->post('snapshot_id'))
+		));
+	}
+	
+	function restore_snapshot_to_new_instance()
+	{
+		echo json_encode(array(
+			'success' => $this->amazon->restore_snapshot_to_new_instance(
+				$this->input->post('snapshot_id'),
+				$this->input->post('name')
 			)
 		));
 	}

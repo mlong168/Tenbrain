@@ -221,7 +221,7 @@ class Selection extends Controller {
 			 * do smth. based on the selection here (i.e., load the model for the chosen provider, take options into account, etc.)
 			 */
 			$this->load->model('Amazon_model', 'amazon');
-			$this->amazon->launch_instance('ami-6e7c8d07', 't1.micro', 'TenBrain UC Stack for ' . $this->account_model->get_by_id($this->session->userdata('account_id'))->username);
+			$this->amazon->launch_instance('ami-326c9f5b', 't1.micro', 'TenBrain UC Stack for ' . $this->account_model->get_by_id($this->session->userdata('account_id'))->username);
 			$this->session->unset_userdata('selection');
 		}
 		

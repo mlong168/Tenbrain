@@ -40,7 +40,7 @@ class Account_profile extends Controller {
 		// Delete profile picture
 		if ($action == 'delete')
 		{
-			$this->account_details_model->update($data['account']->id, array('picture' => NULL));
+			$this->account_details_model->update($data['account']->id, array('picture'	=> NULL));
 			redirect('account/account_profile');
 		}
 		
@@ -70,11 +70,11 @@ class Account_profile extends Controller {
 			{
 				// Load file uploading library - http://codeigniter.com/user_guide/libraries/file_uploading.html
 				$this->load->library('upload', array(
-					'file_name' => md5($data['account']->id),
-					'overwrite' => true,
-					'upload_path' => FCPATH.'uploads/profile',
-					'allowed_types' => 'jpg|png|gif',
-					'max_size' => '800' // kilobytes
+					// 'file_name'		=> md5($data['account']->id),
+					'overwrite'		=> true,
+					'upload_path'	=> FCPATH.'uploads/profile',
+					'allowed_types'	=> 'gif|jpg|png',
+					'max_size'		=> '800' // kilobytes
 				));
 				
 				/// Try to upload the file
@@ -92,13 +92,13 @@ class Account_profile extends Controller {
 					$this->load->library('image_lib');
 					$this->image_lib->clear();
 					$this->image_lib->initialize(array(
-						'image_library' => 'gd2',
-						'source_image' => FCPATH.'uploads/profile/'.$picture['file_name'],
-						'new_image' => FCPATH.'uploads/profile/pic_'.$picture['raw_name'].'.jpg',
-						'maintain_ratio' => FALSE,
-						'quality' => '100%',
-						'width' => 100,
-						'height' => 100
+						'image_library'		=> 'gd2',
+						'source_image'		=> FCPATH.'uploads/profile/'.$picture['file_name'],
+						'new_image'			=> FCPATH.'uploads/profile/pic_'.$picture['raw_name'].'.jpg',
+						'maintain_ratio'	=> FALSE,
+						'quality'			=> '100%',
+						'width'				=> 100,
+						'height'			=> 100
 					));
 					
 					// Try resizing the picture
@@ -109,8 +109,8 @@ class Account_profile extends Controller {
 					}
 					else
 					{
-						$data['account_details']->picture = 'uploads/profile/pic_'.$picture['raw_name'].'.jpg';
-						$this->account_details_model->update_details($data['account']->id, array('picture' => $data['account_details']->picture));
+						$data['account_details']->picture = base_url() . 'uploads/profile/pic_' . $picture['raw_name'] . '.jpg';
+						$this->account_details_model->update($data['account']->id, array('picture'	=> $data['account_details']->picture));
 					}
 					
 					// Delete original uploaded file

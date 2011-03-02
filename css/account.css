@@ -118,5 +118,6 @@ h2, h3 {
 }
 
 .grid-loader {
-	background: url('images/grid_loader.gif') no-repeat center center;
+	background: url('images/grid_loader.gif') no-repeat 0.5em center;
+	text-indent: 20px;
 }
