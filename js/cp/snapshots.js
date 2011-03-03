@@ -64,18 +64,11 @@ var Snapshots = function(){
 	}();	
 
 	var creator = new Ext.FormPanel({
-		id: 'snapshot_creator',
 		labelWidth: 70,
-		url: '/amazon/create_snapshot',
 		frame: true,
-		floating: true,
-		title: 'Create a Snapshot for the instance',
-		width: 350,
-		height: 120,
-		// bodyStyle: 'padding: 5px 0 5px 5px',
-		hidden: true,
+		border: false,
+		url: '/amazon/create_snapshot',		
 		monitorValid: true,
-
 		items: [{
 			xtype: 'hidden',
 			name: 'instance_id'	
@@ -102,10 +95,11 @@ var Snapshots = function(){
 				var title = 'Create Snapshot',
 					success = 'The snapshot has been created successfully',
 					error = 'A problem occured while creating your snapshot';
+				create_dialogue.hide();
+				Ext.Msg.wait('The snapshot is being created', title);
 				creator.getForm().submit({
 					success: function(form, action){
 						var s = action.result.success
-						creator.hide();
 						Ext.Msg.alert(title, s ? success : error);
 						Snapshots.reload_until_stable();
 						console.log(this === Snapshots);
@@ -118,16 +112,26 @@ var Snapshots = function(){
 		}, {
 			text: 'Cancel',
 			handler: function(){
-				creator.hide();
+				create_dialogue.hide();
 			}
 		}]
 	});
 	
+	var create_dialogue = new Ext.Window({
+		title: 'Create a Snapshot for the instance',
+		height: 128,
+		width: 350,
+		closeAction: 'hide',
+		items: creator,
+		border: false,
+		modal : true
+	});
+	
 	var redeployment_form = new Ext.form.FormPanel({
-		labelWidth: 70,
+		labelWidth: 50,
 		url: '/amazon/restore_snapshot_to_new_instance',
 		border: false,
-		// layout: 'fit',
+		frame: true,
 		monitorValid: true,
 
 		items: [{
@@ -135,7 +139,7 @@ var Snapshots = function(){
 			name: 'snapshot_id'	
 		}, {
 			xtype: 'textfield',
-			width: 150,
+			width: 170,
 			fieldLabel: 'Name',
 			name: 'name',
 			allowBlank: false,
@@ -150,10 +154,11 @@ var Snapshots = function(){
 					success = 'A new instance has been successfully created from a snapshot',
 					error = 'A problem has occurred while creating a new instance from a snapshot';
 				redeployment_dialogue.hide();
+				Ext.Msg.wait('A new instance is being created', title);
 				redeployment_form.getForm().submit({
 					success: function(form, action){
 						Ext.Msg.alert(title, action.result.success ? success : response.error_message || error);
-						store.common.reload();
+						Instances.reload_until_stable('running');
 					},
 					failure: function(form, action){
 						Ext.Msg.alert(title, error);
@@ -170,9 +175,9 @@ var Snapshots = function(){
 	
 	var redeployment_dialogue = new Ext.Window({
 		title: 'Create a new instance from snapshot',
-		height: 100,
-		width: 350,
-		layout: 'fit',
+		height: 102,
+		width: 260,
+		border: false,
 		closeAction: 'hide',
 		items: redeployment_form,
 		modal : true
@@ -198,6 +203,16 @@ var Snapshots = function(){
 			emptyText: '<p style="text-align: center">No snapshots were created for this instance</p>'
 		}),
 		autoExpandColumn: 'description'
+	});
+	
+	var instance_snapshots = new Ext.Window({
+		title: 'Instance snapshots',
+		height: 250,
+		width: 700,
+		layout: 'fit',
+		closeAction: 'hide',
+		items: instance_snapshots_grid,
+		modal : true
 	});
 	
 	var snapshot_instance_grid = new Ext.grid.GridPanel({
@@ -236,19 +251,9 @@ var Snapshots = function(){
 		}),
 		view: new Ext.grid.GridView({
 			// forceFit: true,
-			emptyText: '<p style="text-align: center">Sorry, a problem has occurred</p>'
+			emptyText: '<p style="text-align: center">The instance snapshot has been created of has either been terminated or is currently not available</p>'
 		}),
 		autoExpandColumn: 'name'
-	});
-	
-	var instance_snapshots = new Ext.Window({
-		title: 'Instance snapshots',
-		height: 250,
-		width: 700,
-		layout: 'fit',
-		closeAction: 'hide',
-		items: instance_snapshots_grid,
-		modal : true
 	});
 	
 	var snapshot_instance = new Ext.Window({
@@ -269,7 +274,8 @@ var Snapshots = function(){
 				snapshot_menu.hide();
 				Ext.Msg.confirm(
 					'Restore snapshot to corresponding instance',
-					"Are you sure you want to restore snapshot to it's instance?",
+					"Are you sure you want to restore snapshot to it's instance?" +
+					'<br />All the snapshots of that instance will be deleted',
 					function(button){
 						var error_message = 'A problem has occurred while restoring snapshot';
 						if(button === 'yes')
@@ -277,9 +283,7 @@ var Snapshots = function(){
 							Ext.Msg.wait('Restoring your snapshot', 'Snapshot Restore');
 							Ext.Ajax.request({
 								url: 'amazon/restore_snapshot_to_corresponding_instance',
-								params: {
-									snapshot_id: snap_id
-								},
+								params: { snapshot_id: snap_id },
 								success: function(response){
 									response = Ext.decode(response.responseText);
 									var s = response.success;
@@ -288,6 +292,7 @@ var Snapshots = function(){
 										: response.error_message || error_message
 									);
 									store.common.reload();
+									Instances.reload_until_stable('running');
 								},
 								failure: function(){
 									Ext.Msg.alert('Error', error_message);
@@ -357,7 +362,6 @@ var Snapshots = function(){
 	});
 
 	var sm = new Ext.grid.CheckboxSelectionModel();
-
 	var snapshots = new Ext.grid.GridPanel({
 		id: 'snapshots-panel',
 		title: 'Created snapshots',
@@ -372,27 +376,36 @@ var Snapshots = function(){
 					var selected = sm.getSelections(), snaps = [],
 						title = 'Delete Snapshots',
 						success = 'Snapshots have been deleted successfully',
-						error = 'A problem has occurred while deleting snapshots';
-					for(var i = selected.length; i--;)
+						error = 'A problem has occurred while deleting snapshots';						
+					if(!sm.getCount())
 					{
-						snaps.push(selected[i].data.snapshot_id);
+						Ext.Msg.alert('Warning', 'Please select some snapshots to perform the action');
+						return false;
 					}
-					// check the length here!!! do not make an ajax call when empty!!!!
-					Ext.Msg.wait('The snapshots are being deleted', 'Deleting snapshots');
-					Ext.Ajax.request({
-						url: 'amazon/delete_snapshot',
-						params: {
-							snapshots: Ext.encode(snaps)
-						},
-						success: function(response){
-							response = Ext.decode(response.responseText);
-							var s = response.success;
-							Ext.Msg.alert(title, s ? success : response.error_message || error);
-							store.common.reload();
-						},
-						failure: function(){
-							Ext.Msg.alert(title, error);
+					
+					Ext.MessageBox.confirm(title, 'Are you sure you want to delete these snapshots?', function(button){
+						if(button !== 'yes') return false;
+					
+						for(var i = selected.length; i--;)
+						{
+							snaps.push(selected[i].data.snapshot_id);
 						}
+						Ext.Msg.wait('The snapshots are being deleted', 'Deleting snapshots');
+						Ext.Ajax.request({
+							url: 'amazon/delete_snapshot',
+							params: {
+								snapshots: Ext.encode(snaps)
+							},
+							success: function(response){
+								response = Ext.decode(response.responseText);
+								var s = response.success;
+								Ext.Msg.alert(title, s ? success : response.error_message || error);
+								store.common.reload();
+							},
+							failure: function(){
+								Ext.Msg.alert(title, error);
+							}
+						});
 					});
 				}
 			}]
@@ -434,20 +447,16 @@ var Snapshots = function(){
 				snapshot_menu.selected_record_id = id;
 				snapshot_menu.showAt(e.getXY());
 			}
-		},
+		}
 	});
 	
 	return {
 		get_panel: function(){ return snapshots; },
-		reload_store: function(){
-			store.common.reload();
-		},
 		reload_until_stable: reload_until_stable,
 		
-		get_creator: function(){ return creator; },
 		create: function(instance_id){
 			creator.getForm().reset().setValues({instance_id: instance_id});
-			creator.setPosition(200, 100).show();
+			create_dialogue.show();
 			return false;
 		},
 		

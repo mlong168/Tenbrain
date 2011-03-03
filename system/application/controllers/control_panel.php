@@ -37,46 +37,62 @@ class Control_panel extends Controller {
 		$profile_active = (bool) $this->session->userdata('linked_accounts_active');
 		$this->session->unset_userdata('linked_accounts_active');
 		
-		$menu = array(
-			array(
-				'text'		=> 'Instances Management',
-				'expanded'	=> !$profile_active,
-				'children'	=> array(
-					array(
-						'text'	=> 'Running Instances',
-						'id'	=> 'running_instances',
-						'leaf'	=> true
-					),
-					array(
-						'text'	=> 'Stopped instances',
-						'id'	=> 'stopped_instances',
-						'leaf'	=> true
-					),
-					array(
-						'text'	=> 'Terminated instances',
-						'id'	=> 'terminated_instances',
-						'leaf'	=> true
-					)
+		$menu = array();
+		// instances: 
+		$menu []= array(
+			'text'		=> 'Instances Management',
+			'expanded'	=> !$profile_active,
+			'children'	=> array(
+				array(
+					'text'	=> 'Running Instances',
+					'id'	=> 'running_instances',
+					'leaf'	=> true
+				),
+				array(
+					'text'	=> 'Stopped instances',
+					'id'	=> 'stopped_instances',
+					'leaf'	=> true
+				),
+				array(
+					'text'	=> 'Terminated instances',
+					'id'	=> 'terminated_instances',
+					'leaf'	=> true
 				)
-			),
-			array(
-				'text'		=> 'Available Images',
-				'children'	=> array(
-					array(
-						'text'	=> 'Images available for deployment',
-						'id'	=> 'available_images',
-						'leaf'	=> true
-					)
+			)
+		);
+		
+		// images: 
+		$menu []= array(
+			'text'		=> 'Available Images',
+			'children'	=> array(
+				array(
+					'text'	=> 'Images available for deployment',
+					'id'	=> 'available_images',
+					'leaf'	=> true
 				)
-			),
-			array(
-				'text'		=> 'Snapshots',
-				'children'	=> array(
-					array(
-						'text'	=> 'Created Snapshots',
-						'id'	=> 'snapshots',
-						'leaf'	=> true
-					)
+			)
+		);
+		
+		// snapshots:
+		$menu []= array(
+			'text'		=> 'Snapshots',
+			'children'	=> array(
+				array(
+					'text'	=> 'Created Snapshots',
+					'id'	=> 'snapshots',
+					'leaf'	=> true
+				)
+			)
+		);
+		
+		// load balancers:
+		$menu []= array(
+			'text'		=> 'Load Balancers',
+			'children'	=> array(
+				array(
+					'text'	=> 'Load Balancers',
+					'id'	=> 'load_balancers',
+					'leaf'	=> true
 				)
 			)
 		);

@@ -53,6 +53,11 @@
 		<p>This page shows the images available for deployment.</p>
 	</div>
 	
+	<div id="load_balancers-details">
+		<h2>Load Balancers</h2>
+		<p>This page shows the images available for deployment.</p>
+	</div>
+	
 	<div id="account_profile-details">
 		<h2>Your profile details</h2>
 		<p>This page shows the instances you deployed and that are currently active.</p>

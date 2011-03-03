@@ -424,6 +424,7 @@ class Amazon_model extends Model {
 			'image_id'	=> (string) $old_instance->imageId,
 			'key_name'	=> (string) $old_instance->keyName,
 			'type'		=> (string) $old_instance->instanceType,
+			'volume_id'	=> (string) $old_instance->blockDeviceMapping->ebs()->first()->volumeId,
 			'name'		=> $this->extract_name_from_tagset($old_instance->tagSet)
 			// ''	=> (string) $old_instance->
 		);
@@ -449,7 +450,7 @@ class Amazon_model extends Model {
 		
 		return array(
 			'success'			=> true,
-			'old_instance_id'	=> $old_instance['id'],
+			'old_instance'		=> $old_instance,
 			'new_instance_id'	=> $new_instance_id
 		);
 	}
@@ -462,17 +463,23 @@ class Amazon_model extends Model {
 			$this->die_with_error('Sorry, a problem has occurred while restoring your snapshot');
 		}
 		
-		$this->terminate_instance($new['old_instance_id']);
-		
-		$response = $this->ec2->describe_snapshots(array('SnapshotId' => $snapshot_id));
+		$response = $this->ec2->describe_snapshots(array(
+			'Filter' => array(
+				array('Name' => 'volume-id', 'Value' => $new['old_instance']['volume_id'])
+			)
+		));
 		$this->test_response($response);
 		
-		$name = '';
-		$set = $response->body->snapshotSet()->first()->item;
-		$name = $this->extract_name_from_tagset($set->tagSet);
-		$description = (string) $set->description;
+		foreach($response->body->snapshotSet->item as $snap)
+		{
+			$snap_id = (string) $snap->snapshotId;
+			if($snap_id !== $snapshot_id) $this->ec2->delete_snapshot($snap_id);
+		}
 		
-		$this->delete_snapshot($snapshot_id);
+		$this->terminate_instance($new['old_instance']['id']);
+		
+		// $name = $this->extract_name_from_tagset($response->body->snapshotSet()->first()->item->tagSet);
+		// $description = (string) $set->description;		
 		// $this->create_snapshot($new['new_instance_id'], $name, $description);
 		
 		return true;

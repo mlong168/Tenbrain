@@ -38,14 +38,12 @@ var Images = function(){
 	});
 
 	var deployment_form = new Ext.FormPanel({
-		labelWidth: 125,
 		url: '/amazon/launch_instance',
-		// layout: 'fit',
 		frame: true,
-		// floating: true,
 		border: false,
+		labelWidth: 125,
 		monitorValid: true,
-
+		
 		items: [{
 			xtype: 'textfield',
 			fieldLabel: 'Instance Name',
@@ -87,7 +85,7 @@ var Images = function(){
 					success: function(form, action){
 						var s = action.result.success;
 						Ext.Msg.alert(title, s ? success : error);
-						Cloud.reload_instances_until_stable('running');
+						Instances.reload_until_stable('running');
 					},
 					failure: function(form, action){
 						Ext.Msg.alert(title, error);
