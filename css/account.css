@@ -23,6 +23,7 @@ h2, h3 {
 	text-align: center;
 }
 
+.account_success { color: green; }
 .account_error {
 	color: red;
 	padding: 0;

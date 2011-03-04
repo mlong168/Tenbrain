@@ -20,23 +20,22 @@ var Instances = function(){
 		for(var i = states.length; i--;)
 		{
 			stores[states[i]] = new Ext.data.Store({
-			url: '/amazon/show_instances/' + states[i],
-			reader: new Ext.data.JsonReader({
-				root: 'instances',
-				successProperty: 'success',
-				idProperty: 'id'
-			}, record),
-			autoLoad: true
-		})
+				url: '/amazon/show_instances/' + states[i],
+				reader: new Ext.data.JsonReader({
+					root: 'instances',
+					successProperty: 'success',
+					idProperty: 'id'
+				}, record),
+				autoLoad: true
+			});
 		}
 		return stores;
 	}();
 	
 	var reload_until_stable = function(){
-		var init_timeout = 5000, interval = init_timeout, minimum_interval = 1000, jump = 1000;
-		return function(state, step){
+		var init_timeout = 5000, interval = init_timeout, minimum_interval = 1000, step = 1000;
+		return function(state, callback){
 			state = state || 'running';
-			step = step || jump;
 				
 			if(this !== reload_until_stable)
 			{
@@ -50,12 +49,14 @@ var Instances = function(){
 						if(r[i].data.state !== state)
 						{
 							setTimeout(function(){
-								reload_until_stable.call(reload_until_stable, state, step);
+								reload_until_stable.call(reload_until_stable, state, callback);
 							}, interval);
 							if(interval > minimum_interval && interval - step > 0) interval -= step;
-							break;
+							return false;
 						}
 					}
+					// being here means everything is pretty stable, so we can execute our callback
+					if(typeof callback === 'function') callback();
 				}
 			});
 			return false;
@@ -66,15 +67,16 @@ var Instances = function(){
 	var instances_menu_handler = function(item){
 		var id = item.id, action = id.substr(0, id.indexOf('_')),
 			parent_menu = item.parentMenu.findParentByType('menu'),
-			instance_id = instances_menu.ref_grid.getStore().getAt(instances_menu.selected_record_id).get('instance_id'),
+			instance_id = parent_menu.ref_grid.getStore().getAt(parent_menu.selected_record_id).get('instance_id'),
 			titles = {
 				reboot: 'Reboot Instance',
 				stop: 'Stop Instance',
-				terminate: 'Terminate Instance'
+				terminate: 'Terminate Instance',
+				start: 'Start Instance'
 			}, title = titles[action],
 			success = 'Operation Successfull',
 			error = 'A problem has occurred while processing your request';
-					
+			
 		Ext.MessageBox.confirm(title, 'Are you sure you want to proceed?', function(button){
 			if(button !== 'yes') return false;
 		
@@ -85,7 +87,16 @@ var Instances = function(){
 				success: function(response){
 					response = Ext.decode(response.responseText);
 					Ext.Msg.alert(title, response.success ? success : response.error_message || error);
-					reload_until_stable('running');
+					var stopped = parent_menu.id === 'stopped_instances_menu';
+					reload_until_stable(stopped ? 'stopped' : 'running', function(){
+						if(action === 'terminate') {
+							store.terminated.reload();
+						} else if(action === 'stop') {
+							store.stopped.reload();
+						} else if(action === 'start') {
+							store.running.reload();
+						}
+					});
 				},
 				failure: function(){
 					Ext.Msg.alert(title, error);
@@ -94,6 +105,7 @@ var Instances = function(){
 		});
 	};
 	var instances_menu = new Ext.menu.Menu({
+		id: 'running_instances_menu',
 		items: [{
 			text: 'Management',
 			menu: {
@@ -152,17 +164,10 @@ var Instances = function(){
 	// renderers:
 	var link_wrapper = function(link){
 		return '<a target="_blank" href="http://' + link + '/">' + link + '</a>';
-	},
-	statesman = function(value, metadata, record){
-		if(record.data.state !== 'running')
-		{
-			metadata.css = 'grid-loader';
-		}
-		return value;
 	};
 
 	// layouts:
-	var xg = Ext.grid, sm = new xg.CheckboxSelectionModel(), grids = { };
+	var xg = Ext.grid, sm_running = new xg.CheckboxSelectionModel(), grids = { };
 	grids.running = new xg.GridPanel({
 		id: 'running_instances-panel',
 		title: 'Your currently running instances',
@@ -181,12 +186,15 @@ var Instances = function(){
 				menu.showAt(e.getXY());
 			}
 		},
-		sm: sm,
+		sm: sm_running,
 		cm: new xg.ColumnModel({
 			defaultSortable: false,
 			columns: [
-				sm,
-				{header: "Name", dataIndex: 'name', width: 150, renderer: statesman},
+				sm_running,
+				{header: "Name", dataIndex: 'name', width: 150, renderer: function(value, metadata, record){
+					if(record.data.state !== 'running') metadata.css = 'grid-loader';
+					return value;
+				}},
 				{header: "Link to instance root", dataIndex: 'dns_name', width: 250, renderer: link_wrapper},
 				{header: "IP Address", dataIndex: 'ip_address', width: 120},
 				{header: "State", dataIndex: 'state', width: 100},
@@ -201,13 +209,14 @@ var Instances = function(){
 				xtype: 'button',
 				text: 'Reboot',
 				cls: 'x-btn-text-icon',
+				iconCls: 'restart',
 				handler: function(){
-					var selected = sm.getSelections(), instances = [],
+					var selected = sm_running.getSelections(), instances = [],
 						title = 'Reboot Instances',
 						success = 'Selected instances have been rebooted successfully',
 						error = 'A problem has occurred while rebooting the instances';
 						
-					if(!sm.getCount())
+					if(!sm_running.getCount())
 					{
 						Ext.Msg.alert('Warning', 'Please select some instances to perform the action');
 						return false;
@@ -243,13 +252,14 @@ var Instances = function(){
 				xtype: 'button',
 				text: 'Stop',
 				cls: 'x-btn-text-icon',
+				iconCls: 'stop',
 				handler: function(){
-					var selected = sm.getSelections(), instances = [],
+					var selected = sm_running.getSelections(), instances = [],
 						title = 'Stop Instances',
 						success = 'Selected instances have been stopped successfully',
 						error = 'A problem has occurred while stopping the instances';
 						
-					if(!sm.getCount())
+					if(!sm_running.getCount())
 					{
 						Ext.Msg.alert('Warning', 'Please select some instances to perform the action');
 						return false;
@@ -273,7 +283,9 @@ var Instances = function(){
 								response = Ext.decode(response.responseText);
 								var s = response.success;
 								Ext.Msg.alert(title, s ? success : response.error_message || error);
-								reload_until_stable('running');
+								reload_until_stable('running', function(){
+									store.stopped.reload();
+								});
 							},
 							failure: function(){
 								Ext.Msg.alert(title, error);
@@ -285,13 +297,14 @@ var Instances = function(){
 				xtype: 'button',
 				text: 'Terminate',
 				cls: 'x-btn-text-icon',
+				iconCls: 'terminate',
 				handler: function(){
-					var selected = sm.getSelections(), instances = [],
+					var selected = sm_running.getSelections(), instances = [],
 						title = 'Terminate Instances',
 						success = 'Selected instances have been terminated successfully',
 						error = 'A problem has occurred while terminating the instances';
 						
-					if(!sm.getCount())
+					if(!sm_running.getCount())
 					{
 						Ext.Msg.alert('Warning', 'Please select some instances to perform the action');
 						return false;
@@ -315,7 +328,9 @@ var Instances = function(){
 								response = Ext.decode(response.responseText);
 								var s = response.success;
 								Ext.Msg.alert(title, s ? success : response.error_message || error);
-								reload_until_stable('running');
+								reload_until_stable('running', function(){
+									store.terminated.reload();
+								});
 							},
 							failure: function(){
 								Ext.Msg.alert(title, error);
@@ -331,13 +346,58 @@ var Instances = function(){
 			items: ['->', {
 				xtype: 'button',
 				text: 'Refresh List',
+				cls: 'x-btn-text-icon',
+				iconCls: 'restart',
 				handler: function(){
 					store.running.reload();
 				}
 			}]
 		}
 	});
-
+	
+	var stopped_menu = new Ext.menu.Menu({
+		id: 'stopped_instances_menu',
+		items: [{
+			text: 'Management',
+			menu: {
+				items: [{
+					text: 'Create Snapshot',
+					handler: function(){
+						var record = stopped_menu.ref_grid.getStore().getAt(stopped_menu.selected_record_id),
+							id = record.get('instance_id');
+						stopped_menu.hide();
+						Snapshots.create(id);
+					}
+				}, {
+					text: 'View Snapshots',
+					handler: function(){
+						var record = stopped_menu.ref_grid.getStore().getAt(stopped_menu.selected_record_id),
+							id = record.get('instance_id'),
+							name = record.get('name');
+						stopped_menu.hide();
+						Snapshots.show_instance_snapshots(id, name);
+					}
+				}]
+			}
+		}, '-', {
+			text: 'Actions',
+			menu: {
+				items: [{
+					text: 'Start',
+					id: 'start_instance',
+					handler: instances_menu_handler
+				}, {
+					id: 'terminate_instance',
+					text: 'Terminate',
+					handler: instances_menu_handler
+				}]
+			}
+		}],
+		ref_grid: null,
+		selected_record_id: null
+	});
+	
+	var sm_stopped = new xg.CheckboxSelectionModel();
 	grids.stopped = new xg.GridPanel({
 		id: 'stopped_instances-panel',
 		title: 'Instances that have been stopped',
@@ -347,21 +407,15 @@ var Instances = function(){
 			forceFit: true,
 			emptyText: '<p style="text-align: center">You do not currently have any stopped instance</p>'
 		}),
-		bbar: {
-			xtype: 'toolbar',
-			items: ['->', {
-				xtype: 'button',
-				text: 'Refresh List',
-				handler: function(){
-					store.stopped.reload();
-				}
-			}]
-		},	
+		sm: sm_stopped,
 		cm: new xg.ColumnModel({
 			defaultSortable: false,
 			columns: [
-				{width: 25, fixed: true, renderer: statesman},
-				{header: "Name", dataIndex: 'name', width: 150},
+				sm_stopped,
+				{header: "Name", dataIndex: 'name', width: 150, renderer: function(value, metadata, record){
+					if(record.data.state !== 'stopped') metadata.css = 'grid-loader';
+					return value;
+				}},
 				{header: "Link to instance root", dataIndex: 'dns_name', width: 250, renderer: link_wrapper},
 				{header: "IP Address", dataIndex: 'ip_address', width: 120},
 				{header: "State", dataIndex: 'state', width: 100},
@@ -369,7 +423,77 @@ var Instances = function(){
 				{header: "Type", dataIndex: 'type', width: 100},
 				{header: "Root Device", dataIndex: 'root_device', width: 100}
 			]
-		})
+		}),
+		listeners: {
+			rowcontextmenu: function (grid, id, e) {
+				var menu = stopped_menu;
+				e.preventDefault();
+				if(menu.ref_grid === null) menu.ref_grid = grid;
+				menu.selected_record_id = id;
+				menu.showAt(e.getXY());
+			}
+		},
+		tbar: {
+			xtype: 'toolbar',
+			items: [{
+				xtype: 'button',
+				text: 'Start',
+				cls: 'x-btn-text-icon',
+				iconCls: 'start',
+				handler: function(){
+					var selected = sm_stopped.getSelections(), instances = [],
+						title = 'Start Instances',
+						success = 'Selected instances have been started successfully',
+						error = 'A problem has occurred while starting selected instances';
+						
+					if(!sm_stopped.getCount())
+					{
+						Ext.Msg.alert('Warning', 'Please select some instances to perform the action');
+						return false;
+					}
+					
+					for(var i = selected.length; i--;)
+					{
+						instances.push(selected[i].data.instance_id);
+					}
+					
+					Ext.MessageBox.confirm(title, 'Are you sure you want to start these instances?', function(button){
+						if(button !== 'yes') return false;
+					
+						Ext.Msg.wait('Starting selected instances', title);
+						Ext.Ajax.request({
+							url: 'amazon/start_instance',
+							params: {
+								instances: Ext.encode(instances)
+							},
+							success: function(response){
+								response = Ext.decode(response.responseText);
+								var s = response.success;
+								Ext.Msg.alert(title, s ? success : response.error_message || error);
+								reload_until_stable('stopped', function(){
+									store.running.reload();
+								});
+							},
+							failure: function(){
+								Ext.Msg.alert(title, error);
+							}
+						});
+					});
+				}
+			}]
+		},
+		bbar: {
+			xtype: 'toolbar',
+			items: ['->', {
+				xtype: 'button',
+				text: 'Refresh List',
+				cls: 'x-btn-text-icon',
+				iconCls: 'restart',
+				handler: function(){
+					store.stopped.reload();
+				}
+			}]
+		}
 	});
 
 	grids.terminated = new xg.GridPanel({
@@ -382,6 +506,8 @@ var Instances = function(){
 			items: ['->', {
 				xtype: 'button',
 				text: 'Refresh List',
+				cls: 'x-btn-text-icon',
+				iconCls: 'restart',
 				handler: function(){
 					store.terminated.reload();
 				}

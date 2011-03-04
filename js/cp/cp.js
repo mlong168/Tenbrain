@@ -12,16 +12,10 @@ Ext.onReady(function(){
 		layout: 'fit',
 		bodyStyle: 'padding:25px',
 		contentEl: 'welcome-div'  // pull existing content from the page
-	};	
+	};
 	
-	var content_panel = {
-		id: 'content-panel',
-		region: 'center',
-		layout: 'card',
-		margins: '2 5 5 0',
-		activeItem: active_menu_item,
-		border: false,
-		items: [ welcome,
+	var menu = function(){
+		var items = [ welcome,
 			// instances.js:
 			Instances.get_panel('running'), Instances.get_panel('terminated'), Instances.get_panel('stopped'),
 			// images.js:
@@ -32,7 +26,28 @@ Ext.onReady(function(){
 			
 			// profile.js:
 			account_profile, account_settings, account_password, account_linked
-		]
+		];
+		return {
+			get_items: function(){ return items },
+			get_active: function(){
+				console.log(active_menu_item)
+				for(var i = items.length; i--;)
+				{
+					if(items[i].id === active_menu_item + '-panel') return i;
+				}
+				return 1; // running instances - default
+			}
+		}
+	}();
+	
+	var content_panel = {
+		id: 'content-panel',
+		region: 'center',
+		layout: 'card',
+		margins: '2 5 5 0',
+		items: menu.get_items(),
+		activeItem: menu.get_active(),
+		border: false
 	},	
     tree_panel = new Ext.tree.TreePanel({
     	id: 'tree-panel',

@@ -92,9 +92,21 @@ class Amazon extends Controller {
 
 	function start_instance()
 	{
-		echo json_encode(array(
-			'success' => $this->amazon->start_instance($this->input->post('instance_id'))
-		));
+		$instances = $this->input->post('instances');
+		if($instances)
+		{
+			$instances = json_decode($instances);
+			foreach($instances as $instance)
+			{
+				$this->amazon->start_instance($instance);
+			}			
+		}
+		$instance = $this->input->post('instance_id');
+		if($instance)
+		{
+			$this->amazon->start_instance($instance);
+		}
+		echo json_encode(array('success' => true));
 	}
 
 	function stop_instance()

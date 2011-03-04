@@ -60,6 +60,11 @@ class Amazon_model extends Model {
 			$states_filter['Name'] = 'instance-state-name';
 			$states_filter['Value'] = array('running', 'pending', 'shutting-down', 'stopping');
 		}
+		else if($state === 'stopped')
+		{
+			$states_filter['Name'] = 'instance-state-name';
+			$states_filter['Value'] = array('stopped', 'pending', 'shutting-down');			
+		}
 		else
 		{
 			$states_filter []= array('Name' => 'instance-state-name', 'Value' => $state);
@@ -130,7 +135,7 @@ class Amazon_model extends Model {
 	
 	public function describe_images()
 	{
-		$response = $this->ec2->describe_images(array('Owner' => 'self'));
+		$response = $this->ec2->describe_images(array('Owner' => '528233608018'));
 		
 		$images = array();
 		$ok = $response->isOK();
@@ -248,38 +253,22 @@ class Amazon_model extends Model {
 		);
 		if($instance_id)
 		{
-			$volume_id = $this->get_instance_volume($instance_id);
-			$filter []= array('Name' => 'volume-id', 'Value' => $volume_id);
+			$filter []= array('Name' => 'volume-id', 'Value' => $this->get_instance_volume($instance_id));
 		}
 		$response = $this->ec2->describe_snapshots(array(
 			'Owner'		=> 'self',
 			'Filter'	=> $filter
 		));
 		$this->test_response($response);
-		
 		$snapshots = array();
 		$i = 0;
 		foreach($response->body->snapshotSet->item as $node)
 		{
-			$tags = $node->tagSet;
-			$name = '<i>not set</i>';
-			if($tags->count())
-			{
-				foreach($tags->item as $item)
-				{
-					if((string) $item->key === 'Name')
-					{
-						$name = (string) $item->value;
-					}
-				}
-				// $name_ary = $tags->xpath("item[key='Name']/value");
-				// $name = (string) $name_ary[0];
-			}
 			$time = (string) $node->startTime;
 			$time = date('Y-m-d H:i', strtotime($time));
 			$snapshots[] = array(
 				'id'				=> $i,
-				'name'				=> $name,
+				'name'				=> $this->extract_name_from_tagset($node->tagSet),
 				'snapshot_id'		=> (string) $node->snapshotId,
 				'capacity'			=> (string) $node->volumeSize . 'GB',
 				'description'		=> (string) $node->description,

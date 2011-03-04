@@ -13,7 +13,7 @@
 	<?php echo form_open(uri_string()); ?>
 	
 	<?php if ($this->session->flashdata('password_info')) : ?>
-		<p<?php echo $this->session->flashdata('password_info'); ?></p>
+		<p class="input_wrapper center account_success"><?php echo $this->session->flashdata('password_info'); ?></p>
 	<?php endif; ?>
 	
 	<?php echo lang('password_safe_guard_your_account'); ?>

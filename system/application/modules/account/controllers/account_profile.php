@@ -68,13 +68,12 @@ class Account_profile extends Controller {
 			// If user has uploaded a file
 			if ($_FILES['account_picture_upload']['error'] != 4) 
 			{
-				// Load file uploading library - http://codeigniter.com/user_guide/libraries/file_uploading.html
+				// Load file uploading library
 				$this->load->library('upload', array(
-					// 'file_name'		=> md5($data['account']->id),
 					'overwrite'		=> true,
 					'upload_path'	=> FCPATH.'uploads/profile',
 					'allowed_types'	=> 'gif|jpg|png',
-					'max_size'		=> '800' // kilobytes
+					'max_size'		=> '2000' // kilobytes
 				));
 				
 				/// Try to upload the file
@@ -88,14 +87,14 @@ class Account_profile extends Controller {
 					// Get uploaded picture data
 					$picture = $this->upload->data();
 					
-					// Create picture thumbnail - http://codeigniter.com/user_guide/libraries/image_lib.html
+					// Create picture thumbnail, also rename it
+					$picture['raw_name'] = md5($data['account']->id);
 					$this->load->library('image_lib');
 					$this->image_lib->clear();
 					$this->image_lib->initialize(array(
 						'image_library'		=> 'gd2',
 						'source_image'		=> FCPATH.'uploads/profile/'.$picture['file_name'],
 						'new_image'			=> FCPATH.'uploads/profile/pic_'.$picture['raw_name'].'.jpg',
-						'maintain_ratio'	=> FALSE,
 						'quality'			=> '100%',
 						'width'				=> 100,
 						'height'			=> 100

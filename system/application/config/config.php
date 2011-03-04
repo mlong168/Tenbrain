@@ -336,7 +336,7 @@ $config['proxy_ips'] = '';
 | represents the selection of available third party authentication providers
 |
 */
-$config['third_party_auth_providers'] 			= array('facebook', 'twitter', 'google', 'openid');
+$config['third_party_auth_providers'] 			= array('facebook', 'twitter', 'google');
 
 
 /* End of file config.php */

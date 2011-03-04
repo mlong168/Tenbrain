@@ -292,7 +292,16 @@ var Snapshots = function(){
 										: response.error_message || error_message
 									);
 									store.common.reload();
-									Instances.reload_until_stable('running');
+									Instances.reload_until_stable('running', function(){
+										// delete snapshot when restored, because it is not functional anymore
+										Ext.Ajax.request({
+											url: 'amazon/delete_snapshot',
+											params: { snapshot_id: snap_id },
+											success: function(response){
+												store.common.reload();
+											}
+										});
+									});
 								},
 								failure: function(){
 									Ext.Msg.alert('Error', error_message);
@@ -372,6 +381,8 @@ var Snapshots = function(){
 			items: [{
 				xtype: 'button',
 				text: 'Delete Snapshots',
+				cls: 'x-btn-text-icon',
+				iconCls: 'terminate',
 				handler: function(){
 					var selected = sm.getSelections(), snaps = [],
 						title = 'Delete Snapshots',
@@ -415,6 +426,8 @@ var Snapshots = function(){
 			items: ['->', {
 				xtype: 'button',
 				text: 'Refresh List',
+				cls: 'x-btn-text-icon',
+				iconCls: 'restart',
 				handler: function(){
 					store.common.reload();
 				}

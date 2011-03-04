@@ -11,7 +11,7 @@
 	<?php endif; ?>
 	
 	<script type="text/javascript">
-		var active_menu_item = <?php echo (int)$active_menu_item ?>;
+		var active_menu_item = '<?php echo $active_menu_item ?>';
 	</script>
 	
 	<?php if(isset($scripts) && count($scripts)): ?>

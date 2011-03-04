@@ -1,7 +1,7 @@
 <?php
 	$this->load->view('cp/header', array(
 		'title'		=> 'TenBrain Control Panel',
-		'styles'	=> array('main', 'account', 'ext_resources/css/ext-all'),
+		'styles'	=> array('main', 'account', 'ext_resources/css/ext-all', 'icons'),
 		'scripts'	=> array(
 			'jquery-1.4.4.min',
 			'jquery-ui-1.8.9.custom.min',
