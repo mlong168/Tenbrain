@@ -7,7 +7,7 @@
 	<link rel="stylesheet" type="text/css" href="<?php echo base_url() ?>css/account.css" />
 
 	<?php if ($this->session->flashdata('linked_info') || $this->session->flashdata('linked_error')) : ?>
-		<?php $this->session->set_userdata('linked_accounts_active', true) ?>
+		<?php $this->session->set_userdata('active_menu_item', 'linked_accounts') ?>
 		<script type="text/javascript">
 			if(top === self) // if not in an iframe
 			{

@@ -30,7 +30,6 @@ Ext.onReady(function(){
 		return {
 			get_items: function(){ return items },
 			get_active: function(){
-				console.log(active_menu_item)
 				for(var i = items.length; i--;)
 				{
 					if(items[i].id === active_menu_item + '-panel') return i;

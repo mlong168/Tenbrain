@@ -14,15 +14,8 @@ class Control_panel extends Controller {
 	
 	function index()
 	{
-		$active_menu = 'running_instances';
-		if($this->session->userdata('linked_accounts_active'))
-		{
-			$active_menu = 'account_linked';
-		}
-		else if($this->session->userdata('password_reseted'))
-		{
-			$active_menu = 'account_password';
-		}
+		$active_menu = $this->session->userdata('active_menu_item');
+		if(!$active_menu) $active_menu = 'running_instances';
 		
 		if($this->authentication->is_signed_in())
 		{
@@ -38,9 +31,8 @@ class Control_panel extends Controller {
 	
 	function menu()
 	{
-		$profile_active = $this->session->userdata('linked_accounts_active') || $this->session->userdata('password_reseted');
-		$this->session->unset_userdata('linked_accounts_active');
-		$this->session->unset_userdata('password_reseted');
+		$profile_active = (bool) $this->session->userdata('active_menu_item');
+		$this->session->unset_userdata('active_menu_item');
 		
 		$menu = array();
 		// instances: 

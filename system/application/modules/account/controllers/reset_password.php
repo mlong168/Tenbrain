@@ -67,8 +67,7 @@ class Reset_password extends Controller {
 					$this->account_model->remove_reset_sent_datetime($account->id);
 					
 					// Upon sign in, redirect to change password page
-					$this->session->set_userdata('password_reseted', true);
-					
+					$this->session->set_userdata('active_menu_item', 'account_password');
 					// Run sign in routine
 					$this->authentication->sign_in($account->id);
 				}
