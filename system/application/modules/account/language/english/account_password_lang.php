@@ -9,6 +9,7 @@ $lang['password_page_name']						= 'Change Password';
 $lang['password_current_password']				= 'Current Password';
 $lang['password_new_password']					= 'New Password';
 $lang['password_retype_new_password']			= 'Re-type New Password';
+$lang['password_passwords_do_not_match']		= 'The passwords you have entered do not match. Please try again';
 $lang['password_change_my_password']			= 'Change my password';
 $lang['password_current_password_incorrect']	= 'Your currently password is incorrect.';
 $lang['password_forgot_your_password']			= 'Forgot your password?';

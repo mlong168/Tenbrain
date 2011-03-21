@@ -1,15 +1,14 @@
 <?php
+	$cp_scripts = array('cp/instances', 'cp/images', 'cp/snapshots', 'cp/profile');
+	if($account_type !== 'premium') $cp_scripts []= 'cp/transferer';
+	if($account_type === 'premium') $cp_scripts []= 'cp/load_balancers';
+	$cp_scripts []= 'cp/cp';
 	$this->load->view('cp/header', array(
 		'title'		=> 'TenBrain Control Panel',
 		'styles'	=> array('main', 'account', 'ext_resources/css/ext-all', 'icons'),
-		'scripts'	=> array(
-			'jquery-1.4.4.min',
-			'jquery-ui-1.8.9.custom.min',
-			'extjs/adapter/jquery/ext-jquery-adapter',
-			'extjs/ext-all',
-			'cp/instances', 'cp/images', 'cp/snapshots', 'cp/profile', 'cp/cp'
-		),
-		'active_menu_item'	=> $active_menu_item
+		'scripts'	=> array_merge(array('extjs/adapter/ext/ext-base', 'extjs/ext-all'), $cp_scripts),
+		'active_menu_item'	=> $active_menu_item,
+		'account_type'		=> $account_type
 	));
 ?>
 <div id="header">
@@ -17,7 +16,11 @@
 	<div id="account_area">
 		<div class="signed_in_controls">
 			<span class="welcome_message">Welcome, <?php echo $this->account_model->get_by_id($this->session->userdata('account_id'))->username ?>!</span>
-			<a class="blue underlined_dash" href="/account/sign_out">Sign out</a>
+			<a class="blue underlined_dash" href="/account/sign_out">Sign out</a><br />
+			<span class="welcome_message">Account type: <?php echo $account_type ?></span>
+			<?php if($account_type !== 'premium'): ?>
+				<a class="blue underlined_dash" href="#" id="upgrader">Upgrage to TenBrain Premium!</a>
+			<?php endif; ?>
 		</div>
 	</div>
 </div>

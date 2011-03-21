@@ -139,7 +139,6 @@ var Images = function(){
 		layout: 'fit',
 		title: 'Images available for deployment',
 		store: images,
-		border: false,
 		viewConfig: {
 			forceFit: true,
 			emptyText: '<p style="text-align: center">No images are available for deployment</p>'

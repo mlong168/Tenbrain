@@ -19,8 +19,11 @@ class Control_panel extends Controller {
 		
 		if($this->authentication->is_signed_in())
 		{
+			$this->load->model(array('amazon_model'));
 			$this->load->view('cp/main', array(
-				'active_menu_item' => $active_menu
+				// 'active_menu_item'	=> $acttive_menu,
+				'active_menu_item'	=> 'load_balancers',
+				'account_type'		=> $this->amazon_model->get_account_type()
 			));
 		}
 		else

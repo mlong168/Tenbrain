@@ -12,6 +12,7 @@
 	
 	<script type="text/javascript">
 		var active_menu_item = '<?php echo $active_menu_item ?>';
+		var account_type = '<?php echo $account_type ?>';
 	</script>
 	
 	<?php if(isset($scripts) && count($scripts)): ?>

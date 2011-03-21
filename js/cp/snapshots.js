@@ -102,7 +102,6 @@ var Snapshots = function(){
 						var s = action.result.success
 						Ext.Msg.alert(title, s ? success : error);
 						Snapshots.reload_until_stable();
-						console.log(this === Snapshots);
 					},
 					failure: function(form, action){
 						Ext.Msg.alert(title, error);
@@ -268,14 +267,13 @@ var Snapshots = function(){
 
 	var snapshot_menu = new Ext.menu.Menu({
 		items: [{
-			text: 'Restore to corresponding instance',
+			text: 'Restore and terminate corresponding instance',
 			handler: function(){
 				var snap_id = snapshot_menu.relative_grid.getStore().getAt(snapshot_menu.selected_record_id).get('snapshot_id');
 				snapshot_menu.hide();
 				Ext.Msg.confirm(
 					'Restore snapshot to corresponding instance',
-					"Are you sure you want to restore snapshot to it's instance?" +
-					'<br />All the snapshots of that instance will be deleted',
+					"Are you sure you want to restore snapshot to it's instance?",
 					function(button){
 						var error_message = 'A problem has occurred while restoring snapshot';
 						if(button === 'yes')
@@ -292,15 +290,9 @@ var Snapshots = function(){
 										: response.error_message || error_message
 									);
 									store.common.reload();
-									Instances.reload_until_stable('running', function(){
-										// delete snapshot when restored, because it is not functional anymore
-										Ext.Ajax.request({
-											url: 'amazon/delete_snapshot',
-											params: { snapshot_id: snap_id },
-											success: function(response){
-												store.common.reload();
-											}
-										});
+									Instances.reload_until_stable('running');
+									Instances.reload_until_stable('stopped', function(){
+										Instances.reload_instances('terminated');
 									});
 								},
 								failure: function(){

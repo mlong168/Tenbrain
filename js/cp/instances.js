@@ -1,5 +1,6 @@
 // main operational object singleton:
 var Instances = function(){
+	var states = ['running', 'terminated', 'stopped'];
 	var store = function(){
 		var record = Ext.data.Record.create([
 			'id',
@@ -13,9 +14,6 @@ var Instances = function(){
 			'type',
 			'root_device'
 		]),
-		// all available states: ['pending', 'running', 'shutting-down', 'terminated', 'stopping', 'stopped']
-		// 'running' state here also represents unstable states - pending, shutting-down, stopping
-		states = ['running', 'terminated', 'stopped'],
 		stores = {};
 		for(var i = states.length; i--;)
 		{
@@ -107,24 +105,19 @@ var Instances = function(){
 	var instances_menu = new Ext.menu.Menu({
 		id: 'running_instances_menu',
 		items: [{
-			text: 'Management',
+			text: 'Connect',
 			menu: {
 				items: [{
-					text: 'Create Snapshot',
+					text: 'View connection info',
 					handler: function(){
-						var record = instances_menu.ref_grid.getStore().getAt(instances_menu.selected_record_id),
-							id = record.get('instance_id');
-						instances_menu.hide();
-						Snapshots.create(id);
+						Ext.Msg.alert('Instance connection information', 'You have to download the key file and then use shell command');
 					}
 				}, {
-					text: 'View Snapshots',
+					text: 'Download key file',
 					handler: function(){
-						var record = instances_menu.ref_grid.getStore().getAt(instances_menu.selected_record_id),
-							id = record.get('instance_id'),
-							name = record.get('name');
-						instances_menu.hide();
-						Snapshots.show_instance_snapshots(id, name);
+						Ext.Msg.confirm('Download key pair', 'Do you want to download your key pair to connect to your instance via SSH?', function(button){
+							if(button === 'yes') document.location.assign('/amazon/download_private_key');
+						});
 					}
 				}]
 			}
@@ -146,6 +139,28 @@ var Instances = function(){
 				}]
 			}
 		}, '-', {
+			text: 'Management',
+			menu: {
+				items: [{
+					text: 'Create Snapshot',
+					handler: function(){
+						var record = instances_menu.ref_grid.getStore().getAt(instances_menu.selected_record_id),
+							id = record.get('instance_id');
+						instances_menu.hide();
+						Snapshots.create(id);
+					}
+				}, {
+					text: 'View Snapshots',
+					handler: function(){
+						var record = instances_menu.ref_grid.getStore().getAt(instances_menu.selected_record_id),
+							id = record.get('instance_id'),
+							name = record.get('name');
+						instances_menu.hide();
+						Snapshots.show_instance_snapshots(id, name);
+					}
+				}]
+			}
+		}, {
 			text: 'Monitoring',
 			menu: {
 				items: [{
@@ -534,7 +549,7 @@ var Instances = function(){
 	return {
 		get_panel: function(state){ return grids[state] },
 		reload_instances: function(state){	// reload all if state is not specified
-			if(typeof state === 'string' && $.inArray(state, states) !== -1)
+			if(typeof state === 'string' && states.indexOf(state) !== -1)
 			{
 				store[state].reload();
 			}

@@ -22,11 +22,10 @@ Ext.onReady(function(){
 			Images.get_grid(),
 			// snapshots.js:
 			Snapshots.get_panel(),
-			// load_balancers.js:
-			
 			// profile.js:
 			account_profile, account_settings, account_password, account_linked
 		];
+		if(account_type === 'premium') items.push(Load_balancers.get_grid());
 		return {
 			get_items: function(){ return items },
 			get_active: function(){

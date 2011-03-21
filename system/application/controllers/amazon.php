@@ -30,9 +30,8 @@ class Amazon extends Controller {
 	function index()
 	{
 		error_reporting(E_ALL);
-		header('Content-type: text/plain');
-		// print_r($this->amazon->restore_snapshot_to_corresponding_instance('snap-baa114d6'));
-		print_r($this->amazon->created_snapshots());
+		// header('Content-type: text/plain');
+		$this->amazon->test();
 		die(PHP_EOL . 'voila! this is an amazon controller index function');
 	}
 
@@ -146,6 +145,21 @@ class Amazon extends Controller {
 		}
 		echo json_encode(array('success' => true));
 	}
+	
+	function download_private_key()
+	{
+		$key = $this->amazon->download_user_private_key();		
+		if(!$key)
+		{
+			echo json_encode(array('success' => false));
+			return false;
+		}
+
+		header('Content-type: text/plain');
+		header('Content-Disposition: attachment; filename="' . $key['key_name'] . '.pem"');
+		echo $key['private_key'];		
+		return false;
+	}
 
 	function created_snapshots()
 	{
@@ -203,6 +217,74 @@ class Amazon extends Controller {
 				$this->input->post('snapshot_id'),
 				$this->input->post('name')
 			)
+		));
+	}
+	
+	function transfer_instances()
+	{
+		$new_credentials = array(
+			'user_id'		=> $this->input->post('account_id'),
+			'key'			=> $this->input->post('key'),
+			'secret_key'	=> $this->input->post('secret_key')
+		);
+		$transfer = $this->amazon->transfer_instances($new_credentials);
+		echo json_encode(array('success' => $transfer));
+	}
+	
+	function created_load_balancers()
+	{
+		echo json_encode($this->amazon->created_load_balancers());
+	}
+	
+	function create_load_balancer()
+	{
+		echo json_encode(array(
+			'success' => $this->amazon->create_load_balancer(
+				$this->input->post('name')
+			)
+		));
+	}
+	
+	function delete_load_balancer()
+	{
+		echo json_encode(array(
+			'success' => $this->amazon->delete_load_balancer(
+				$this->input->post('name')
+			)
+		));
+	}
+	
+	function show_lb_instances()
+	{
+		$instances = $this->amazon->show_lb_instances(
+			$this->input->post('lb_name'),
+			(bool) $this->input->post('list_available')
+		);
+		echo json_encode(array(
+			'success'	=> true,
+			'instances'	=> $instances
+		));
+	}
+	
+	function register_instances_with_lb()
+	{
+		$lb_name = $this->input->post('lb_name');
+		$instances = json_decode($this->input->post('instances'));
+		
+		echo json_encode(array(
+			'success'		=> $this->amazon->register_instances_with_load_balancer($lb_name, $instances),
+			'error_message'	=> 'A problem has occurred'
+		));
+	}
+	
+	function deregister_instances_from_lb()
+	{
+		$lb_name = $this->input->post('lb_name');
+		$instances = json_decode($this->input->post('instances'));
+		
+		echo json_encode(array(
+			'success'		=> $this->amazon->deregister_instances_from_load_balancer($lb_name, $instances),
+			'error_message'	=> 'A problem has occurred'
 		));
 	}
 }
