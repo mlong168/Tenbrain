@@ -245,7 +245,18 @@ var Elastic_IPs = function(){
 							success: function(response){
 								response = Ext.decode(response.responseText);
 								var s = response.success;
-								Ext.Msg.alert(title, s ? success : response.error_message || error);
+								Ext.Msg.alert(title, s ? success : response.error_message || error, function(){
+									if(!s) return false;
+									// view the association dialogue if things went fine
+									var address = response.address;
+									associator.getForm().reset().setValues({
+										address: address
+									});
+									modal_window
+										.setTitle('Associate an instance with an IP address ' + address)
+										.setSize(370, 102).show().center()
+										.getLayout().setActiveItem('elastic_ip_associator');
+								});
 								ip_store.reload();
 							},
 							failure: function(){

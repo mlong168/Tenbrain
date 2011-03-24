@@ -976,8 +976,8 @@ class Amazon_model extends Model {
 	
 	public function allocate_address()
 	{
-		$response = $this->ec2->allocate_address();		
-		return $response->isOK();
+		$response = $this->ec2->allocate_address();
+		return $response->isOK() ? (string) $response->body->publicIp : false;
 	}
 	
 	public function get_short_instances_list()

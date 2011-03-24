@@ -306,8 +306,10 @@ class Amazon extends Controller {
 	
 	function allocate_address()
 	{
+		$address = $this->amazon->allocate_address();
 		echo json_encode(array(
-			'success' => $this->amazon->allocate_address()
+			'success' => (bool) $address,
+			'address' => $address
 		));
 	}
 	
