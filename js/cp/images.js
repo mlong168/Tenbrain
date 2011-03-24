@@ -60,6 +60,7 @@ var Images = function(){
 			displayField: 'type',
 			valueField: 'type',
 			allowBlank: false,
+			editable: false,
 			width: 150,
 			tpl: '<tpl for="."><div ext:qtip="{reason}" class="x-combo-list-item">{type}</div></tpl>',
 			listeners: {

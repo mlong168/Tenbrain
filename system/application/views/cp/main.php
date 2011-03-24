@@ -1,7 +1,7 @@
 <?php
 	$cp_scripts = array('cp/instances', 'cp/images', 'cp/snapshots', 'cp/profile');
 	if($account_type !== 'premium') $cp_scripts []= 'cp/transferer';
-	if($account_type === 'premium') $cp_scripts []= 'cp/load_balancers';
+	if($account_type === 'premium') $cp_scripts = array_merge($cp_scripts, array('cp/load_balancers', 'cp/elastic_ips'));
 	$cp_scripts []= 'cp/cp';
 	$this->load->view('cp/header', array(
 		'title'		=> 'TenBrain Control Panel',
@@ -58,6 +58,11 @@
 	
 	<div id="load_balancers-details">
 		<h2>Load Balancers</h2>
+		<p>This page shows the images available for deployment.</p>
+	</div>
+	
+	<div id="elastic_ips-details">
+		<h2>Elastic IPs</h2>
 		<p>This page shows the images available for deployment.</p>
 	</div>
 	

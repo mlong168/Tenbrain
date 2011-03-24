@@ -287,6 +287,63 @@ class Amazon extends Controller {
 			'error_message'	=> 'A problem has occurred'
 		));
 	}
+	
+	function get_load_balanced_instances()
+	{
+		echo json_encode(array(
+			'success'	=> true,
+			'instances'	=> $this->amazon->get_load_balanced_instances($this->input->post('lb_name'))
+		));
+	}
+	
+	function elastic_ips()
+	{
+		echo json_encode(array(
+			'success'		=> true,
+			'elastic_ips'	=> $this->amazon->get_elastic_ips()
+		));
+	}
+	
+	function allocate_address()
+	{
+		echo json_encode(array(
+			'success' => $this->amazon->allocate_address()
+		));
+	}
+	
+	function get_short_instances_list()	// for associating with an elastic IP
+	{
+		echo json_encode(array(
+			'success'	=> true,
+			'instances' => $this->amazon->get_short_instances_list()
+		));
+	}
+	
+	function associate_elastic_ip()
+	{
+		echo json_encode(array(
+			'success'	=> $this->amazon->associate_ip(
+				$this->input->post('instance_id'),
+				$this->input->post('address')
+			)
+		));
+	}
+	
+	function disassociate_address()
+	{
+		echo json_encode(array(
+			'success'	=> $this->amazon->disassociate_ip($this->input->post('address'))
+		));		
+	}
+	
+	function release_addresses()
+	{
+		$ips = json_decode($this->input->post('addresses'));
+		
+		echo json_encode(array(
+			'success'	=> $this->amazon->release_ip($ips)
+		));		
+	}
 }
 
 /* End of file amazon.php */

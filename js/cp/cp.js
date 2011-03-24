@@ -25,7 +25,11 @@ Ext.onReady(function(){
 			// profile.js:
 			account_profile, account_settings, account_password, account_linked
 		];
-		if(account_type === 'premium') items.push(Load_balancers.get_grid());
+		if(account_type === 'premium')
+		{
+			items.push(Load_balancers.get_grid());
+			items.push(Elastic_IPs.get_grid());
+		}
 		return {
 			get_items: function(){ return items },
 			get_active: function(){

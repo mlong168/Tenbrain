@@ -21,8 +21,7 @@ class Control_panel extends Controller {
 		{
 			$this->load->model(array('amazon_model'));
 			$this->load->view('cp/main', array(
-				// 'active_menu_item'	=> $acttive_menu,
-				'active_menu_item'	=> 'load_balancers',
+				'active_menu_item'	=> $active_menu,
 				'account_type'		=> $this->amazon_model->get_account_type()
 			));
 		}
@@ -92,6 +91,18 @@ class Control_panel extends Controller {
 				array(
 					'text'	=> 'Load Balancers',
 					'id'	=> 'load_balancers',
+					'leaf'	=> true
+				)
+			)
+		);
+		
+		// elastic IP's
+		$menu []= array(
+			'text'		=> 'Elastic IPs',
+			'children'	=> array(
+				array(
+					'text'	=> 'Elastic IPs',
+					'id'	=> 'elastic_ips',
 					'leaf'	=> true
 				)
 			)

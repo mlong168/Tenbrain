@@ -93,18 +93,19 @@ class Amazon_model extends Model {
 
 	private function extract_tag_from_tagset($tagset, $tag_name)
 	{
-		$tagset = $tagset->item();
-		$tag = '';
-		foreach($tagset as $item)
-		{
-			if((string) $item->key === $tag_name)
-			{
-				$tag = (string) $item->value;
-				break;
-			}
+		// $tagset = $tagset->item();
+		// $tag = '';
+		// foreach($tagset as $item)
+		// {
+			// if((string) $item->key === $tag_name)
+			// {
+				// $tag = (string) $item->value;
+				// break;
+			// }
 
-		}
-		return $tag;
+		// }
+		// return $tag;
+		return (string) $node->tagSet->query("descendant-or-self::item[key='$tag_name']/value")->first();
 	}
 
 	public function describe_instances($state)
@@ -135,13 +136,8 @@ class Amazon_model extends Model {
 		});
 
 		$results->each(function($node, $i, &$instances){
-			$tags = $node->tagSet;
-			$name = '<i>not set</i>';
-			if($tags->count())
-			{
-				$name_ary = $tags->xpath("item[key='Name']/value");
-				$name = (string) $name_ary[0];
-			}
+			$name = $node->tagSet->xpath("descendant-or-self::item[key='Name']/value");
+			$name = $name ? (string) $name[0] : '<i>not set</i>';
 			$instances[] = array(
 				'id'				=> $i,
 				'name'				=> $name,
@@ -768,7 +764,7 @@ class Amazon_model extends Model {
 			$instances[] = (string) $node;
 		}, $instances);
 		
-		if(empty($instances)) return $instances;
+		// if(empty($instances)) return $instances;
 		
 		if($list_available)
 		{
@@ -780,11 +776,16 @@ class Amazon_model extends Model {
 				$all_instances[] = (string) $node;
 			}, $all_instances);
 			
-			$instances = array_diff($all_instances, $instances);
-			
+			$instances = array_diff($all_instances, $instances);			
 		}
 		
-		$response = $this->ec2->describe_instances(array('InstanceId' => $instances));
+		$response = $this->ec2->describe_instances(array(
+			'InstanceId'	=> $instances,
+			'Filter'		=> array(
+				array('Name' => 'instance-state-name', 'Value' => array('running', 'stopped', 'pending', 'shutting-down'))
+			)
+		));
+		
 		$instances_set = $response->body->query('descendant-or-self::instanceId');
 
 		$instances = array();
@@ -837,7 +838,8 @@ class Amazon_model extends Model {
 		$elb = $this->get_elb_handle();
 		if(count($zones_to_register))
 		{
-			$elb->enable_availability_zones_for_load_balancer($lb_name, $zones_to_register);
+			$response = $elb->enable_availability_zones_for_load_balancer($lb_name, $zones_to_register);
+			print_r($response);
 		}
 		
 		$response = $elb->register_instances_with_load_balancer($lb_name, $instances_to_register);
@@ -857,12 +859,188 @@ class Amazon_model extends Model {
 		$this->test_response($response);
 		return true;
 	}
+	
+	public function get_load_balanced_instances($lb_name)
+	{
+		if(!$lb_name) return array();
+		
+		$elb = $this->get_elb_handle();	
+		$response = $elb->describe_instance_health($lb_name);
+		$list = $response->body->query('descendant-or-self::InstanceId');		
+		$results = $list->map(function($node){
+			return $node->parent();
+		});
+		
+		$instances = array();
+		$instances['healthy'] = array();
+		$results->each(function($node, $i, &$instances){
+			$healthy = (string) $node->State === 'InService';
+			$id = (string) $node->InstanceId;
+			if($healthy) $instances['healthy'][]= $id;
+			
+			$instances[$id] = array(
+				'healthy'			=> $healthy,
+				'health_message'	=> (string) $node->Description
+			);
+		}, $instances);
+		
+		if(count($instances['healthy']))
+		{
+			$response = $this->ec2->describe_instances(array('InstanceId' => $instances['healthy']));
+			$list = $response->body->query('descendant-or-self::instanceId');		
+			$results = $list->map(function($node){
+				return $node->parent();
+			});
+			
+			$results->each(function($node, $i, &$instances){
+				$id = (string) $node->instanceId;
+				if(isset($instances[$id]))
+				{
+					$instances[$id] = array_merge($instances[$id], array(
+						'id'			=> $i,
+						'dns_name'		=> (string) $node->dnsName,
+						'ip_address'	=> (string) $node->ipAddress,
+						'name'			=> (string) $node->tagSet->query("descendant-or-self::item[key='Name']/value")->first()
+						// ''	=> (string) $node->,
+					));
+				}
+			}, $instances);
+		}
+		unset($instances['healthy']);
+		
+		$output = array();
+		foreach($instances as $key => $value)
+		{
+			$output []= array_merge(array('instance_id' => $key), $value);
+		}
+		
+		return $output;
+	}
+	
+	public function get_elastic_ips()
+	{
+		$response = $this->ec2->describe_addresses();
+		$list = $response->body->query('descendant-or-self::publicIp');		
+		$results = $list->map(function($node){
+			return $node->parent();
+		});
+		
+		$ips = array();
+		$ips['instances'] = array();
+		$results->each(function($node, $i, &$ips){
+			$instance_id = (string) $node->instanceId;
+			$ip = (string) $node->publicIp;
+			if(empty($instance_id))
+			{
+				$ips []= array(
+					'address'		=> $ip,
+					'instance'		=> '',
+					'instance_dns'	=> ''
+				);
+			}
+			else
+			{			
+				$ips['instances'] []= $instance_id;
+				$ips[$instance_id] = $ip;
+			}
+		}, $ips);
+		
+		if(count($ips['instances']))
+		{
+			$response = $this->ec2->describe_instances(array('InstanceId' => $ips['instances']));
+			$list = $response->body->query('descendant-or-self::instanceId');		
+			$results = $list->map(function($node){
+				return $node->parent();
+			});
+			
+			$results->each(function($node, $i, &$ips){
+				$id = (string) $node->instanceId;
+				$name = $node->tagSet->xpath("descendant-or-self::item[key='Name']/value");
+				$name = $name ? (string) $name[0] : '<i>not set</i>';
+				$ips []= array(
+					// 'address'		=> (string) $node->ipAddress,
+					'address'		=> $ips[$id],
+					'instance'		=> $name . ' (' . $id . ')',
+					'instance_dns'	=> (string) $node->dnsName
+				);
+				unset($ips[$id]);
+			}, $ips);
+		}
+		unset($ips['instances']);
+		
+		// set the proper ids:
+		foreach($ips as $id => &$value) $value['id'] = $id;
+		
+		return $ips;
+	}
+	
+	public function allocate_address()
+	{
+		$response = $this->ec2->allocate_address();		
+		return $response->isOK();
+	}
+	
+	public function get_short_instances_list()
+	{
+		$response = $this->ec2->describe_instances(array(
+			'Filter' => array(
+				array('Name' => 'instance-state-name', 'Value' => array('running'))
+			)
+		));
+		$this->test_response($response);
+
+		$instances = array();
+		$list = $response->body->query("descendant-or-self::instanceId");
+		$results = $list->map(function($node){
+			return $node->parent();
+		});
+
+		$results->each(function($node, $i, &$instances){
+			$name = $node->tagSet->xpath("descendant-or-self::item[key='Name']/value");
+			$name = $name ? (string) $name[0] : '<i>not set</i>';
+			$id = (string) $node->instanceId;
+			$instances[] = array(
+				'id'				=> $i,
+				'instance_id'		=> $id,
+				'instance_name'		=> $name . ' (' . $id . ')'
+			);
+		}, $instances);
+		
+		return $instances;
+	}
+	
+	public function associate_ip($instance_id, $address)
+	{
+		$response = $this->ec2->associate_address($instance_id, $address);
+		$this->test_response($response);
+		
+		return $response->isOK();
+	}
+	
+	public function disassociate_ip($address)
+	{
+		$response = $this->ec2->disassociate_address($address);
+		$this->test_response($response);
+		
+		return $response->isOK();
+	}
+	
+	public function release_ip($addresses)
+	{
+		if(is_string($addresses)) $addresses = array($addresses);
+		$success = true;
+		foreach($addresses as $address)
+		{
+			$response = $this->ec2->release_address($address);
+			if(!$response->isOK()) $success = false;
+		}
+		return $success;
+	}
 
 	public function test()
 	{
-		$elb = $this->get_elb_handle();	
-		$response = $elb->describe_instance_health('first');
-		print_r($response->body);
-		die;
+		$output = $this->get_elastic_ips();
+		print_r($output);
+		echo PHP_EOL;die;
 	}
 }
