@@ -51,6 +51,14 @@ class Amazon extends Controller {
 	{
 		echo json_encode($this->amazon->describe_images());
 	}
+	
+	function get_available_instance_types()
+	{
+		echo json_encode(array(
+			'success'	=> true,
+			'types'		=> $this->amazon->get_available_instance_types()
+		));
+	}
 
 	function launch_instance()
 	{

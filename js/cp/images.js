@@ -20,23 +20,6 @@ var Images = function(){
 		});
 	}();
 
-	var instance_types = new Ext.data.ArrayStore({
-		fields: ['type', 'banned', 'reason'],
-		data: [
-			['t1.micro', false, ''],
-			['m1.small', true, 'Not available in a free version'],
-			['m1.large', true, 'Not available in a free version'],
-			['m1.xlarge', true, 'Not available in a free version'],
-			['m2.xlarge', true, 'Not available in a free version'],
-			['m2.2xlarge', true, 'Not available in a free version'],
-			['m2.4xlarge', true, 'Not available in a free version'],
-			['c1.medium', true, 'Not available in a free version'],
-			['c1.xlarge', true, 'Not available in a free version'],
-			['cc1.4xlarge', true, 'Not available in a free version'],
-			['cg1.4xlarge', true, 'Not available in a free version']
-		]
-	});
-
 	var deployment_form = new Ext.FormPanel({
 		url: '/amazon/launch_instance',
 		frame: true,
@@ -52,20 +35,29 @@ var Images = function(){
 			vtype: 'alphanum'
 		}, {
 			xtype: 'combo',
+			width: 150,
 			fieldLabel: 'Instance Type',
-			hiddenName: 'genre',
-			mode: 'local',
-			name: 'instance_type',
-			store: instance_types,
-			displayField: 'type',
-			valueField: 'type',
 			allowBlank: false,
 			editable: false,
-			width: 150,
-			tpl: '<tpl for="."><div ext:qtip="{reason}" class="x-combo-list-item">{type}</div></tpl>',
+			store: new Ext.data.JsonStore({
+				url: '/amazon/get_available_instance_types',
+				autoLoad: true,
+				successProperty: 'success',
+				root: 'types',
+				fields: ['name', 'available', 'reason']
+			}),
+			mode: 'local', // !!! load the store once and for all )
+			name: 'instance_type',
+			displayField: 'name',
+			hiddenName: 'instance_type', // POST-var name
+			valueField: 'name', // POST-var value
+			emptyText: 'Select type',
+			tpl: '<tpl for="."><div ext:qtip="{reason}" class="x-combo-list-item">{name}</div></tpl>',
+			forceSelection: true,
+			typeAhead: true,
 			listeners: {
 				beforeselect: function(combo, record){
-					return !record.data.banned; // false if not selectable
+					return record.data.available; // false if not selectable
 				}
 			}
 		}, {

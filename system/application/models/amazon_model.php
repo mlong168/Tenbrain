@@ -283,6 +283,24 @@ class Amazon_model extends Model {
 		
 		return true;
 	}
+	
+	public function get_available_instance_types()
+	{
+		$reason = $this->premium ? '' : 'Not available in a free version';
+		$types = array('t1.micro', 'm1.small', 'm1.large', 'm1.xlarge', 'm2.2xlarge', 'm2.4xlarge', 'c1.medium', 'c1.xlarge', 'cc1.4xlarge', 'cg1.4xlarge');
+		$output = array();
+		
+		foreach($types as $type)
+		{
+			$output []= array(
+				'name'		=> $type,
+				'available'	=> $this->premium || $type === 't1.micro',
+				'reason'	=> $reason
+			);
+		}
+		
+		return $output;
+	}
 
 	public function launch_instance($image_id, $type, $name)
 	{
