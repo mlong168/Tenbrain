@@ -93,19 +93,7 @@ class Amazon_model extends Model {
 
 	private function extract_tag_from_tagset($tagset, $tag_name)
 	{
-		// $tagset = $tagset->item();
-		// $tag = '';
-		// foreach($tagset as $item)
-		// {
-			// if((string) $item->key === $tag_name)
-			// {
-				// $tag = (string) $item->value;
-				// break;
-			// }
-
-		// }
-		// return $tag;
-		return (string) $node->tagSet->query("descendant-or-self::item[key='$tag_name']/value")->first();
+		return (string) $tagset->query("descendant-or-self::item[key='$tag_name']/value")->first();
 	}
 
 	public function describe_instances($state)
@@ -751,56 +739,37 @@ class Amazon_model extends Model {
 		return $response->isOK();
 	}
 
-	public function show_lb_instances($lb_name, $list_available = false)
+	public function show_lb_instances($lb_name)
 	{
 		$elb = $this->get_elb_handle();
-		$response = $elb->describe_load_balancers(array(
-			'LoadBalancerNames' => $lb_name
-		));
-		$instances_set = $response->body->query('descendant-or-self::InstanceId');
-		
+		$response = $elb->describe_load_balancers(
+		// array(
+			// 'LoadBalancerNames' => $lb_name
+		// )
+		);
 		$instances = array();
-		$instances_set->each(function($node, $i, &$instances){
-			$instances[] = (string) $node;
+		$instances['load_balanced'] = array();
+		$response->body->query('descendant-or-self::InstanceId')->each(function($node, $i, &$instances){
+			$instances['load_balanced'] []= (string) $node;
 		}, $instances);
-		
-		// if(empty($instances)) return $instances;
-		
-		if($list_available)
-		{
-			$response = $this->ec2->describe_instances();
-			$all_instances_set = $response->body->query('descendant-or-self::instanceId');
-			
-			$all_instances = array();
-			$all_instances_set->each(function($node, $i, &$all_instances){
-				$all_instances[] = (string) $node;
-			}, $all_instances);
-			
-			$instances = array_diff($all_instances, $instances);			
-		}
 		
 		$response = $this->ec2->describe_instances(array(
-			'InstanceId'	=> $instances,
-			'Filter'		=> array(
-				array('Name' => 'instance-state-name', 'Value' => array('running', 'stopped', 'pending', 'shutting-down'))
+			'Filter' => array(
+				array('Name' => 'instance-state-name', 'Value' => array('running'))
 			)
 		));
-		
-		$instances_set = $response->body->query('descendant-or-self::instanceId');
-
-		$instances = array();
-		$results = $instances_set->map(function($node){
-			return $node->parent();
-		});
-		$results->each(function($node, $i, &$instances){
-			$instances[] = array(
+		$response->body->query('descendant-or-self::instanceId')->each(function($node, $i, &$instances){
+			if(in_array((string) $node, $instances['load_balanced'])) return false;
+			$instance = $node->parent();
+			$instances []= array(
 				'id'				=> $i,
-				'name'				=> (string) $node->tagSet->item->value,
-				'instance_id'		=> (string) $node->instanceId,
-				'ip_address'		=> (string) $node->ipAddress,
-				// ''				=> (string) $node->,
+				'name'				=> (string) $instance->tagSet->query("descendant-or-self::item[key='Name']/value")->first(),
+				'instance_id'		=> (string) $instance->instanceId,
+				'ip_address'		=> (string) $instance->ipAddress,
+				// ''				=> (string) $instance->,
 			);
 		}, $instances);
+		unset($instances['load_balanced']);
 
 		return $instances;
 	}
@@ -839,7 +808,6 @@ class Amazon_model extends Model {
 		if(count($zones_to_register))
 		{
 			$response = $elb->enable_availability_zones_for_load_balancer($lb_name, $zones_to_register);
-			print_r($response);
 		}
 		
 		$response = $elb->register_instances_with_load_balancer($lb_name, $instances_to_register);

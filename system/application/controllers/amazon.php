@@ -256,10 +256,7 @@ class Amazon extends Controller {
 	
 	function show_lb_instances()
 	{
-		$instances = $this->amazon->show_lb_instances(
-			$this->input->post('lb_name'),
-			(bool) $this->input->post('list_available')
-		);
+		$instances = $this->amazon->show_lb_instances($this->input->post('lb_name'));
 		echo json_encode(array(
 			'success'	=> true,
 			'instances'	=> $instances

@@ -95,54 +95,7 @@ var Load_balancers = function(){
 								var s = response.success;
 								Ext.Msg.alert(title, s ? success : response.error_message || error);
 								instances_grid.ref_lb_name = null; // reset lb name
-							},
-							failure: function(){
-								Ext.Msg.alert(title, error);
-							}
-						});
-					});
-				}
-			}, {
-				xtype: 'button',
-				id: 'deregister_instances-button',
-				text: 'Remove from load balancer',
-				cls: 'x-btn-text-icon',
-				iconCls: 'terminate',
-				handler: function(){
-					var selected = checkbox_sm.getSelections(), instances = [],
-						title = 'Deregister Instances with load balancer',
-						success = 'Selected instances have been started successfully',
-						error = 'A problem has occurred while starting selected instances';
-
-					if(!checkbox_sm.getCount())
-					{
-						Ext.Msg.alert('Warning', 'Please select some instances to perform the action');
-						return false;
-					}
-
-					for(var i = selected.length; i--;)
-					{
-						instances.push(selected[i].data.instance_id);
-					}
-
-					Ext.MessageBox.confirm(title, 'Are you sure you want deregister selected instances from load balancer?', function(button){
-						if(button !== 'yes') return false;
-
-						for(var i = selected.length; i--;)
-						{
-							instances.push(selected[i].data.instance_id);
-						}
-						Ext.Msg.wait('The instances are being deregistered from the load balancer', 'Deregistering instances');
-						Ext.Ajax.request({
-							url: 'amazon/deregister_instances_from_lb',
-							params: {
-								lb_name: lb_menu.ref_grid.getStore().getAt(lb_menu.selected_record_id).get('name'),
-								instances: Ext.encode(instances)
-							},
-							success: function(response){
-								response = Ext.decode(response.responseText);
-								var s = response.success;
-								Ext.Msg.alert(title, s ? success : response.error_message || error);
+								instance_store.reload();
 							},
 							failure: function(){
 								Ext.Msg.alert(title, error);
@@ -213,15 +166,14 @@ var Load_balancers = function(){
 			xtype: 'toolbar',
 			items: [{
 				xtype: 'button',
-				id: 'deregister_instances-button',
 				text: 'Remove from load balancer',
 				cls: 'x-btn-text-icon',
 				iconCls: 'terminate',
 				handler: function(){
 					var selected = reg_checkbox_sm.getSelections(), instances = [],
 						title = 'Deregister Instances with load balancer',
-						success = 'Selected instances have been started successfully',
-						error = 'A problem has occurred while starting selected instances';
+						success = 'Selected instances have been deregistered successfully',
+						error = 'A problem has occurred while deregistering selected instances';
 
 					if(!reg_checkbox_sm.getCount())
 					{
@@ -252,6 +204,7 @@ var Load_balancers = function(){
 								response = Ext.decode(response.responseText);
 								var s = response.success;
 								Ext.Msg.alert(title, s ? success : response.error_message || error);
+								registered_instances_store.reload();
 							},
 							failure: function(){
 								Ext.Msg.alert(title, error);
@@ -337,10 +290,6 @@ var Load_balancers = function(){
 		border: false,
 		modal : true
 	});
-	
-	var buttons = instances_grid.getTopToolbar(),
-		register_button = buttons.getComponent('register_instances-button'),
-		deregister_button = buttons.getComponent('deregister_instances-button');
 
 	var lb_menu = new Ext.menu.Menu({
 		id: 'load_balancers_menu',
@@ -352,10 +301,8 @@ var Load_balancers = function(){
 					handler: function(){
 						var grid = lb_menu.ref_grid,
 							record = grid.getStore().getAt(lb_menu.selected_record_id),
-							name = record.get('name'),
-							buttons = instances_grid.getBottomToolbar();
+							name = record.get('name');
 						
-						register_button.enable(); deregister_button.disable();
 						lb_menu.hide();						
 						modal_window
 							.setTitle('Instances available to register within the load balancer "' + name + '"')
@@ -364,8 +311,7 @@ var Load_balancers = function(){
 						
 						instance_store.reload({
 							params: {
-								lb_name: name,
-								list_available: true
+								lb_name: name
 							}
 						});
 					}
@@ -376,13 +322,12 @@ var Load_balancers = function(){
 							record = grid.getStore().getAt(lb_menu.selected_record_id),
 							name = record.get('name');
 						
-						register_button.disable(); deregister_button.enable();
 						lb_menu.hide();
 						modal_window
 							.setTitle('Instances registered within the load balancer "' + name + '"')
 							.setSize(700, 250).show().center()
-							.getLayout().setActiveItem('lb_multi_purpose_instances');
-						instance_store.reload({
+							.getLayout().setActiveItem('lb_registered_instances');
+						registered_instances_store.reload({
 							params: {
 								lb_name: name
 							}
@@ -400,7 +345,6 @@ var Load_balancers = function(){
 							record = grid.getStore().getAt(lb_menu.selected_record_id),
 							name = record.get('name');
 						
-						register_button.disable(); deregister_button.enable();
 						lb_menu.hide();
 						modal_window
 							.setTitle('Instances registered within the load balancer "' + name + '"')
