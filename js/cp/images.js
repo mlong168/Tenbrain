@@ -1,25 +1,4 @@
 var Images = function(){
-	var images = function(){
-		var record = Ext.data.Record.create([
-			'id',
-			'image_id',
-			'name',
-			'state',
-			'description',
-			'virtualization',
-			'location'
-		]);
-		return new Ext.data.Store({
-			url: '/amazon/available_images',
-			reader: new Ext.data.JsonReader({
-				root: 'images',
-				successProperty: 'success',
-				idProperty: 'id'
-			}, record),
-			autoLoad: true
-		});
-	}();
-
 	var deployment_form = new Ext.FormPanel({
 		url: '/amazon/launch_instance',
 		frame: true,
@@ -125,16 +104,39 @@ var Images = function(){
 		}],
 		selected_image_id: null
 	});
+	
+	var images = function(){
+		var record = Ext.data.Record.create([
+			'id',
+			'image_id',
+			'name',
+			'state',
+			'description',
+			'location',
+			'provider'
+		]);
+		return new Ext.data.GroupingStore({
+			url: '/amazon/available_images',
+			reader: new Ext.data.JsonReader({
+				root: 'images',
+				successProperty: 'success',
+				idProperty: 'id'
+			}, record),
+			groupField: 'provider',
+			autoLoad: true
+		});
+	}();
 
 	var images_grid = new Ext.grid.GridPanel({
 		id: 'available_images-panel',
-		layout: 'fit',
 		title: 'Images available for deployment',
 		store: images,
-		viewConfig: {
+		loadMask: true,
+		view: new Ext.grid.GroupingView({
 			forceFit: true,
-			emptyText: '<p style="text-align: center">No images are available for deployment</p>'
-		},
+			emptyText: '<p style="text-align: center">No images are available for deployment</p>',
+			groupTextTpl: '{text} ({[values.rs.length]} {[values.rs.length > 1 ? "Items" : "Item"]})'
+		}),
 		listeners: {
 			rowcontextmenu: function (grid, id, e) {
 				e.preventDefault();
@@ -144,11 +146,11 @@ var Images = function(){
 		},
 		colModel: new Ext.grid.ColumnModel({
 			columns: [
-				{header: "Name", dataIndex: 'name', width: 130},
-				{header: "State", dataIndex: 'state', width: 130},
+				{header: "Name", dataIndex: 'name', width: 100},
+				{header: "Provider", dataIndex: 'provider', hidden: true},
+				{header: "State", dataIndex: 'state', width: 70},
 				{header: "Description", dataIndex: 'description', width: 170},
-				{header: "Virtualization", dataIndex: 'virtualization', width: 100},
-				{header: "Location", dataIndex: 'location', width: 200}
+				{header: "Location", dataIndex: 'location', width: 120}
 			]
 		})
 	});

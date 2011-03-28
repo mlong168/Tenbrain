@@ -176,6 +176,7 @@ class Amazon_model extends Model {
 		$results->each(function($node, $i, &$images){
 			$images[] = array(
 				'id'				=> $i,
+				'provider'			=> 'Amazon',
 				'image_id'			=> (string) $node->imageId,
 				'name'				=> (string) $node->name,
 				'state'				=> (string) $node->imageState,

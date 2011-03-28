@@ -31,7 +31,7 @@ class Amazon extends Controller {
 	{
 		error_reporting(E_ALL);
 		// header('Content-type: text/plain');
-		$this->amazon->test();
+		$this->available_images();
 		die(PHP_EOL . 'voila! this is an amazon controller index function');
 	}
 
@@ -49,7 +49,18 @@ class Amazon extends Controller {
 
 	function available_images()
 	{
-		echo json_encode($this->amazon->describe_images());
+		$images = $this->amazon->describe_images();
+		$amazon_last = count($images['images']);
+		
+		$this->load->model('Gogrid_model', 'gg');		
+		$gogrid_images = $this->gg->get_images();
+		foreach($gogrid_images as $id => &$image)
+		{
+			$image['id'] = $amazon_last + $id;
+		}		
+		$images['images'] = array_merge($images['images'], $gogrid_images);
+		
+		echo json_encode($images);
 	}
 	
 	function get_available_instance_types()
