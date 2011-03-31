@@ -136,7 +136,8 @@ class Amazon_model extends Model {
 				'state'				=> (string) $node->instanceState->name,
 				'virtualization'	=> (string) $node->virtualizationType,
 				'type'				=> (string) $node->instanceType,
-				'root_device'		=> (string) $node->rootDeviceType
+				'root_device'		=> (string) $node->rootDeviceType,
+				'provider'			=> 'Amazon'
 				// ''				=> (string) $node->,
 			);
 		}, $instances);

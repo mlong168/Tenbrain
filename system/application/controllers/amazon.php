@@ -38,13 +38,22 @@ class Amazon extends Controller {
 	function show_instances($state)
 	{		
 		$states = array('running', 'terminated', 'stopped');
+		if(empty($state) || !in_array($state, $states)) $state = 'running';
 		
-		if(empty($state) || !in_array($state, $states))
+		$instances = $this->amazon->describe_instances($state);
+		$amazon_last = count($instances['instances']);
+		
+		$this->load->model('Gogrid_model', 'gg');		
+		$gogrid_instances = $this->gg->get_instances();
+		foreach($gogrid_instances as $id => &$instance)
 		{
-			$state = 'running';
-		}
+			$instance['id'] = $amazon_last + $id;
+		}		
+		$instances['instances'] = array_merge($instances['instances'], $gogrid_instances);
 		
-		echo json_encode($this->amazon->describe_instances($state));
+		// print_r($instances);die;
+		
+		echo json_encode($instances);
 	}
 
 	function available_images()

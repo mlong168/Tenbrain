@@ -1,5 +1,6 @@
 var Images = function(){
 	var deployment_form = new Ext.FormPanel({
+		id: 'amazon_image_deployment_form',
 		url: '/amazon/launch_instance',
 		frame: true,
 		border: false,
@@ -25,7 +26,7 @@ var Images = function(){
 				root: 'types',
 				fields: ['name', 'available', 'reason']
 			}),
-			mode: 'local', // !!! load the store once and for all )
+			mode: 'local',
 			name: 'instance_type',
 			displayField: 'name',
 			hiddenName: 'instance_type', // POST-var name
@@ -71,12 +72,115 @@ var Images = function(){
 		}]
 	});
 	
+	Ext.apply(Ext.form.VTypes, {
+		IPAddress:  function(v) {
+			return /^\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(v);
+		},
+		IPAddressText: 'Must be a numeric IP address',
+		IPAddressMask: /[\d\.]/i
+	});
+	
+	var gogrid_deployment_form = new Ext.FormPanel({
+		id: 'gogrid_image_deployment_form',
+		url: '/gogrid/launch_instance',
+		frame: true,
+		border: false,
+		labelWidth: 125,
+		monitorValid: true,
+		
+		items: [{
+			xtype: 'textfield',
+			width: 150,
+			fieldLabel: 'Instance Name',
+			name: 'name',
+			allowBlank: false,
+			maxLength: 20
+		}, {
+			xtype: 'combo',
+			width: 150,
+			fieldLabel: 'IP address',
+			allowBlank: false,
+			vtype: 'IPAddress',
+			store: new Ext.data.JsonStore({
+				url: '/gogrid/get_free_addresses',
+				autoLoad: true,
+				successProperty: 'success',
+				root: 'addresses',
+				fields: ['address']
+			}),
+			mode: 'local',
+			name: 'address',
+			displayField: 'address',
+			hiddenName: 'address', // POST-var name
+			valueField: 'address', // POST-var value
+			autoSelect: true,
+			forceSelection: true,
+			typeAhead: true,
+			listeners: {
+				beforeselect: function(combo, record){
+					return record.data.available; // false if not selectable
+				}
+			}
+		}, {
+			xtype: 'combo',
+			width: 150,
+			fieldLabel: 'RAM size',
+			allowBlank: false,
+			store: new Ext.data.JsonStore({
+				url: '/gogrid/get_available_ram_sizes',
+				autoLoad: true,
+				successProperty: 'success',
+				root: 'sizes',
+				fields: ['size']
+			}),
+			mode: 'local',
+			name: 'ram',
+			displayField: 'size',
+			hiddenName: 'ram', // POST-var name
+			valueField: 'size', // POST-var value
+			autoSelect: true,
+			forceSelection: true,
+			typeAhead: true,
+			listeners: {
+				beforeselect: function(combo, record){
+					return record.data.available; // false if not selectable
+				}
+			}
+		}, {
+			xtype: 'hidden',
+			name: 'image_id'
+		}],
+
+		buttons: [{
+			text: 'Proceed',
+			formBind: true,
+			handler: function(){
+				var title = 'Instance Deployment',
+					success = 'Your Selected image has been successfully deployed',
+					error = 'A problem occured while deploying your selected image';
+				deploy_configurator.hide();
+				Ext.Msg.wait('Deploying your image', title);
+				gogrid_deployment_form.getForm().submit({
+					success: function(form, action){
+						Ext.Msg.alert(title, success);
+					},
+					failure: function(form, action){
+						Ext.Msg.alert(title, action.result.error_message || error);
+					}
+				});
+			}
+		},{
+			text: 'Cancel',
+			handler: function(){
+				deploy_configurator.hide();
+			}
+		}]
+	});
+	
 	var deploy_configurator = new Ext.Window({
-		title: 'Deployment options',
-		width: 320,
-		height: 128,
 		closeAction: 'hide',
-		items: deployment_form,
+		layout: 'card',
+		items: [deployment_form, gogrid_deployment_form],
 		border: false,
 		modal : true
 	});
@@ -88,11 +192,19 @@ var Images = function(){
 				items: [{
 					text: 'Deploy',
 					handler: function(){
-						images_menu.hide();					
-						deployment_form.getForm().reset().setValues({
-							image_id: images_menu.selected_image_id
+						images_menu.hide();
+						var image = images_menu.selected_image,
+							provider = image.get('provider'),
+							form_height = provider === 'Amazon' ? 128 : 152,
+							form = Ext.getCmp(provider.toLowerCase() + '_image_deployment_form');
+							
+						form.getForm().reset().setValues({
+							image_id: image.get('image_id')
 						});
-						deploy_configurator.show();
+						deploy_configurator
+							.setTitle('Deploy ' + provider + ' image')
+							.setSize(320, form_height).show().center()
+							.getLayout().setActiveItem(form);
 						return false;
 					}
 				}, {
@@ -102,11 +214,11 @@ var Images = function(){
 				}]			
 			}
 		}],
-		selected_image_id: null
+		selected_image: null
 	});
 	
 	var images = function(){
-		var record = Ext.data.Record.create([
+		var dt = Ext.data, record = dt.Record.create([
 			'id',
 			'image_id',
 			'name',
@@ -115,9 +227,9 @@ var Images = function(){
 			'location',
 			'provider'
 		]);
-		return new Ext.data.GroupingStore({
+		return new dt.GroupingStore({
 			url: '/amazon/available_images',
-			reader: new Ext.data.JsonReader({
+			reader: new dt.JsonReader({
 				root: 'images',
 				successProperty: 'success',
 				idProperty: 'id'
@@ -126,7 +238,7 @@ var Images = function(){
 			autoLoad: true
 		});
 	}();
-
+	
 	var images_grid = new Ext.grid.GridPanel({
 		id: 'available_images-panel',
 		title: 'Images available for deployment',
@@ -135,12 +247,12 @@ var Images = function(){
 		view: new Ext.grid.GroupingView({
 			forceFit: true,
 			emptyText: '<p style="text-align: center">No images are available for deployment</p>',
-			groupTextTpl: '{text} ({[values.rs.length]} {[values.rs.length > 1 ? "Items" : "Item"]})'
+			groupTextTpl: '{text} ({[values.rs.length]} {[values.rs.length > 1 ? "Images" : "Image"]})'
 		}),
 		listeners: {
 			rowcontextmenu: function (grid, id, e) {
 				e.preventDefault();
-				images_menu.selected_image_id = grid.getStore().getAt(id).get('image_id');
+				images_menu.selected_image = grid.getStore().getAt(id);
 				images_menu.showAt(e.getXY());
 			}
 		},

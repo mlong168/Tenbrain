@@ -12,7 +12,8 @@ var Instances = function(){
 			'state',
 			'virtualization',
 			'type',
-			'root_device'
+			'root_device',
+			'provider'
 		]),
 		stores = {};
 		for(var i = states.length; i--;)
@@ -46,9 +47,9 @@ var Instances = function(){
 					{
 						if(r[i].data.state !== state)
 						{
-							setTimeout(function(){
-								reload_until_stable.call(reload_until_stable, state, callback);
-							}, interval);
+							// setTimeout(function(){
+								// reload_until_stable.call(reload_until_stable, state, callback);
+							// }, interval);
 							if(interval > minimum_interval && interval - step > 0) interval -= step;
 							return false;
 						}
@@ -65,7 +66,9 @@ var Instances = function(){
 	var instances_menu_handler = function(item){
 		var id = item.id, action = id.substr(0, id.indexOf('_')),
 			parent_menu = item.parentMenu.findParentByType('menu'),
-			instance_id = parent_menu.ref_grid.getStore().getAt(parent_menu.selected_record_id).get('instance_id'),
+			record = parent_menu.ref_grid.getStore().getAt(parent_menu.selected_record_id),
+			instance_id = record.get('instance_id'),
+			provider = record.get('provider').toLowerCase(),
 			titles = {
 				reboot: 'Reboot Instance',
 				stop: 'Stop Instance',
@@ -80,7 +83,7 @@ var Instances = function(){
 		
 			Ext.Msg.wait('Processing your request', title);
 			Ext.Ajax.request({
-				url: '/amazon/' + action + '_instance',
+				url: [provider, action + '_instance'].join('/'),
 				params: { instance_id: instance_id },
 				success: function(response){
 					response = Ext.decode(response.responseText);

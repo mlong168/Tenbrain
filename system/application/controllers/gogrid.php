@@ -34,6 +34,71 @@ class Gogrid extends Controller {
 		$this->gg->test();
 		die(PHP_EOL . 'voila! this is an gogrid controller index function');
 	}
+	
+	function lookup($lookup)
+	{
+		print_r($this->gg->lookup($lookup));
+	}
+	
+	function get_free_addresses()
+	{
+		$addresses = $this->gg->get_free_addresses();
+		echo json_encode(array(
+			'success'	=> (bool) $addresses,
+			'addresses'	=> $addresses
+		));
+	}
+	
+	function get_available_ram_sizes()
+	{
+		$rams = $this->gg->get_available_ram_sizes();
+		echo json_encode(array(
+			'success'	=> (bool) $rams,
+			'sizes'		=> $rams
+		));
+	}
+	
+	function launch_instance()
+	{
+		$params = array(
+			'image'			=> $this->input->post('image_id'),
+			'name'			=> $this->input->post('name'),
+			'ip'			=> $this->input->post('address'),
+			'server.ram'	=> $this->input->post('ram')
+		);
+		
+		echo json_encode(array(
+			'success' => $this->gg->launch_instance($params)
+		));
+	}
+	
+	function terminate_instance()
+	{
+		echo json_encode(array(
+			'success' => $this->gg->delete_instance($this->input->post('instance_id'))
+		));
+	}
+	
+	function reboot_instance()
+	{
+		echo json_encode(array(
+			'success' => $this->gg->restart_instance($this->input->post('instance_id'))
+		));
+	}
+	
+	function start_instance()
+	{
+		echo json_encode(array(
+			'success' => $this->gg->start_instance($this->input->post('instance_id'))
+		));
+	}
+	
+	function stop_instance()
+	{
+		echo json_encode(array(
+			'success' => $this->gg->stop_instance($this->input->post('instance_id'))
+		));
+	}
 }
 
 /* End of file gogrid.php */
