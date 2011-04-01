@@ -11,7 +11,7 @@ class GoGridClient
 	const API_VERSION	= '1.7';
 	
 	const API_KEY		= '1364ca1fd8a687d2';
-	const API_SECRET	= '956orc23';
+	const API_SECRET	= '956orc12';
 	
 	private $api_key;
 	private $api_secret;

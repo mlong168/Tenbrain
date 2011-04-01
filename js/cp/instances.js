@@ -32,7 +32,7 @@ var Instances = function(){
 	}();
 	
 	var reload_until_stable = function(){
-		var init_timeout = 5000, interval = init_timeout, minimum_interval = 1000, step = 1000;
+		var init_timeout = 10000, interval = init_timeout, minimum_interval = 5000, step = 1000;
 		return function(state, callback){
 			state = state || 'running';
 				
@@ -47,9 +47,9 @@ var Instances = function(){
 					{
 						if(r[i].data.state !== state)
 						{
-							// setTimeout(function(){
-								// reload_until_stable.call(reload_until_stable, state, callback);
-							// }, interval);
+							setTimeout(function(){
+								reload_until_stable.call(reload_until_stable, state, callback);
+							}, interval);
 							if(interval > minimum_interval && interval - step > 0) interval -= step;
 							return false;
 						}
@@ -113,7 +113,33 @@ var Instances = function(){
 				items: [{
 					text: 'View connection info',
 					handler: function(){
-						Ext.Msg.alert('Instance connection information', 'You have to download the key file and then use shell command');
+						var record = instances_menu.ref_grid.getStore().getAt(instances_menu.selected_record_id),
+							instance_id = record.get('instance_id'),
+							provider = record.get('provider').toLowerCase(),
+							title = 'Instance connection information',
+							error = 'An error has occurred';
+						switch(provider) {
+							case 'amazon': 
+								Ext.Msg.alert(title, 'You have to download the key file and then use shell command');
+							break;
+							case 'gogrid':
+								Ext.Msg.wait('Your password is being retrieved', title);
+								Ext.Ajax.request({
+									url: 'gogrid/get_instance_password',
+									params: {instance_id: instance_id},
+									success: function(response){
+										response = Ext.decode(response.responseText);
+										var s = response.success;
+										Ext.Msg.alert(title, s
+											? 'Use password "' + response.password + '" to connect to the instance with username "' + response.username + '"'
+											: response.error_message || error);
+									},
+									failure: function(){
+										Ext.Msg.alert(title, error);
+									}
+								});
+							break;
+						}
 					}
 				}, {
 					text: 'Download key file',

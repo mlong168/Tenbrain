@@ -69,10 +69,16 @@ class Gogrid_model extends Model {
 	
 	public function get_instances()
 	{
-		$this->db->select('instance_name, provider_instance_id, public_ip')->from('user_instances')->where('account_id', $this->session->userdata('account_id'));
-		$query = $this->db->get();
+		$sql = 'SELECT ui.instance_id, ui.instance_name, ui.provider_instance_id, ui.public_ip';
+		$sql .= ' FROM user_instances ui';
+		$sql .= ' LEFT JOIN user_deleted_instances udi USING(instance_id)';
+		$sql .= ' WHERE ui.account_id = ' . $this->session->userdata('account_id');
+		$sql .= ' AND udi.instance_id IS NULL';
+		
+		$query = $this->db->query($sql);
 		$names = array();
 		$empties = array();
+		$ids = array();
 		foreach($query->result() as $row)
 		{
 			$names []= $row->instance_name;
@@ -80,11 +86,15 @@ class Gogrid_model extends Model {
 			{
 				$empties[$row->public_ip] = $row->instance_name;
 			}
+			else
+			{
+				$ids[$row->provider_instance_id] = $row->instance_id;
+			}
 		}
 		if(empty($names)) return array();
 		
-		$response = $this->gogrid->call('grid.server.list', array(
-			// 'name' => $names
+		$response = $this->gogrid->call('grid.server.get', array(
+			'name' => $names
 		));
 		$response = json_decode($response);
 		if($response->status === 'success')
@@ -92,8 +102,16 @@ class Gogrid_model extends Model {
 			$out = array();
 			foreach($response->list as $server)
 			{
-				$id = isset($server->id) ? $server->id : 'none';
+				$id = isset($server->id) ? $server->id : false;
 				$ip = $server->ip->ip;
+				if($id)
+				{
+					$state = $server->state->name === 'On' ? 'running' : 'terminated';
+				}
+				else
+				{
+					$state = 'pending';
+				}
 				
 				if($id && isset($empties[$ip]))
 				{
@@ -102,7 +120,12 @@ class Gogrid_model extends Model {
 						'instance_name'	=> $empties[$ip]
 					));
 					$this->db->update('user_instances', array('provider_instance_id' => $id));
+					$this->db->select('instance_id');
+					$query = $this->db->get_where('user_instances', array('provider_instance_id' => $id));
+					$id = $query->row()->instance_id;
 				}
+				
+				if(isset($ids[$id])) $id = $ids[$id];
 				
 				$out []= array(
 					'name'				=> $server->name,
@@ -110,7 +133,7 @@ class Gogrid_model extends Model {
 					'dns_name'			=> $ip,
 					'ip_address'		=> $ip,
 					'image_id'			=> $server->image->id,
-					'state'				=> $server->state->name,
+					'state'				=> $state,
 					'type'				=> $server->type->name,
 					'provider'			=> 'GoGrid'
 					// ''				=> $server->, 
@@ -119,6 +142,17 @@ class Gogrid_model extends Model {
 			return $out;
 		}
 		else return false;		
+	}
+	
+	private function retrieve_provider_instance_id($instance_id)
+	{
+		$this->db->select('provider_instance_id')->from('user_instances')->where(array(
+			'instance_id'	=> $instance_id,
+			'account_id'	=> $this->session->userdata('account_id')
+		));
+		$query = $this->db->get();
+		
+		return $query->num_rows === 1 ? (int) $query->row()->provider_instance_id : false;
 	}
 	
 	public function get_free_addresses()
@@ -165,8 +199,8 @@ class Gogrid_model extends Model {
 	public function launch_instance($params)
 	{
 		$response = $this->gogrid->call('grid.server.add', $params);
-		print_r($response);die;
 		$response = json_decode($response);
+		// print_r($response);die;
 		$this->test_response($response);
 		
 		// write to db if things went fine
@@ -178,21 +212,17 @@ class Gogrid_model extends Model {
 			'provider'				=> 'GoGrid',
 			'public_ip'				=> $instance->ip->ip
 		));
-		die;
 		
 		return true;
 	}
 	
 	public function delete_instance($id)
 	{
-		// $this->db->select('provider_instance_id')->from('user_instances')->where('instance_id', $id);
-		// $query = $this->db->get();
-		// if(!$query->num_rows()) return false;
+		$instance_id = $this->retrieve_provider_instance_id($id);
+		if(!$instance_id) return false;
 		
-		// $instance_id = $query->row()->provider_instance_id;
 		$response = $this->gogrid->call('grid.server.delete', array(
-			// 'id' => $instance_id
-			'id' => $id
+			'id' => $instance_id
 		));
 		$response = json_decode($response);
 		$this->test_response($response);
@@ -201,8 +231,9 @@ class Gogrid_model extends Model {
 		if($success)
 		{
 			// remove from db
-			$this->db->delete('user_instances', array(
-				'instance_id' => $id
+			$this->db->insert('user_deleted_instances', array(
+				'instance_id'	=> $id,
+				'account_id'	=> $this->session->userdata('account_id')
 			));
 		}
 		return $success;
@@ -210,6 +241,7 @@ class Gogrid_model extends Model {
 	
 	private function power_instance($instance_id, $action)
 	{
+		$instance_id = $this->retrieve_provider_instance_id($instance_id);
 		$response = $this->gogrid->call('grid.server.power', array(
 			'id'	=> $instance_id,
 			'power'	=> $action
@@ -218,6 +250,27 @@ class Gogrid_model extends Model {
 		$this->test_response($response);
 		
 		return true;
+	}
+	
+	public function get_password($instance_id)
+	{
+		$instance_id = $this->retrieve_provider_instance_id($instance_id);
+		$response = $this->gogrid->call('support.password.list');
+		$response = json_decode($response);
+		$this->test_response($response);
+		
+		foreach($response->list as $pass)
+		{
+			if($pass->server->id === $instance_id)
+			{
+				return array(
+					'username'	=> $pass->username,
+					'password'	=> $pass->password,
+				);
+			}
+		}
+		
+		return false;
 	}
 	
 	public function stop_instance($instance_id)
@@ -237,11 +290,10 @@ class Gogrid_model extends Model {
 
 	public function test()
 	{
-		$response = $this->gogrid->call('grid.server.get', array(
-			'name' => 'instance_id_tester'
-		));
-		$response = json_decode($response);	
-		print_r($response);
+		// $response = $this->gogrid->call('support.password.list');
+		// $response = json_decode($response);	
+		// print_r($response);
+		print_r($this->get_password(11));
 		echo PHP_EOL;die;
 	}
 }

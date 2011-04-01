@@ -163,6 +163,7 @@ var Images = function(){
 				gogrid_deployment_form.getForm().submit({
 					success: function(form, action){
 						Ext.Msg.alert(title, success);
+						Instances.reload_until_stable('running');
 					},
 					failure: function(form, action){
 						Ext.Msg.alert(title, action.result.error_message || error);

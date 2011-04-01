@@ -99,6 +99,19 @@ class Gogrid extends Controller {
 			'success' => $this->gg->stop_instance($this->input->post('instance_id'))
 		));
 	}
+	
+	function get_instance_password()
+	{
+		$password = $this->gg->get_password($this->input->post('instance_id'));
+		$success = !empty($password);
+		
+		echo json_encode(array(
+			'success'		=> $success,
+			'error_message'	=> $success ? '' : 'You are not authorised to do this',
+			'username'		=> $success ? $password['username'] : '',
+			'password'		=> $success ? $password['password'] : '',
+		));
+	}
 }
 
 /* End of file gogrid.php */

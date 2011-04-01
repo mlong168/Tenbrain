@@ -45,11 +45,14 @@ class Amazon extends Controller {
 		
 		$this->load->model('Gogrid_model', 'gg');		
 		$gogrid_instances = $this->gg->get_instances();
-		foreach($gogrid_instances as $id => &$instance)
+		if(is_array($gogrid_instances))
 		{
-			$instance['id'] = $amazon_last + $id;
-		}		
-		$instances['instances'] = array_merge($instances['instances'], $gogrid_instances);
+			foreach($gogrid_instances as $id => &$instance)
+			{
+				$instance['id'] = $amazon_last + $id;
+			}		
+			$instances['instances'] = array_merge($instances['instances'], $gogrid_instances);
+		}
 		
 		// print_r($instances);die;
 		
