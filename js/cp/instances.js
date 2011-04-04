@@ -7,19 +7,16 @@ var Instances = function(){
 			'name',
 			'dns_name',
 			'ip_address',
-			'instance_id',
 			'image_id',
 			'state',
-			'virtualization',
 			'type',
-			'root_device',
 			'provider'
 		]),
 		stores = {};
 		for(var i = states.length; i--;)
 		{
 			stores[states[i]] = new Ext.data.Store({
-				url: '/amazon/show_instances/' + states[i],
+				url: '/common/list_instances/' + states[i],
 				reader: new Ext.data.JsonReader({
 					root: 'instances',
 					successProperty: 'success',
@@ -67,7 +64,7 @@ var Instances = function(){
 		var id = item.id, action = id.substr(0, id.indexOf('_')),
 			parent_menu = item.parentMenu.findParentByType('menu'),
 			record = parent_menu.ref_grid.getStore().getAt(parent_menu.selected_record_id),
-			instance_id = record.get('instance_id'),
+			instance_id = record.get('id'),
 			provider = record.get('provider').toLowerCase(),
 			titles = {
 				reboot: 'Reboot Instance',
@@ -114,7 +111,7 @@ var Instances = function(){
 					text: 'View connection info',
 					handler: function(){
 						var record = instances_menu.ref_grid.getStore().getAt(instances_menu.selected_record_id),
-							instance_id = record.get('instance_id'),
+							instance_id = record.get('id'),
 							provider = record.get('provider').toLowerCase(),
 							title = 'Instance connection information',
 							error = 'An error has occurred';
@@ -174,7 +171,7 @@ var Instances = function(){
 					text: 'Create Snapshot',
 					handler: function(){
 						var record = instances_menu.ref_grid.getStore().getAt(instances_menu.selected_record_id),
-							id = record.get('instance_id');
+							id = record.get('id');
 						instances_menu.hide();
 						Snapshots.create(id);
 					}
@@ -182,7 +179,7 @@ var Instances = function(){
 					text: 'View Snapshots',
 					handler: function(){
 						var record = instances_menu.ref_grid.getStore().getAt(instances_menu.selected_record_id),
-							id = record.get('instance_id'),
+							id = record.get('id'),
 							name = record.get('name');
 						instances_menu.hide();
 						Snapshots.show_instance_snapshots(id, name);
@@ -242,9 +239,7 @@ var Instances = function(){
 				{header: "Link to instance root", dataIndex: 'dns_name', width: 250, renderer: link_wrapper},
 				{header: "IP Address", dataIndex: 'ip_address', width: 120},
 				{header: "State", dataIndex: 'state', width: 100},
-				{header: "Virtualization", dataIndex: 'virtualization', width: 100},
-				{header: "Type", dataIndex: 'type', width: 100},
-				{header: "Root Device", dataIndex: 'root_device', width: 100}
+				{header: "Type", dataIndex: 'type', width: 100}
 			]
 		}),
 		tbar: {
@@ -268,7 +263,7 @@ var Instances = function(){
 					
 					for(var i = selected.length; i--;)
 					{
-						instances.push(selected[i].data.instance_id);
+						instances.push(selected[i].data.id);
 					}
 					
 					Ext.MessageBox.confirm(title, 'Are you sure you want to reboot these instances?', function(button){
@@ -311,7 +306,7 @@ var Instances = function(){
 					
 					for(var i = selected.length; i--;)
 					{
-						instances.push(selected[i].data.instance_id);
+						instances.push(selected[i].data.id);
 					}
 					
 					Ext.MessageBox.confirm(title, 'Are you sure you want to stop these instances?', function(button){
@@ -356,7 +351,7 @@ var Instances = function(){
 					
 					for(var i = selected.length; i--;)
 					{
-						instances.push(selected[i].data.instance_id);
+						instances.push(selected[i].data.id);
 					}
 					
 					Ext.MessageBox.confirm(title, 'Are you sure you want to terminate these instances?', function(button){
@@ -408,7 +403,7 @@ var Instances = function(){
 					text: 'Create Snapshot',
 					handler: function(){
 						var record = stopped_menu.ref_grid.getStore().getAt(stopped_menu.selected_record_id),
-							id = record.get('instance_id');
+							id = record.get('id');
 						stopped_menu.hide();
 						Snapshots.create(id);
 					}
@@ -416,7 +411,7 @@ var Instances = function(){
 					text: 'View Snapshots',
 					handler: function(){
 						var record = stopped_menu.ref_grid.getStore().getAt(stopped_menu.selected_record_id),
-							id = record.get('instance_id'),
+							id = record.get('id'),
 							name = record.get('name');
 						stopped_menu.hide();
 						Snapshots.show_instance_snapshots(id, name);
@@ -498,7 +493,7 @@ var Instances = function(){
 					
 					for(var i = selected.length; i--;)
 					{
-						instances.push(selected[i].data.instance_id);
+						instances.push(selected[i].data.id);
 					}
 					
 					Ext.MessageBox.confirm(title, 'Are you sure you want to start these instances?', function(button){

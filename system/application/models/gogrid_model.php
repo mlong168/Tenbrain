@@ -3,6 +3,8 @@
 class Gogrid_model extends Model {
 
 	private $gogrid;
+	
+	public $name = 'GoGrid';
 
 	function __construct()
 	{
@@ -65,6 +67,70 @@ class Gogrid_model extends Model {
 			return $out;
 		}
 		else return false;
+	}
+	
+	/*
+	 * common for provider-specific models
+	 * $input_ary is an indexed array that contains associative of the form:
+	 * 'id'				- db id of the instance
+	 * 'instance_id'	- provider-specific instance id
+	 * 'name'	- instance name
+	 * 'instance_ip'	- an IP address of the instance
+	 */
+	public function list_instances($input_ary, $state = 'running')
+	{
+		$names = $ids = array();
+		foreach($input_ary as $inst)
+		{
+			$names[] = $inst['name'];
+			$token	= $inst['name'] . $inst['instance_ip']; // only this is a unique combination that defines an instance if there is no id assigned
+			$ids[$token] = array(
+				'db_id'			=> $inst['id'],
+				'instance_id'	=> $inst['instance_id'], // provider-specific, could be false
+				'instance_name'	=> $inst['name']
+			);
+		}
+		
+		$response = $this->gogrid->call('grid.server.get', array(
+			'name' => $names
+		));
+		$response = json_decode($response);
+		$this->test_response($response);
+		
+		$instances = array();
+		foreach($response->list as $server)
+		{
+			$ip = $server->ip->ip;
+			$token = $server->name . $ip;			
+			if(!array_key_exists($token, $ids)) continue;
+			
+			$id = isset($server->id) ? $server->id : false;			
+			if($id && !$ids[$token]['instance_id'])
+			{
+				$this->db->where(array(
+					'public_ip'		=> $ip,
+					'instance_name'	=> $ids[$token]['instance_name']
+				));
+				$this->db->update('user_instances', array('provider_instance_id' => $id));
+				$this->db->select('instance_id');
+				$query = $this->db->get_where('user_instances', array('provider_instance_id' => $id));
+				$ids[$token]['db_id'] = $query->row()->instance_id;
+			}
+			
+			$instances []= array(
+				'id'				=> $ids[$token]['db_id'],
+				'name'				=> $server->name,
+				'dns_name'			=> $ip,
+				'ip_address'		=> $ip,
+				'image_id'			=> $server->image->id,
+				'state'				=> $id ? 'running' : 'pending',
+				'type'				=> $server->type->name,
+				'provider'			=> 'GoGrid'
+				// ''				=> $server->, 
+			);
+		}
+		
+		return $instances;
 	}
 	
 	public function get_instances()
@@ -230,7 +296,6 @@ class Gogrid_model extends Model {
 		$success =  $response->status === 'success';
 		if($success)
 		{
-			// remove from db
 			$this->db->insert('user_deleted_instances', array(
 				'instance_id'	=> $id,
 				'account_id'	=> $this->session->userdata('account_id')
@@ -293,7 +358,7 @@ class Gogrid_model extends Model {
 		// $response = $this->gogrid->call('support.password.list');
 		// $response = json_decode($response);	
 		// print_r($response);
-		print_r($this->get_password(11));
+		print_r($this->list_instances());
 		echo PHP_EOL;die;
 	}
 }

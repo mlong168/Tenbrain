@@ -127,7 +127,7 @@ var Snapshots = function(){
 	});
 	
 	var redeployment_form = new Ext.form.FormPanel({
-		labelWidth: 50,
+		labelWidth: 100,
 		url: '/amazon/restore_snapshot_to_new_instance',
 		border: false,
 		frame: true,
@@ -143,6 +143,33 @@ var Snapshots = function(){
 			name: 'name',
 			allowBlank: false,
 			vtype: 'alphanum'
+		}, {
+			xtype: 'combo',
+			width: 150,
+			fieldLabel: 'Instance Type',
+			allowBlank: false,
+			editable: false,
+			store: new Ext.data.JsonStore({
+				url: '/amazon/get_available_instance_types',
+				autoLoad: true,
+				successProperty: 'success',
+				root: 'types',
+				fields: ['name', 'available', 'reason']
+			}),
+			mode: 'local',
+			name: 'instance_type',
+			displayField: 'name',
+			hiddenName: 'instance_type', // POST-var name
+			valueField: 'name', // POST-var value
+			emptyText: 'Select type',
+			tpl: '<tpl for="."><div ext:qtip="{reason}" class="x-combo-list-item">{name}</div></tpl>',
+			forceSelection: true,
+			typeAhead: true,
+			listeners: {
+				beforeselect: function(combo, record){
+					return record.data.available; // false if not selectable
+				}
+			}
 		}],
 
 		buttons: [{
@@ -174,8 +201,8 @@ var Snapshots = function(){
 	
 	var redeployment_dialogue = new Ext.Window({
 		title: 'Create a new instance from snapshot',
-		height: 102,
-		width: 260,
+		height: 128,
+		width: 310,
 		border: false,
 		closeAction: 'hide',
 		items: redeployment_form,

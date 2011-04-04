@@ -5,6 +5,8 @@ class Amazon_model extends Model {
 	private $ec2;
 	private $username;
 	private $premium;
+	
+	public $name = 'Amazon';
 
 	function __construct()
 	{
@@ -22,6 +24,17 @@ class Amazon_model extends Model {
 		$this->username = $this->authentication->is_signed_in()
 			? $this->account_model->get_by_id($this->session->userdata('account_id'))->username
 			: 'anonymous';
+	}
+	
+	private function retrieve_provider_instance_id($instance_id)
+	{
+		$this->db->select('provider_instance_id')->from('user_instances')->where(array(
+			'instance_id'	=> $instance_id,
+			'account_id'	=> $this->session->userdata('account_id')
+		));
+		$query = $this->db->get();
+		
+		return $query->num_rows === 1 ? $query->row()->provider_instance_id : false;
 	}
 
 	private function get_user_aws_credentials()
@@ -94,6 +107,53 @@ class Amazon_model extends Model {
 	private function extract_tag_from_tagset($tagset, $tag_name)
 	{
 		return (string) $tagset->query("descendant-or-self::item[key='$tag_name']/value")->first();
+	}
+	
+	/*
+	 * common for provider-specific models
+	 * $input_ary is an indexed array that contains associative of the form:
+	 * 'id'				- db id of the instance
+	 * 'instance_id'	- provider-specific instance id
+	 * 'instance_name'	- instance name
+	 */
+	public function list_instances($input_ary, $state = 'running')
+	{
+		foreach($input_ary as $i => $inst)
+		{
+			$input_ary[$inst['instance_id']] = array(
+				'name'	=> $inst['name'],
+				'db_id'	=> $inst['id']
+			);
+			unset($input_ary[$i]);
+		}
+
+		$response = $this->ec2->describe_instances(array(
+			'InstanceId' => array_keys($input_ary)
+		));
+		$this->test_response($response);
+
+		$instances = array();
+		$list = $response->body->query("descendant-or-self::instanceId")->map(function($node){
+			return $node->parent();
+		})->each(function($node) use(&$instances, $input_ary){
+			$name = $node->tagSet->xpath("descendant-or-self::item[key='Name']/value");
+			$name = $name ? (string) $name[0] : '<i>not set</i>';
+			$id = (string) $node->instanceId;
+			$instances[] = array(
+				'id'				=> $input_ary[$id]['db_id'],
+				'name'				=> $name,
+				'dns_name'			=> (string) $node->dnsName,
+				'ip_address'		=> (string) $node->ipAddress,
+				'image_id'			=> (string) $node->imageId,
+				'state'				=> (string) $node->instanceState->name,
+				'type'				=> (string) $node->instanceType,
+				'provider'			=> 'Amazon'
+				// 'virtualization'	=> (string) $node->virtualizationType,
+				// 'root_device'	=> (string) $node->rootDeviceType,
+				// ''				=> (string) $node->,
+			);
+		});
+		return $instances;
 	}
 
 	public function describe_instances($state)
@@ -328,36 +388,61 @@ class Amazon_model extends Model {
 		$instance_id = (string) $instance_id[0];
 		
 		$this->tag_instance($instance_id, 'Name', $name);
+		
+		// write to db if things went fine
+		$this->db->insert('user_instances', array(
+			'account_id'			=> $this->session->userdata('account_id'),
+			'provider_instance_id'	=> $instance_id,
+			'instance_name'			=> $name,
+			'provider'				=> 'Amazon',
+		));
 
 		return true;
 	}
 
-	public function terminate_instance($instance_id)
+	public function terminate_instance($id)
 	{
+		$instance_id = $this->retrieve_provider_instance_id($id);
+		if(!$instance_id) return false;
+		
 		$response = $this->ec2->terminate_instances($instance_id);
 		$this->test_response($response);
 
+		$this->db->insert('user_deleted_instances', array(
+			'instance_id'	=> $id,
+			'account_id'	=> $this->session->userdata('account_id')
+		));
+
 		return true;
 	}
 
-	public function start_instance($instance_id)
+	public function start_instance($id)
 	{
+		$instance_id = $this->retrieve_provider_instance_id($id);
+		if(!$instance_id) return false;
+		
 		$response = $this->ec2->start_instances($instance_id);
 		$this->test_response($response);
 
 		return true;
 	}
 
-	public function stop_instance($instance_id)
+	public function stop_instance($id)
 	{
+		$instance_id = $this->retrieve_provider_instance_id($id);
+		if(!$instance_id) return false;
+		
 		$response = $this->ec2->stop_instances($instance_id);
 		$this->test_response($response);
 
 		return true;
 	}
 
-	public function reboot_instance($instance_id)
+	public function reboot_instance($id)
 	{
+		$instance_id = $this->retrieve_provider_instance_id($id);
+		if(!$instance_id) return false;
+		
 		$response = $this->ec2->reboot_instances($instance_id);
 		$this->test_response($response);
 
@@ -481,8 +566,11 @@ class Amazon_model extends Model {
 		);
 	}
 
-	public function create_snapshot($instance_id, $name, $description = 'sample description')
+	public function create_snapshot($id, $name, $description = 'sample description')
 	{
+		$instance_id = $this->retrieve_provider_instance_id($id);
+		if(!$instance_id) return false;
+		
 		$response = $this->ec2->describe_instances(array('InstanceId' => $instance_id));
 		$this->test_response($response);
 
