@@ -1,4 +1,3 @@
-// main operational object singleton:
 var Instances = function(){
 	var states = ['running', 'terminated', 'stopped'];
 	var store = function(){
@@ -271,7 +270,7 @@ var Instances = function(){
 					
 						Ext.Msg.wait('Rebooting selected instances', title);
 						Ext.Ajax.request({
-							url: 'amazon/reboot_instance',
+							url: 'common/reboot_instances',
 							params: {
 								instances: Ext.encode(instances)
 							},
@@ -314,7 +313,7 @@ var Instances = function(){
 					
 						Ext.Msg.wait('Stopping selected instances', title);
 						Ext.Ajax.request({
-							url: 'amazon/stop_instance',
+							url: 'common/stop_instances',
 							params: {
 								instances: Ext.encode(instances)
 							},
@@ -359,7 +358,7 @@ var Instances = function(){
 						
 						Ext.Msg.wait('Terminating selected instances', title);
 						Ext.Ajax.request({
-							url: 'amazon/terminate_instance',
+							url: 'common/terminate_instances',
 							params: {
 								instances: Ext.encode(instances)
 							},

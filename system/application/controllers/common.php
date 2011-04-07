@@ -92,6 +92,139 @@ class Common extends Controller {
 			'instances'	=> $instances
 		));
 	}
+	
+	function reboot_instances()
+	{
+		$ids = json_decode($this->input->post('instances'));
+		
+		$sql = 'SELECT ui.provider, ui.provider_instance_id';
+		$sql .= ' FROM user_instances ui';
+		$sql .= ' LEFT JOIN user_deleted_instances udi USING(instance_id)';
+		// $sql .= ' NATURAL JOIN user_deleted_instances udi';
+		$sql .= ' WHERE ui.account_id = ' . $this->session->userdata('account_id');
+		$sql .= ' AND udi.instance_id IS NULL';
+		$sql .= ' AND ui.instance_id IN (' . implode(',', $ids) . ')';
+		
+		$instances = array();
+		$query = $this->db->query($sql);
+		foreach($query->result() as $row)
+		{
+			if(!array_key_exists($row->provider, $instances)) $instances[$row->provider] = array();
+			$instances[$row->provider][] = $row->provider_instance_id;
+		}
+		
+		foreach($this->providers as $provider)
+		{
+			if(!array_key_exists($provider->name, $instances)) continue;
+			$provider->reboot_instances($instances[$provider->name]);
+		}
+		
+		echo json_encode(array('success' => true));
+	}
+	
+	function stop_instances()
+	{
+		$ids = json_decode($this->input->post('instances'));
+		
+		$sql = 'SELECT ui.provider, ui.provider_instance_id';
+		$sql .= ' FROM user_instances ui';
+		$sql .= ' LEFT JOIN user_deleted_instances udi USING(instance_id)';
+		// $sql .= ' NATURAL JOIN user_deleted_instances udi';
+		$sql .= ' WHERE ui.account_id = ' . $this->session->userdata('account_id');
+		$sql .= ' AND udi.instance_id IS NULL';
+		$sql .= ' AND ui.instance_id IN (' . implode(',', $ids) . ')';
+		
+		$instances = array();
+		$query = $this->db->query($sql);
+		foreach($query->result() as $row)
+		{
+			if(!array_key_exists($row->provider, $instances)) $instances[$row->provider] = array();
+			$instances[$row->provider][] = $row->provider_instance_id;
+		}
+		
+		foreach($this->providers as $provider)
+		{
+			if(!array_key_exists($provider->name, $instances)) continue;
+			$provider->stop_instances($instances[$provider->name]);
+		}
+		
+		echo json_encode(array('success' => true));
+	}
+	
+	function terminate_instances()
+	{
+		$ids = json_decode($this->input->post('instances'));
+		
+		$sql = 'SELECT ui.provider, ui.provider_instance_id';
+		$sql .= ' FROM user_instances ui';
+		$sql .= ' LEFT JOIN user_deleted_instances udi USING(instance_id)';
+		// $sql .= ' NATURAL JOIN user_deleted_instances udi';
+		$sql .= ' WHERE ui.account_id = ' . $this->session->userdata('account_id');
+		$sql .= ' AND udi.instance_id IS NULL';
+		$sql .= ' AND ui.instance_id IN (' . implode(',', $ids) . ')';
+		
+		$instances = array();
+		$query = $this->db->query($sql);
+		foreach($query->result() as $row)
+		{
+			if(!array_key_exists($row->provider, $instances)) $instances[$row->provider] = array();
+			$instances[$row->provider][] = $row->provider_instance_id;
+		}
+		
+		foreach($this->providers as $provider)
+		{
+			if(!array_key_exists($provider->name, $instances)) continue;
+			$provider->terminate_instances($instances[$provider->name]);
+		}
+		
+		echo json_encode(array('success' => true));
+	}
+	
+	/*
+	 *	Load Balancer listing
+	 */
+	function list_load_balancers()
+	{
+		$user_id = $this->session->userdata('account_id');
+		$sql = 'SELECT lb.load_balancer_id as id, lb.provider_lb_id as p_id, lb.provider';
+		$sql .= ' FROM user_load_balancers lb';
+		$sql .= ' LEFT JOIN deleted_load_balancers dlb USING(load_balancer_id)';
+		$sql .= ' WHERE dlb.load_balancer_id IS NULL';
+		$sql .= ' AND lb.account_id = ' . $this->db->escape($user_id);
+		
+		$lbs = $load_balancers = array();
+		$query = $this->db->query($sql);
+		if($query->num_rows() > 0)
+		{
+			foreach($query->result() as $row)
+			{
+				$id = $row->id;
+				$lb_pid = $row->p_id;
+				$provider = $row->provider;
+				
+				// GoGrid-only exception - ids are not assigned immediately after creation, that sucks...
+				if(!$lb_pid && $provider === 'GoGrid')
+				{
+					$lb_pid = $this->gogrid->assign_lb_id($id);
+					if(!$lb_pid) continue;
+				}
+				
+				if(!array_key_exists($provider, $lbs)) $lbs[$provider] = array();
+				$lbs[$row->provider][$lb_pid] = $id;
+			}
+			foreach($this->providers as $provider)
+			{
+				if(!array_key_exists($provider->name, $lbs)) continue;
+				$load_balancers = array_merge($load_balancers, $provider->list_load_balancers($lbs[$provider->name]));
+			}
+		}
+		
+		// print_r($lbs);die;
+		echo json_encode(array(
+			'success'			=> true,
+			'load_balancers'	=> $load_balancers
+		));
+	}
 }
 
 /* End of file common.php */

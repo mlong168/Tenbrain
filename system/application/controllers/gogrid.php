@@ -112,6 +112,33 @@ class Gogrid extends Controller {
 			'password'		=> $success ? $password['password'] : '',
 		));
 	}
+	
+	function get_instances_for_lb()
+	{
+		$instances = $this->gg->get_instances_for_lb();
+		echo json_encode(array(
+			'success'	=> true,
+			'instances'	=> $instances
+		));
+	}
+	
+	function create_load_balancer()
+	{
+		echo json_encode(array(
+			'success' => $this->gg->create_load_balancer(
+				$this->input->post('name'),
+				$this->input->post('address'),
+				$this->input->post('instances')
+			)
+		));
+	}
+	
+	function delete_load_balancer()
+	{
+		echo json_encode(array(
+			'success' => $this->gg->delete_load_balancer($this->input->post('id'))
+		));
+	}
 }
 
 /* End of file gogrid.php */

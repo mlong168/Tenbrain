@@ -267,7 +267,7 @@ class Amazon extends Controller {
 	{
 		echo json_encode(array(
 			'success' => $this->amazon->delete_load_balancer(
-				$this->input->post('name')
+				$this->input->post('id')
 			)
 		));
 	}

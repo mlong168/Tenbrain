@@ -3,10 +3,11 @@ var Load_balancers = function(){
 		var record = Ext.data.Record.create([
 			'id',
 			'name',
+			'provider',
 			'dns_name'
 		]);
 		return new Ext.data.Store({
-			url: '/amazon/created_load_balancers',
+			url: '/common/list_load_balancers',
 			reader: new Ext.data.JsonReader({
 				root: 'load_balancers',
 				successProperty: 'success',
@@ -87,7 +88,7 @@ var Load_balancers = function(){
 							params: {
 								lb_name:
 									instances_grid.ref_lb_name ||
-									lb_menu.ref_grid.getStore().getAt(lb_menu.selected_record_id).get('name'),
+									lb_menu.selected_record.get('name'),
 								instances: Ext.encode(instances)
 							},
 							success: function(response){
@@ -197,7 +198,7 @@ var Load_balancers = function(){
 						Ext.Ajax.request({
 							url: 'amazon/deregister_instances_from_lb',
 							params: {
-								lb_name: lb_menu.ref_grid.getStore().getAt(lb_menu.selected_record_id).get('name'),
+								lb_name: lb_menu.selected_record.get('name'),
 								instances: Ext.encode(instances)
 							},
 							success: function(response){
@@ -227,7 +228,7 @@ var Load_balancers = function(){
 
 	var deploy_form = new Ext.FormPanel({
 		id: 'lb_deploy_form',
-		labelWidth: 40,
+		labelWidth: 70,
 		frame: true,
 		url: '/amazon/create_load_balancer',
 		monitorValid: true,
@@ -239,6 +240,20 @@ var Load_balancers = function(){
 			vtype: 'alphanum',
 			emptyText: 'Type a load balancer name here',
 			allowBlank: false
+		}, {
+			xtype: 'combo',
+			width: 150,
+			fieldLabel: 'Provider',
+			name: 'provider',
+			allowBlank: false,
+			store: new Ext.data.ArrayStore({
+				fields: ['name'],
+				data: [['Amazon'], ['GoGrid']]
+			}),
+			mode: 'local',
+			displayField: 'name',
+			autoSelect: true,
+			editable: false
 		}],
 
 		buttons: [{
@@ -248,22 +263,139 @@ var Load_balancers = function(){
 				var title = 'Create load balancer',
 					success = 'Load balancer was created successfully',
 					error = 'A problem has occured while creating a load balancer',
-					name = deploy_form.getForm().getFieldValues().name;
+					form = deploy_form.getForm(), vals = form.getFieldValues(),
+					name = vals.name, provider = vals.provider;
+					
+				if(provider === 'Amazon')
+				{
+					modal_window.hide();
+					Ext.Msg.wait('Your load balancer is being created', title);
+					deploy_form.getForm().submit({
+						success: function(form, action){
+							var s = action.result.success;
+							Ext.Msg.alert(title, s ? success : action.result.error_message || error, function(){
+								store.reload();
+								modal_window
+									.setTitle('Register instances with load balancer "' + name + '"')
+									.setSize(700, 250).show().center()
+									.getLayout().setActiveItem('lb_multi_purpose_instances');
+								instance_store.reload({
+									params: {}
+								});
+								instances_grid.ref_lb_name = name;
+							});
+						},
+						failure: function(form, action){
+							Ext.Msg.alert(title, action.result.error_message || error);
+						}
+					});
+				}
+				else if(provider === 'GoGrid')
+				{
+					gogrid_lb_form.getForm().reset().setValues({name: name});
+					modal_window
+						.setTitle('Proceed creating load balancer "' + name + '"')
+						.setSize(300, 150).show().center()
+						.getLayout().setActiveItem('gogrid_lb_submit_form');
+				}
+			}
+		}, {
+			text: 'Cancel',
+			handler: function(){
+				modal_window.hide();
+			}
+		}]
+	});
+	var instances_to_load_balance = {
+		xtype:'superboxselect',
+		allowBlank:false,
+		msgTarget: 'under',
+		allowAddNewData: false,
+		addNewDataOnBlur : true, 
+		fieldLabel: 'Instances',
+		emptyText: 'Select one or more instances',
+		resizable: true,
+		name: 'instances[]',
+		anchor: '100%',
+		store: new Ext.data.JsonStore({
+			url: '/gogrid/get_instances_for_lb',
+			autoLoad: true,
+			successProperty: 'success',
+			root: 'instances',
+			fields: ['id', 'name']
+		}),
+		mode: 'local',
+		displayField: 'name',
+		valueField: 'id',
+		extraItemCls: 'x-tag',
+		listeners: {
+			newitem: function(bs,v, f){
+				console.log(bs, v, f);
+				v = v.slice(0,1).toUpperCase() + v.slice(1).toLowerCase();
+				var newObj = {
+					id: v,
+					name: v
+				};
+				bs.addItem(newObj);
+			}
+		}
+	};
+	
+	var gogrid_lb_form = new Ext.FormPanel({
+		id: 'gogrid_lb_submit_form',
+		labelWidth: 70,
+		frame: true,
+		url: '/gogrid/create_load_balancer',
+		monitorValid: true,
+		autoHeight: true,
+		items: [{
+			xtype: 'hidden',
+			name: 'name'
+		}, {
+			xtype: 'combo',
+			width: 150,
+			fieldLabel: 'IP address',
+			allowBlank: false,
+			vtype: 'IPAddress',
+			store: new Ext.data.JsonStore({
+				url: '/gogrid/get_free_addresses',
+				autoLoad: true,
+				successProperty: 'success',
+				root: 'addresses',
+				fields: ['address']
+			}),
+			mode: 'local',
+			name: 'address',
+			displayField: 'address',
+			hiddenName: 'address', // POST-var name
+			valueField: 'address', // POST-var value
+			autoSelect: true,
+			forceSelection: true,
+			typeAhead: true,
+			listeners: {
+				beforeselect: function(combo, record){
+					return record.data.available; // false if not selectable
+				}
+			}
+		}, instances_to_load_balance],
 
+		buttons: [{
+			text: 'Proceed',
+			formBind: true,
+			handler: function(){
+				var title = 'Create load balancer',
+					success = 'Load balancer was created successfully',
+					error = 'A problem has occured while creating a load balancer',
+					form = gogrid_lb_form.getForm(), vals = form.getFieldValues(),
+					name = vals.name;
+					
 				modal_window.hide();
 				Ext.Msg.wait('Your load balancer is being created', title);
-				deploy_form.getForm().submit({
+				gogrid_lb_form.getForm().submit({
 					success: function(form, action){
 						var s = action.result.success;
 						Ext.Msg.alert(title, s ? success : error, function(){
 							store.reload();
-							modal_window
-								.setTitle('Register instances with load balancer "' + name + '"')
-								.setSize(700, 250).show().center()
-								.getLayout().setActiveItem('lb_multi_purpose_instances');
-							instance_store.reload({
-								params: {}
-							});
 							instances_grid.ref_lb_name = name;
 						});
 					},
@@ -285,7 +417,7 @@ var Load_balancers = function(){
 		id: 'modal_window',
 		layout: 'card',
 		closeAction: 'hide',
-		items: [deploy_form, instances_grid, registered_instances_grid],
+		items: [deploy_form, instances_grid, registered_instances_grid, gogrid_lb_form],
 		activeItem: 0,
 		border: false,
 		modal : true
@@ -300,8 +432,7 @@ var Load_balancers = function(){
 					text: 'Register instances with load balancer',
 					handler: function(){
 						var grid = lb_menu.ref_grid,
-							record = grid.getStore().getAt(lb_menu.selected_record_id),
-							name = record.get('name');
+							name = lb_menu.selected_record.get('name');
 						
 						lb_menu.hide();						
 						modal_window
@@ -319,8 +450,7 @@ var Load_balancers = function(){
 					text: 'Deregister instances from load balancer',
 					handler: function(){
 						var grid = lb_menu.ref_grid,
-							record = grid.getStore().getAt(lb_menu.selected_record_id),
-							name = record.get('name');
+							name = lb_menu.selected_record.get('name');
 						
 						lb_menu.hide();
 						modal_window
@@ -342,8 +472,7 @@ var Load_balancers = function(){
 					text: 'View instances registered with load balancer',
 					handler: function(){
 						var grid = lb_menu.ref_grid,
-							record = grid.getStore().getAt(lb_menu.selected_record_id),
-							name = record.get('name');
+							name = lb_menu.selected_record.get('name');
 						
 						lb_menu.hide();
 						modal_window
@@ -360,8 +489,8 @@ var Load_balancers = function(){
 					text: 'Delete load balancer',
 					handler: function(){
 						var grid = lb_menu.ref_grid,
-							record = grid.getStore().getAt(lb_menu.selected_record_id),
-							name = record.get('name'),
+							id = lb_menu.selected_record.get('id'),
+							provider = lb_menu.selected_record.get('provider').toLowerCase(),
 							title = 'Delete load balancer',
 							success = 'Load balancer was deleted successfully',
 							error = 'A problem has occurred when deleting the load balancer';
@@ -372,15 +501,16 @@ var Load_balancers = function(){
 
 							Ext.Msg.wait('The load balancer is being deleted', title);
 							Ext.Ajax.request({
-								url: 'amazon/delete_load_balancer',
+								url: provider + '/delete_load_balancer',
 								params: {
-									name: name,
+									id: id,
 								},
 								success: function(response){
 									response = Ext.decode(response.responseText);
 									var s = response.success;
-									Ext.Msg.alert(title, s ? success : response.error_message || error);
-									store.reload();
+									Ext.Msg.alert(title, s ? success : response.error_message || error, function(){
+										store.reload();
+									});
 								},
 								failure: function(){
 									Ext.Msg.alert(title, error);
@@ -392,7 +522,7 @@ var Load_balancers = function(){
 			}
 		}],
 		ref_grid: null,
-		selected_record_id: null
+		selected_record: null
 	});
 
 	var grid = new xg.GridPanel({
@@ -408,7 +538,7 @@ var Load_balancers = function(){
 			rowcontextmenu: function (grid, id, e) {
 				e.preventDefault();
 				lb_menu.ref_grid = this;
-				lb_menu.selected_record_id = this.getStore().getAt(id).get('id');
+				lb_menu.selected_record = this.getStore().getAt(id);
 				lb_menu.showAt(e.getXY());
 			}
 		},
@@ -423,7 +553,7 @@ var Load_balancers = function(){
 					deploy_form.getForm().reset();
 					modal_window
 						.setTitle('Create Load Balancer')
-						.setSize(270, 102).show().center()
+						.setSize(270, 128).show().center()
 						.getLayout().setActiveItem('lb_deploy_form');
 				}
 			}, '->', {
@@ -439,6 +569,7 @@ var Load_balancers = function(){
 		colModel: new xg.ColumnModel({
 			columns: [
 				{header: "Name", dataIndex: 'name', width: 130},
+				{header: "Provider", dataIndex: 'provider', width: 100},
 				{header: "DNS Name", dataIndex: 'dns_name', width: 130, renderer: function(value){
 					return '<a target="_blank" href="http://' + value + '/">' + value + '</a>';
 				}}

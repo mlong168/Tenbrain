@@ -8,9 +8,11 @@ class GoGridClient
 {
 	const FORMAT		= 'json';
 	const SERVER		= 'https://api.gogrid.com/api';
-	const API_VERSION	= '1.7';
+	const API_VERSION	= '1.8';
 	
-	const API_KEY		= '1364ca1fd8a687d2';
+	// const API_KEY		= '1364ca1fd8a687d2';
+	const API_KEY		= 'c65c001f5fc9100f';
+	// const API_SECRET	= '956orc12';
 	const API_SECRET	= '956orc12';
 	
 	private $api_key;
@@ -105,6 +107,7 @@ class GoGridClient
 	public function call($method, $alt_params = array())
 	{
 		$url = $this->getRequestURL($method, $alt_params);
+		// var_dump($url);die;
 		$output = $this->sendAPIRequest($url);
 		
 		return $output;

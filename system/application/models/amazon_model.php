@@ -448,6 +448,38 @@ class Amazon_model extends Model {
 
 		return true;
 	}
+	
+	/*
+	 * These methods define actions on multiple instances
+	 */
+	public function reboot_instances($ids)
+	{
+		$response = $this->ec2->reboot_instances($ids);
+		$this->test_response($response);
+		return true;
+	}
+	
+	public function stop_instances($ids)
+	{
+		$response = $this->ec2->stop_instances($ids);
+		$this->test_response($response);
+		return true;
+	}
+	
+	public function terminate_instances($ids)
+	{
+		$response = $this->ec2->terminate_instances($ids);
+		$this->test_response($response);
+		foreach($ids as $id)
+		{
+			$id = $this->db->escape($id);
+			$this->db->set('instance_id', "(SELECT instance_id FROM user_instances WHERE provider_instance_id = $id)", false);
+			$this->db->insert('user_deleted_instances', array(
+				'account_id'	=> $this->session->userdata('account_id')
+			));
+		}
+		return true;
+	}
 
 	private function get_instance_volume($instance_id)
 	{
@@ -462,6 +494,11 @@ class Amazon_model extends Model {
 
 	public function created_snapshots($instance_id = false)
 	{
+		if($instance_id)
+		{
+			$instance_id = $this->retrieve_provider_instance_id($instance_id);
+			// if(!$instance_id) return false;
+		}
 		$filter = array(
 			array('Name' => 'tag:User', 'Value' => $this->username)
 		);
@@ -798,6 +835,33 @@ class Amazon_model extends Model {
 		return new AmazonELB($credentials['key'], $credentials['secret_key']);
 	}
 
+	public function list_load_balancers($ids)
+	{
+		$elb = $this->get_elb_handle();
+		$response = $elb->describe_load_balancers(array(
+			'LoadBalancerNames' => array_keys($ids)
+		));
+
+		$balancers = array();
+		$list = $response->body->query("descendant-or-self::LoadBalancerName");
+		$results = $list->map(function($node){
+			return $node->parent();
+		});
+
+		$results->each(function($node) use ($ids, &$balancers){
+			$name = (string) $node->LoadBalancerName;
+			$balancers[] = array(
+				'id'				=> $ids[$name],
+				'name'				=> $name,
+				'provider'			=> 'Amazon',
+				'dns_name'			=> (string) $node->DNSName,
+				// ''				=> (string) $node->,
+			);
+		}, $balancers);
+
+		return $balancers;
+	}
+
 	public function created_load_balancers()
 	{
 		$elb = $this->get_elb_handle();
@@ -836,15 +900,47 @@ class Amazon_model extends Model {
 				'LoadBalancerPort' => 80
 			)
 		), 'us-east-1c');
+		$this->test_response($response);
+		
+		$this->db->insert('user_load_balancers', array(
+			'account_id'		=> $this->session->userdata('account_id'),
+			'name'				=> $name,
+			'provider_lb_id'	=> $name,
+			'provider'			=> $this->name
+		));
 
-		return $response->isOK();
+		return true;
 	}
 
-	public function delete_load_balancer($name)
+	public function delete_load_balancer($id)
 	{
+		$user_id = $this->session->userdata('account_id');
+		$sql = 'SELECT lb.provider_lb_id as id';
+		$sql .= ' FROM user_load_balancers lb';
+		$sql .= ' LEFT JOIN deleted_load_balancers dlb USING(load_balancer_id)';
+		$sql .= ' WHERE dlb.load_balancer_id IS NULL';
+		$sql .= ' AND lb.account_id = ' . $this->db->escape($user_id);
+		$sql .= ' AND lb.load_balancer_id = ' . $this->db->escape($id);
+		
+		$query = $this->db->query($sql);
+		if($query->num_rows === 0) $this->die_with_error('The load balancer you have requested was not found');
+		$name = $query->row()->id; // should be only one, for amazon unique id is name
+		
 		$elb = $this->get_elb_handle();
 		$response = $elb->delete_load_balancer($name);
-		return $response->isOK();
+		$this->test_response($response);
+		
+		$this->db->insert('deleted_load_balancers', array(
+			'account_id'		=> $user_id,
+			'load_balancer_id'	=> $id
+		));
+		
+		$this->db->where('load_balancer_id', $id);
+		$this->db->update('load_balancer_instances', array(
+			'active' => false
+		));
+		
+		return true;
 	}
 
 	public function show_lb_instances($lb_name)
