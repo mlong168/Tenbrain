@@ -18,7 +18,13 @@ class Common extends Controller {
 		$this->load->model('Amazon_model', 'amazon');
 		$this->load->model('Gogrid_model', 'gogrid');
 		
-		$this->providers = array($this->amazon, $this->gogrid);
+		$providers = array($this->amazon, $this->gogrid);
+		$this->providers = array();
+		foreach($providers as $provider)
+		{
+			$this->providers[$provider->name] = $provider;
+		}
+		unset($providers);
 		
 		header('Content-type: application/json');	// only xhr responses from this controller
 		
@@ -186,7 +192,7 @@ class Common extends Controller {
 	function list_load_balancers()
 	{
 		$user_id = $this->session->userdata('account_id');
-		$sql = 'SELECT lb.load_balancer_id as id, lb.provider_lb_id as p_id, lb.provider';
+		$sql = 'SELECT lb.load_balancer_id as id, lb.provider_lb_id as p_id, lb.provider, lb.name';
 		$sql .= ' FROM user_load_balancers lb';
 		$sql .= ' LEFT JOIN deleted_load_balancers dlb USING(load_balancer_id)';
 		$sql .= ' WHERE dlb.load_balancer_id IS NULL';
@@ -206,7 +212,17 @@ class Common extends Controller {
 				if(!$lb_pid && $provider === 'GoGrid')
 				{
 					$lb_pid = $this->gogrid->assign_lb_id($id);
-					if(!$lb_pid) continue;
+					if(!$lb_pid)
+					{
+						$load_balancers []= array(
+							'id'		=> 0,
+							'name'		=> $row->name,
+							'provider'	=> 'GoGrid',
+							'state'		=> 'pending',
+							// ''	=> $lb->,
+						);
+						continue;
+					}
 				}
 				
 				if(!array_key_exists($provider, $lbs)) $lbs[$provider] = array();
@@ -223,6 +239,53 @@ class Common extends Controller {
 		echo json_encode(array(
 			'success'			=> true,
 			'load_balancers'	=> $load_balancers
+		));
+	}
+	
+	private function get_load_balancer($lb_id)
+	{
+		$this->db->select('provider, load_balancer_id as id, provider_lb_id as pid');
+		$query = $this->db->get_where('user_load_balancers', array('load_balancer_id' => $lb_id));		
+		return $query->num_rows() ? $query->row() : false;
+	}
+	
+	function get_load_balanced_instances()
+	{
+		$lb = $this->get_load_balancer($this->input->post('lb_id'));
+		
+		echo json_encode(array(
+			'success'	=> true,
+			'instances'	=> $this->providers[$lb->provider]->get_load_balanced_instances($lb->id)
+		));
+	}
+	
+	function instances_available_for_lb()
+	{
+		$lb = $this->get_load_balancer($this->input->post('lb_id'));
+		
+		echo json_encode(array(
+			'success'	=> true,
+			'instances'	=> $this->providers[$lb->provider]->instances_available_for_lb($lb->id)
+		));
+	}
+	
+	function register_instances_within_lb()
+	{
+		$instance_ids = json_decode($this->input->post('instances'));
+		$lb = $this->get_load_balancer($this->input->post('lb_id'));
+		
+		echo json_encode(array(
+			'success' => $this->providers[$lb->provider]->register_instances_within_lb($lb, $instance_ids)
+		));
+	}
+	
+	function deregister_instances_from_lb()
+	{
+		$instance_ids = json_decode($this->input->post('instances'));
+		$lb = $this->get_load_balancer($this->input->post('lb_id'));
+		
+		echo json_encode(array(
+			'success' => $this->providers[$lb->provider]->deregister_instances_from_lb($lb, $instance_ids)
 		));
 	}
 }

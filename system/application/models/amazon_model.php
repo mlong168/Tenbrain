@@ -851,10 +851,11 @@ class Amazon_model extends Model {
 		$results->each(function($node) use ($ids, &$balancers){
 			$name = (string) $node->LoadBalancerName;
 			$balancers[] = array(
-				'id'				=> $ids[$name],
-				'name'				=> $name,
-				'provider'			=> 'Amazon',
-				'dns_name'			=> (string) $node->DNSName,
+				'id'		=> $ids[$name],
+				'name'		=> $name,
+				'provider'	=> 'Amazon',
+				'dns_name'	=> (string) $node->DNSName,
+				'state'		=> 'On'
 				// ''				=> (string) $node->,
 			);
 		}, $balancers);

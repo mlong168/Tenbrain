@@ -426,7 +426,6 @@ class Gogrid_model extends Model {
 		$sql .= ' FROM user_instances ui';
 		$sql .= ' LEFT JOIN user_deleted_instances udi USING(instance_id)';
 		$sql .= ' WHERE ui.account_id = ' . $this->session->userdata('account_id');
-		// $sql .= ' WHERE ui.account_id = 1';
 		$sql .= ' AND udi.instance_id IS NULL';
 		$sql .= " AND ui.provider='{$this->name}'";
 		$sql .= ' AND ui.instance_id IN (' . implode(',', $instances) . ')';
@@ -469,6 +468,8 @@ class Gogrid_model extends Model {
 		return true;
 	}
 	
+	// used to assign id if not yet present; failes at first times though
+	// it takes gogrid around 30 sec to give back a response with a valid id
 	public function assign_lb_id($id)
 	{
 		$this->db->select('name, ip_address');
@@ -477,7 +478,9 @@ class Gogrid_model extends Model {
 		
 		$response = $this->gogrid->call('grid.loadbalancer.get', array('name' => $name));
 		$response = json_decode($response);
-		$this->test_response($response);
+		
+		if($response->status !== 'success') return false;
+		
 		$lb_pid = $response->list[0];
 		$lb_pid = $lb_pid->id;
 		
@@ -536,12 +539,197 @@ class Gogrid_model extends Model {
 				'id'		=> $ids[$lb->id],
 				'name'		=> $lb->name,
 				'provider'	=> $this->name,
-				'dns_name'	=> $lb->virtualip->ip->ip
+				'dns_name'	=> $lb->virtualip->ip->ip,
+				'state'		=> 'On'
 				// ''	=> $lb->,
 			);
 		}
 		
 		return $lbs;
+	}
+	
+	public function get_load_balanced_instances($lb_id)
+	{
+		$sql = 'SELECT ui.instance_id as id, ui.instance_name as name, ui.public_ip as ip, lb.provider_lb_id as lb_id';
+		$sql .= ' FROM load_balancer_instances lbi';
+		$sql .= ' INNER JOIN user_load_balancers lb USING(load_balancer_id)';
+		$sql .= ' INNER JOIN user_instances ui USING(instance_id)';
+		$sql .= ' WHERE lbi.load_balancer_id = ' . $this->db->escape($lb_id);
+		$sql .= ' AND lbi.active = 1';
+		$sql .= ' ';
+		
+		$query = $this->db->query($sql);
+		$names = array(); $lb_id = '';
+		if(!$query->num_rows()) $this->die_with_error('No instances are registered within this load balancer');
+		foreach($query->result() as $row)
+		{
+			$names[$row->ip] = array(
+				'id'	=> $row->id,
+				'name'	=> $row->name
+			);
+			if(!$lb_id) $lb_id = $row->lb_id;
+		}
+		$response = $this->gogrid->call('grid.loadbalancer.get', array(
+			'id' => $lb_id
+		));
+		$response = json_decode($response);
+		$this->test_response($response);
+		
+		$instances = array();
+		foreach($response->list[0]->realiplist as $instance)
+		{
+			$ip = $instance->ip->ip;
+			$instances []= array(
+				'id'				=> $names[$ip]['id'],
+				'name'				=> $names[$ip]['name'],
+				'ip_address'		=> $ip,
+				'healthy'			=> (int) $instance->ip->state->id === 2,
+				'health_message'	=> $instance->ip->state->description
+				// ''	=> $lb->,
+			);
+		}
+		
+		return $instances;
+	}
+	
+	function instances_available_for_lb($lb_id)
+	{
+		$sql = 'SELECT instance_id as id, provider_instance_id as p_id, instance_name as name, public_ip as ip';
+		$sql .= ' FROM user_instances';
+		$sql .= ' WHERE provider = ' . $this->db->escape($this->name);
+		$sql .= ' AND account_id = ' . $this->db->escape($this->session->userdata('account_id'));
+		$sql .= ' AND instance_id NOT IN (';
+		$sql .= '  SELECT instance_id FROM load_balancer_instances where load_balancer_id = ' . $this->db->escape($lb_id) . ' and active = true';
+		$sql .= ' )';
+		$query = $this->db->query($sql);
+		
+		$instances = array();
+		if($query->num_rows())
+		{
+			foreach($query->result() as $row)
+			{
+				$instances[] = array(
+					'id'			=> $row->id,
+					'instance_id'	=> $row->p_id,
+					'name'			=> $row->name,
+					'ip_address'	=> $row->ip
+				);
+			}
+		}
+		
+		return $instances;
+	}
+	
+	function register_instances_within_lb($lb, $instance_ids)
+	{
+		$sql = 'SELECT ui.instance_id as id, ui.public_ip as ip';
+		$sql .= ' FROM load_balancer_instances lbi';
+		$sql .= ' INNER JOIN user_instances ui USING(instance_id)';
+		$sql .= ' WHERE lbi.load_balancer_id = ' . $this->db->escape($lb->id);
+		$sql .= ' AND lbi.active = 1';
+		$sql .= ' ';
+		
+		$query = $this->db->query($sql); $already_registered = array();
+		if($query->num_rows() > 0)
+		{
+			foreach($query->result() as $row)
+			{
+				$already_registered[$row->id] = $row->ip;
+			}
+		}
+		
+		$this->db->delete('load_balancer_instances', array(
+			'load_balancer_id' => $lb->id
+		));
+		
+		$this->db->select('instance_id as id, public_ip as ip')->from('user_instances')->where_in('instance_id', $instance_ids);
+		$query = $this->db->get(); $to_be_registered = array();
+		if($query->num_rows() > 0)
+		{
+			foreach($query->result() as $row)
+			{
+				$to_be_registered[$row->id] = $row->ip;
+			}
+		}
+		
+		$instances = $already_registered + $to_be_registered;
+		
+		$response = $this->gogrid->call('grid.loadbalancer.edit', array_merge(array(
+			'id' => $lb->pid
+		), $this->form_realip_array(array_values($instances))));
+		$response = json_decode($response);
+		$this->test_response($response);
+		
+		// rewrite it to relay more on an realiplist from response, when will have free time
+		foreach($instances as $id => $ip)
+		{
+			$this->db->insert('load_balancer_instances', array(
+				'load_balancer_id'	=> $lb->id,
+				'instance_id'		=> $id,
+				'active'			=> true
+			));
+		}
+		
+		return true;
+	}
+	
+	private function form_realip_array($ips, $port = 80)
+	{
+		$real_ips = array();$i = 0;
+		foreach($ips as $ip)
+		{
+			$real_ips['realiplist.' . $i . '.ip'] = $ip;
+			$real_ips['realiplist.' . $i . '.port'] = $port;
+			++$i;
+		}
+		return $real_ips;
+	}
+	
+	function deregister_instances_from_lb($lb, $instance_ids)
+	{
+		$sql = 'SELECT ui.instance_id as id, ui.public_ip as ip';
+		$sql .= ' FROM load_balancer_instances lbi';
+		$sql .= ' INNER JOIN user_instances ui USING(instance_id)';
+		$sql .= ' WHERE lbi.load_balancer_id = ' . $this->db->escape($lb->id);
+		$sql .= ' AND lbi.active = 1';
+		$sql .= ' ';
+		
+		$query = $this->db->query($sql); $deregister = $left = array();
+		$num_registered = $query->num_rows();
+		if(!$num_registered) $this->die_with_error('No instances are currently registered within this load balancer');
+		
+		foreach($query->result() as $row)
+		{
+			if(in_array($row->id, $instance_ids))
+			{
+				$deregister[$row->id] = $row->ip;
+			}
+			else
+			{
+				$left[$row->id] = $row->ip;
+			}
+		}
+		if(count($left) === 0) $this->die_with_error('Please leave at least one');
+		
+		$response = $this->gogrid->call('grid.loadbalancer.edit', array_merge(array(
+			'id' => $lb->pid
+		), $this->form_realip_array(array_values($left))));
+		$response = json_decode($response);
+		$this->test_response($response);
+		
+		// rewrite it to relay more on an realiplist from response, when will have free time
+		foreach($deregister as $id => $ip)
+		{
+			$this->db->where(array(
+				'load_balancer_id'	=> $lb->id,
+				'instance_id'		=> $id
+			));
+			$this->db->update('load_balancer_instances', array(
+				'active' => false
+			));
+		}
+		
+		return true;
 	}
 
 	public function test()
