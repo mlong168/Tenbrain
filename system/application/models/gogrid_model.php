@@ -84,21 +84,14 @@ class Gogrid_model extends Model {
 	 */
 	public function list_instances($input_ary, $state = 'running')
 	{
-		$names = $ids = array();
+		$ids = array();
 		foreach($input_ary as $inst)
 		{
-			$names[] = $inst['name'];
-			$token	= $inst['name'] . $inst['instance_ip']; // only this is a unique combination that defines an instance if there is no id assigned
-			$ids[$token] = array(
-				'db_id'			=> $inst['id'],
-				'instance_id'	=> $inst['instance_id'], // provider-specific, could be false
-				'instance_name'	=> $inst['name']
-			);
+			$ids[$inst['instance_id']] = $inst['id'];
 		}
-		// print_r($names);//die;
 		
 		$response = $this->gogrid->call('grid.server.get', array(
-			'name' => $names
+			'id' => array_keys($ids)
 		));
 		$response = json_decode($response);
 		// print_r($response);//die;
@@ -107,37 +100,43 @@ class Gogrid_model extends Model {
 		$instances = array();
 		foreach($response->list as $server)
 		{
+			$p_id = $server->id;
 			$ip = $server->ip->ip;
-			$token = $server->name . $ip;			
-			if(!array_key_exists($token, $ids)) continue;
-			
-			$id = isset($server->id) ? $server->id : false;			
-			if($id && !$ids[$token]['instance_id'])
-			{
-				$this->db->where(array(
-					'public_ip'		=> $ip,
-					'instance_name'	=> $ids[$token]['instance_name']
-				));
-				$this->db->update('user_instances', array('provider_instance_id' => $id));
-				$this->db->select('instance_id');
-				$query = $this->db->get_where('user_instances', array('provider_instance_id' => $id));
-				$ids[$token]['db_id'] = $query->row()->instance_id;
-			}
-			
 			$instances []= array(
-				'id'				=> $ids[$token]['db_id'],
+				'id'				=> $ids[$p_id],
 				'name'				=> $server->name,
 				'dns_name'			=> $ip,
 				'ip_address'		=> $ip,
 				'image_id'			=> $server->image->id,
-				'state'				=> $id ? 'running' : 'pending',
+				'state'				=> $server->state->name === 'On' ? 'running' : 'stopped',
 				'type'				=> $server->type->name,
-				'provider'			=> 'GoGrid'
+				'provider'			=> $this->name
 				// ''				=> $server->, 
 			);
 		}
 		
 		return $instances;
+	}
+	
+	public function assign_instance_id($id)
+	{
+		$this->db->select('instance_name as name, public_ip as ip');
+		$query = $this->db->get_where('user_instances', array('instance_id' => $id));
+		$row = $query->row(); $name = $row->name; $ip = $row->ip;
+		
+		$response = $this->gogrid->call('grid.server.get', array('name' => $name));
+		$response = json_decode($response);
+		
+		if($response->status !== 'success') return false;
+		
+		$pid = $response->list[0]->id;
+		
+		$this->db->where('instance_id', $id);
+		$this->db->update('user_instances', array(
+			'provider_instance_id' => $pid
+		));
+		
+		return $pid;
 	}
 	
 	public function get_instances()

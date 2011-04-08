@@ -67,7 +67,8 @@ class Common extends Controller {
 	
 	function list_instances($state = 'running')
 	{
-		$sql = 'SELECT ui.instance_id, ui.provider, ui.provider_instance_id, ui.instance_name, ui.public_ip';
+		$sql = 'SELECT ui.instance_id as id, ui.provider, ui.provider_instance_id as pid,';
+		$sql .= ' ui.instance_name as name, ui.public_ip as ip';
 		$sql .= ' FROM user_instances ui';
 		$sql .= ' LEFT JOIN user_deleted_instances udi USING(instance_id)';
 		// $sql .= ' NATURAL JOIN user_deleted_instances udi';
@@ -78,11 +79,33 @@ class Common extends Controller {
 		$query = $this->db->query($sql);
 		foreach($query->result() as $row)
 		{
+			$id = $row->id;
+			$pid = $row->pid;
+			$provider = $row->provider;
+			
+			// GoGrid-only exception - ids are not assigned immediately after creation, that sucks...
+			if(!$pid && $provider === 'GoGrid')
+			{
+				$pid = $this->gogrid->assign_instance_id($id);
+				if(!$pid)
+				{
+					$instances []= array(
+						'id'			=> 0,
+						'name'			=> $row->name,
+						'provider'		=> 'GoGrid',
+						'state'			=> 'pending',
+						'dns_name'		=> $row->ip,
+						'ip_address'	=> $row->ip
+						// ''			=> $row->, 
+					);
+					continue;
+				}
+			}
+			
 			$instances[$row->provider][] = array(
-				'id'			=> $row->instance_id,
-				'name'			=> $row->instance_name,
-				'instance_id'	=> isset($row->provider_instance_id) ? $row->provider_instance_id : false,
-				'instance_ip'	=> isset($row->public_ip) ? $row->public_ip : false // a must-have for gogrid
+				'id'			=> $id,
+				'instance_id'	=> $pid,
+				'name'			=> $row->name
 			);
 		}
 		
