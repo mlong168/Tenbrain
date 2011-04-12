@@ -253,6 +253,35 @@ class Amazon_model extends Model {
 			'images'	=> $images
 		);
 	}
+
+	public function list_images()
+	{
+		$response = $this->ec2->describe_images(array('Owner' => array('self', '528233608018')));
+
+		$images = array();
+		if(!$response->isOK()) return array('success' => false, 'images' => $images);
+
+		$list = $response->body->query("descendant-or-self::imageId");
+		$results = $list->map(function($node){
+			return $node->parent();
+		});
+
+		$results->each(function($node, $i, &$images){
+			$images[] = array(
+				'id'				=> $i,
+				'provider'			=> 'Amazon',
+				'image_id'			=> (string) $node->imageId,
+				'name'				=> (string) $node->name,
+				'state'				=> (string) $node->imageState,
+				'description'		=> (string) $node->description,
+				'virtualization'	=> (string) $node->virtualizationType,
+				'location'			=> (string) $node->imageLocation
+				// ''				=> (string) $node->,
+			);
+		}, $images);
+
+		return $images;
+	}
 	
 	private function create_user_key_pair()
 	{
@@ -1212,7 +1241,7 @@ class Amazon_model extends Model {
 
 	public function test()
 	{
-		$output = $this->get_elastic_ips();
+		$output = $this->restore_snapshot_to_new_instance('snap-7fcc3e10', 'Trac');
 		print_r($output);
 		echo PHP_EOL;die;
 	}

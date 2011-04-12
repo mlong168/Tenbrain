@@ -178,10 +178,83 @@ var Images = function(){
 		}]
 	});
 	
+	var rackspace_deployment_form = new Ext.FormPanel({
+		id: 'rackspace_image_deployment_form',
+		url: '/rackspace/launch_instance',
+		frame: true,
+		border: false,
+		labelWidth: 125,
+		monitorValid: true,
+		
+		items: [{
+			xtype: 'textfield',
+			width: 150,
+			fieldLabel: 'Instance Name',
+			name: 'name',
+			allowBlank: false,
+			maxLength: 20
+		}, {
+			xtype: 'combo',
+			width: 150,
+			fieldLabel: 'Flavor',
+			allowBlank: false,
+			store: new Ext.data.JsonStore({
+				url: '/rackspace/get_flavors',
+				autoLoad: true,
+				successProperty: 'success',
+				root: 'flavors',
+				fields: ['id', 'name', 'disk', 'ram']
+			}),
+			mode: 'local',
+			name: 'flavor',
+			displayField: 'name',
+			hiddenName: 'flavor', // POST-var name
+			valueField: 'id', // POST-var value
+			tpl: '<tpl for="."><div ext:qtip="{ram}MB RAM, {disk}GB storage" class="x-combo-list-item">{name}</div></tpl>',
+			autoSelect: true,
+			forceSelection: true,
+			typeAhead: true,
+			listeners: {
+				beforeselect: function(combo, record){
+					return record.data.available; // false if not selectable
+				}
+			}
+		}, {
+			xtype: 'hidden',
+			name: 'image_id'
+		}],
+
+		buttons: [{
+			text: 'Proceed',
+			formBind: true,
+			handler: function(){
+				var title = 'Instance Deployment',
+					success = 'Your Selected image has been successfully deployed',
+					error = 'A problem occured while deploying your selected image';
+				deploy_configurator.hide();
+				Ext.Msg.wait('Deploying your image', title);
+				rackspace_deployment_form.getForm().submit({
+					success: function(form, action){
+						Ext.Msg.alert(title, success);
+						Instances.reload_until_stable('running');
+					},
+					failure: function(form, action){
+						Ext.Msg.alert(title, action.result.error_message || error);
+					}
+				});
+			}
+		},{
+			text: 'Cancel',
+			handler: function(){
+				deploy_configurator.hide();
+			}
+		}]
+	});
+	
 	var deploy_configurator = new Ext.Window({
 		closeAction: 'hide',
 		layout: 'card',
-		items: [deployment_form, gogrid_deployment_form],
+		items: [deployment_form, gogrid_deployment_form, rackspace_deployment_form],
 		border: false,
 		modal : true
 	});
@@ -229,7 +302,7 @@ var Images = function(){
 			'provider'
 		]);
 		return new dt.GroupingStore({
-			url: '/amazon/available_images',
+			url: '/common/available_images',
 			reader: new dt.JsonReader({
 				root: 'images',
 				successProperty: 'success',
@@ -265,15 +338,24 @@ var Images = function(){
 				{header: "Description", dataIndex: 'description', width: 170},
 				{header: "Location", dataIndex: 'location', width: 120}
 			]
-		})
+		}),
+		bbar: {
+			xtype: 'toolbar',
+			items: ['->', {
+				xtype: 'button',
+				text: 'Refresh List',
+				cls: 'x-btn-text-icon',
+				iconCls: 'restart',
+				handler: function(){
+					images.reload();
+				}
+			}]
+		}
 	});
 	
 	return {
 		get_grid: function(){
 			return images_grid;
-		},
-		reload_store: function(){
-			images.reload();
 		}
 	};
 }();

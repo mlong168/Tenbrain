@@ -30,8 +30,8 @@ class Amazon extends Controller {
 	function index()
 	{
 		error_reporting(E_ALL);
-		// header('Content-type: text/plain');
-		$this->available_images();
+		header('Content-type: text/plain');
+		$this->amazon->test();
 		die(PHP_EOL . 'voila! this is an amazon controller index function');
 	}
 

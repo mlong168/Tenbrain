@@ -16,7 +16,7 @@ html, body {
 	position: relative;
 	padding: 1em 4em;
 	font: 13px Verdana, Arial, Sans-serif;
-	color: grey;
+	color: gray;
 	background: #fff;
 }
 
@@ -50,7 +50,7 @@ html, body {
 	z-index: 11;
 	-moz-user-select: none;
 	-webkit-user-select: none;
-	user-select: none;	
+	user-select: none;
 }
 #signin_opener.active {
 	background: transparent;

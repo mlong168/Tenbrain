@@ -2,7 +2,7 @@
 
 class Gogrid_model extends Model {
 
-	private $gogrid;
+	public $gogrid;
 	
 	public $name = 'GoGrid';
 
@@ -46,7 +46,7 @@ class Gogrid_model extends Model {
 		return json_decode($response);
 	}
 	
-	public function get_images()
+	public function list_images()
 	{
 		$response = $this->gogrid->call('grid.image.list', array(
 			'isPublic'		=> 'true',

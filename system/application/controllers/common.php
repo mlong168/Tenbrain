@@ -17,8 +17,9 @@ class Common extends Controller {
 		// more models to be added:
 		$this->load->model('Amazon_model', 'amazon');
 		$this->load->model('Gogrid_model', 'gogrid');
+		$this->load->model('Rackspace_model', 'rackspace');
 		
-		$providers = array($this->amazon, $this->gogrid);
+		$providers = array($this->amazon, $this->gogrid, $this->rackspace);
 		$this->providers = array();
 		foreach($providers as $provider)
 		{
