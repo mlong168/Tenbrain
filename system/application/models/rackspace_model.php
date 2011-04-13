@@ -10,7 +10,7 @@ class Rackspace_model extends Model {
 	const USERNAME = 'tenbrain';
 	const API_KEY = '7e7bd2615abdfc2734e66ba3441674ae';
 	const VERSION = 'v1.0';
-	const SERVER_HOST = 'api.rackspacecloud.com';
+	const AUTH_URL = 'https://auth.api.rackspacecloud.com';
 
 	function __construct()
 	{
@@ -21,15 +21,9 @@ class Rackspace_model extends Model {
 		$this->server_url = $auth_params['server_management_url'];
 	}
 	
-	private function prepare_url($operation_type)
-	{
-		return 'https://' . $operation_type . '.' . self::SERVER_HOST . '/' . self::VERSION;
-	}
-	
 	private function authenticate()
 	{
-		$url = $this->prepare_url('auth');
-		$curl_session = curl_init($url);
+		$curl_session = curl_init(self::AUTH_URL . '/' . self::VERSION);
 		
 		$headers = array(
 			'X-Auth-User: ' . self::USERNAME,
@@ -58,9 +52,9 @@ class Rackspace_model extends Model {
 		);
 	}
 
-	public function list_images()
+	private function GET_request($action, $success_response_codes = array(200, 203))
 	{
-		$curl_session = curl_init($this->server_url . '/images/detail');
+		$curl_session = curl_init($this->server_url . '/' . $action);
 		
 		$headers = array(
 			'X-Auth-Token: ' . $this->auth_token
@@ -74,10 +68,60 @@ class Rackspace_model extends Model {
 		curl_close($curl_session);
 		
 		$response =  new HttpMessage($response);
-		if(!in_array($response->getResponseCode(), array(200, 203))) return false;
+		if(!in_array($response->getResponseCode(), $success_response_codes)) return false;
 		
-		$images = json_decode($response->getBody());
-		$images = $images->images; $out = array();
+		return json_decode($response->getBody());
+	}
+	
+	private function DELETE_request($action, $success_response_codes = array(202, 204))
+	{
+		$curl_session = curl_init($this->server_url . '/' . $action);		
+		$headers = array(
+			'X-Auth-Token: ' . $this->auth_token
+		);
+
+		curl_setopt($curl_session, CURLOPT_HEADER, true);
+		curl_setopt($curl_session, CURLOPT_HTTPHEADER, $headers);
+		curl_setopt($curl_session, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($curl_session, CURLOPT_CUSTOMREQUEST, 'DELETE');
+
+		$response = curl_exec($curl_session);
+		curl_close($curl_session);
+		
+		$response =  new HttpMessage($response);
+		return in_array($response->getResponseCode(), $success_response_codes);	
+	}
+	
+	private function POST_request($action, $data, $success_response_codes = array(202))
+	{
+		$curl_session = curl_init($this->server_url . '/' . $action);		
+		$headers = array(
+			'X-Auth-Token: ' . $this->auth_token,
+			'Content-Type: application/json'
+		);
+
+		curl_setopt($curl_session, CURLOPT_HEADER, true);
+		curl_setopt($curl_session, CURLOPT_HTTPHEADER, $headers);
+		curl_setopt($curl_session, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($curl_session, CURLOPT_POST, true);
+		curl_setopt($curl_session, CURLOPT_POSTFIELDS, json_encode($data));
+
+		$response = curl_exec($curl_session);
+		curl_close($curl_session);
+		
+		$response =  new HttpMessage($response);
+		if(!in_array($response->getResponseCode(), $success_response_codes)) return false;
+		
+		$body = $response->getBody();
+		return $body ? json_decode($body) : true;	
+	}
+	
+	public function list_images()
+	{
+		$out = array();
+		$images = $this->GET_request('images/detail');
+		if(!$images) return $out;
+		$images = $images->images;
 		foreach($images as $image)
 		{
 			$out []= array(
@@ -93,35 +137,79 @@ class Rackspace_model extends Model {
 	
 	public function list_flavors()
 	{
-		$curl_session = curl_init($this->server_url . '/flavors/detail');
-		
-		$headers = array(
-			'X-Auth-Token: ' . $this->auth_token
-		);
-
-		curl_setopt($curl_session, CURLOPT_HEADER, true);
-		curl_setopt($curl_session, CURLOPT_HTTPHEADER, $headers);
-		curl_setopt($curl_session, CURLOPT_RETURNTRANSFER, true);
-
-		$response = curl_exec($curl_session);
-		curl_close($curl_session);
-		
-		$response =  new HttpMessage($response);
-		if(!in_array($response->getResponseCode(), array(200, 203))) return false;
-		
-		$flavors = json_decode($response->getBody());		
-		return $flavors->flavors;
+		$flavors = $this->GET_request('flavors/detail');		
+		return empty($flavors) ? false : $flavors->flavors;
 	}
 
-	public function launch_instance()
+	public function launch_instance($name, $image_id, $flavor_id)
 	{
+		$setup = array(
+			'server' => array(
+				'name'		=> $name,
+				'imageId'	=> (int) $image_id,
+				'flavorId'	=> (int) $flavor_id,
+			)
+		);
 		
+		$instance = $this->POST_request('servers', $setup);
+		if(!$instance) return false;
+		
+		$instance = $instance->server;		
+		$this->db->insert('user_instances', array(
+			'account_id'			=> $this->session->userdata('account_id'),
+			'provider_instance_id'	=> $instance->id,
+			'instance_name'			=> $instance->name,
+			'provider'				=> 'Rackspace',
+			'public_ip'				=> $instance->addresses->public[0]
+		));
+		
+		return true;
+	}
+	
+	public function list_instances($instances = null)
+	{
+		$out = array();
+		foreach($instances as $instance)
+		{
+			$server = $this->GET_request('servers/' . $instance['instance_id']);
+			if(!$server) continue;
+			$server = $server->server;
+			$ip = $server->addresses->public[0];
+			$out[] = array(
+// 				'id'				=> $instance['id'],*/
+				'id'				=> $server->id,
+				'name'				=> $server->name,
+				'dns_name'			=> $ip,
+				'ip_address'		=> $ip,
+				'image_id'			=> $server->imageId,
+				'state'				=> $server->status === 'ACTIVE' ? 'running' : 'pending',
+				'type'				=> $server->flavorId,
+				'provider'			=> $this->name
+				// ''				=> $server->, 
+			);
+		}
+		return $out;
+	}
+
+	public function delete_instance($id)
+	{
+		return $this->DELETE_request('servers/' . $id);
+	}
+
+	public function restart_instance($id)
+	{
+		$data = array(
+			'reboot' => array(
+				'type' => 'HARD'
+			)
+		);
+		return $this->POST_request('servers/' . $id . '/action', $data);
 	}
 	
 	public function test()
 	{
-		$images = $this->list_flavors();
-		print_r($images);
+		// $images = $this->launch_instance('tenbrain first', 4, 1);
+		// print_r($images);
 		echo PHP_EOL; die;
 	}
 }
