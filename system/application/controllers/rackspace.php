@@ -44,15 +44,26 @@ class Rackspace extends Controller {
 	
 	function launch_instance()
 	{
-		$params = array(
-			'image'			=> $this->input->post('image_id'),
-			'name'			=> $this->input->post('name'),
-			'ip'			=> $this->input->post('address'),
-			'server.ram'	=> $this->input->post('ram')
-		);
-		
 		echo json_encode(array(
-			'success' => $this->rack->launch_instance($params)
+			'success' => $this->rack->launch_instance(
+				$this->input->post('name'),
+				$this->input->post('image_id'),
+				$this->input->post('flavor_id')
+			)
+		));
+	}
+	
+	function terminate_instance()
+	{
+		echo json_encode(array(
+			'success' => $this->rack->delete_instance($this->input->post('instance_id'))
+		));
+	}
+	
+	function reboot_instance()
+	{
+		echo json_encode(array(
+			'success' => $this->rack->restart_instance($this->input->post('instance_id'))
 		));
 	}
 }

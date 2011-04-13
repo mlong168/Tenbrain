@@ -208,7 +208,7 @@ var Images = function(){
 			mode: 'local',
 			name: 'flavor',
 			displayField: 'name',
-			hiddenName: 'flavor', // POST-var name
+			hiddenName: 'flavor_id', // POST-var name
 			valueField: 'id', // POST-var value
 			tpl: '<tpl for="."><div ext:qtip="{ram}MB RAM, {disk}GB storage" class="x-combo-list-item">{name}</div></tpl>',
 			autoSelect: true,
