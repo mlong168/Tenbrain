@@ -8,6 +8,9 @@ class Amazon_model extends Model {
 	
 	public $name = 'Amazon';
 
+	public $balancer;
+	public $instance;
+	
 	function __construct()
 	{
 		parent::Model();
@@ -24,19 +27,12 @@ class Amazon_model extends Model {
 		$this->username = $this->authentication->is_signed_in()
 			? $this->account_model->get_by_id($this->session->userdata('account_id'))->username
 			: 'anonymous';
+			
+		$ci =& get_instance();
+		$this->instance = $ci->load->model('Instance_model', 'instance');
+		$this->balancer = $ci->load->model('Balancer_model', 'balancer');
 	}
 	
-	private function retrieve_provider_instance_id($instance_id)
-	{
-		$this->db->select('provider_instance_id')->from('user_instances')->where(array(
-			'instance_id'	=> $instance_id,
-			'account_id'	=> $this->session->userdata('account_id')
-		));
-		$query = $this->db->get();
-		
-		return $query->num_rows === 1 ? $query->row()->provider_instance_id : false;
-	}
-
 	private function get_user_aws_credentials()
 	{
 		$credentials = array();
@@ -419,35 +415,34 @@ class Amazon_model extends Model {
 		$this->tag_instance($instance_id, 'Name', $name);
 		
 		// write to db if things went fine
-		$this->db->insert('user_instances', array(
-			'account_id'			=> $this->session->userdata('account_id'),
-			'provider_instance_id'	=> $instance_id,
-			'instance_name'			=> $name,
-			'provider'				=> 'Amazon',
-		));
+		$this->instance->add_user_instance(
+			$this->session->userdata('account_id'),
+			$instance_id,
+			$name,
+			'Amazon',
+			null
+		);
 
 		return true;
 	}
 
 	public function terminate_instance($id)
 	{
-		$instance_id = $this->retrieve_provider_instance_id($id);
+		$instance_id = $this->instance->retrieve_provider_instance_id($id);
 		if(!$instance_id) return false;
 		
 		$response = $this->ec2->terminate_instances($instance_id);
 		$this->test_response($response);
+		
+		$account_id = $this->session->userdata('account_id');
 
-		$this->db->insert('user_deleted_instances', array(
-			'instance_id'	=> $id,
-			'account_id'	=> $this->session->userdata('account_id')
-		));
-
+		$this->instance->terminate_instance($id,$account_id);
 		return true;
 	}
 
 	public function start_instance($id)
 	{
-		$instance_id = $this->retrieve_provider_instance_id($id);
+		$instance_id = $this->instance->retrieve_provider_instance_id($id);
 		if(!$instance_id) return false;
 		
 		$response = $this->ec2->start_instances($instance_id);
@@ -458,7 +453,7 @@ class Amazon_model extends Model {
 
 	public function stop_instance($id)
 	{
-		$instance_id = $this->retrieve_provider_instance_id($id);
+		$instance_id = $this->instance->retrieve_provider_instance_id($id);
 		if(!$instance_id) return false;
 		
 		$response = $this->ec2->stop_instances($instance_id);
@@ -469,7 +464,7 @@ class Amazon_model extends Model {
 
 	public function reboot_instance($id)
 	{
-		$instance_id = $this->retrieve_provider_instance_id($id);
+		$instance_id = $this->instance->retrieve_provider_instance_id($id);
 		if(!$instance_id) return false;
 		
 		$response = $this->ec2->reboot_instances($instance_id);
@@ -502,10 +497,10 @@ class Amazon_model extends Model {
 		foreach($ids as $id)
 		{
 			$id = $this->db->escape($id);
-			$this->db->set('instance_id', "(SELECT instance_id FROM user_instances WHERE provider_instance_id = $id)", false);
-			$this->db->insert('user_deleted_instances', array(
-				'account_id'	=> $this->session->userdata('account_id')
-			));
+			$this->instance->add_user_deleted_instance(
+				$id,
+				$this->session->userdata('account_id')
+			);
 		}
 		return true;
 	}
@@ -525,7 +520,7 @@ class Amazon_model extends Model {
 	{
 		if($instance_id)
 		{
-			$instance_id = $this->retrieve_provider_instance_id($instance_id);
+			$instance_id = $this->instance->retrieve_provider_instance_id($instance_id);
 			// if(!$instance_id) return false;
 		}
 		$filter = array(
@@ -634,7 +629,7 @@ class Amazon_model extends Model {
 
 	public function create_snapshot($id, $name, $description = 'sample description')
 	{
-		$instance_id = $this->retrieve_provider_instance_id($id);
+		$instance_id = $this->instance->retrieve_provider_instance_id($id);
 		if(!$instance_id) return false;
 		
 		$response = $this->ec2->describe_instances(array('InstanceId' => $instance_id));
@@ -945,30 +940,14 @@ class Amazon_model extends Model {
 	public function delete_load_balancer($id)
 	{
 		$user_id = $this->session->userdata('account_id');
-		$sql = 'SELECT lb.provider_lb_id as id';
-		$sql .= ' FROM user_load_balancers lb';
-		$sql .= ' LEFT JOIN deleted_load_balancers dlb USING(load_balancer_id)';
-		$sql .= ' WHERE dlb.load_balancer_id IS NULL';
-		$sql .= ' AND lb.account_id = ' . $this->db->escape($user_id);
-		$sql .= ' AND lb.load_balancer_id = ' . $this->db->escape($id);
 		
-		$query = $this->db->query($sql);
-		if($query->num_rows === 0) $this->die_with_error('The load balancer you have requested was not found');
-		$name = $query->row()->id; // should be only one, for amazon unique id is name
+		$name = $this->balancer->get_delete_load_balancer_id($id,$user_id); // should be only one, for amazon unique id is name
 		
 		$elb = $this->get_elb_handle();
 		$response = $elb->delete_load_balancer($name);
 		$this->test_response($response);
 		
-		$this->db->insert('deleted_load_balancers', array(
-			'account_id'		=> $user_id,
-			'load_balancer_id'	=> $id
-		));
-		
-		$this->db->where('load_balancer_id', $id);
-		$this->db->update('load_balancer_instances', array(
-			'active' => false
-		));
+		$this->balancer->delete_load_balancer($id,$user_id);
 		
 		return true;
 	}
@@ -1241,7 +1220,7 @@ class Amazon_model extends Model {
 
 	public function test()
 	{
-		$output = $this->restore_snapshot_to_new_instance('snap-7fcc3e10', 'Trac');
+		$output = $this->get_elastic_ips();
 		print_r($output);
 		echo PHP_EOL;die;
 	}

@@ -5,12 +5,19 @@ class Gogrid_model extends Model {
 	public $gogrid;
 	
 	public $name = 'GoGrid';
-
+	
+	public $balancer;
+	public $instance;
+	
 	function __construct()
 	{
 		parent::Model();
 		$this->load->helper('gogrid');
 		$this->gogrid = new GoGridClient();
+		
+		$ci =& get_instance();
+		$this->instance = $ci->load->model('Instance_model', 'instance');
+		$this->balancer = $ci->load->model('Balancer_model', 'balancer');
 	}
 	
 	private function test_response($response)
@@ -278,14 +285,13 @@ class Gogrid_model extends Model {
 		// write to db if things went fine
 		$instance = $response->list[0];
 		// print_r($instance);
-		$this->db->insert('user_instances', array(
-			'account_id'			=> $this->session->userdata('account_id'),
-			// 'provider_instance_id'	=> $instance->id,
-			'instance_name'			=> $instance->name,
-			'provider'				=> 'GoGrid',
-			'public_ip'				=> $instance->ip->ip
-		));
-		
+		$this->instance->add_user_instance(
+			$this->session->userdata('account_id'),
+			null,
+			$instance->name,
+			'GoGrid',
+			$instance->ip->ip
+		);
 		return true;
 	}
 	
@@ -389,49 +395,32 @@ class Gogrid_model extends Model {
 			$this->test_response($response);
 			
 			$instance_id = $this->db->escape($instance_id);
-			$this->db->set('instance_id', "(SELECT instance_id FROM user_instances WHERE provider_instance_id = $instance_id)", false);
-			$this->db->insert('user_deleted_instances', array(
-				'account_id'	=> $this->session->userdata('account_id')
-			));
+
+			$this->instance->add_user_deleted_instance(
+				$instance_id,
+				$this->session->userdata('account_id')
+			);
 		}
 		return true;
 	}
 	
 	public function get_instances_for_lb()
 	{
-		$sql = 'SELECT ui.instance_id as id, ui.instance_name as name, ui.public_ip as address';
-		$sql .= ' FROM user_instances ui';
-		$sql .= ' LEFT JOIN user_deleted_instances udi USING(instance_id)';
-		$sql .= ' WHERE ui.account_id = ' . $this->session->userdata('account_id');
-		// $sql .= ' WHERE ui.account_id = 1';
-		$sql .= ' AND udi.instance_id IS NULL';
-		$sql .= " AND ui.provider='{$this->name}'";
+		$account_id = $this->session->userdata('account_id');
 		
-		$instances = array();
-		$query = $this->db->query($sql);
-		foreach($query->result() as $row)
-		{
-			$instances[] = array(
-				'id'		=> $row->id,
-				'name'		=> $row->name . ' (' . $row->address . ')'
-			);
-		}
+		$instances = $this->balancer->get_instances_for_lb($account_id,$this->name);
+		
 		return $instances;
 	}
 	
 	public function create_load_balancer($name, $ip, $instances)
 	{
-		$sql = 'SELECT ui.public_ip as ip';
-		$sql .= ' FROM user_instances ui';
-		$sql .= ' LEFT JOIN user_deleted_instances udi USING(instance_id)';
-		$sql .= ' WHERE ui.account_id = ' . $this->session->userdata('account_id');
-		$sql .= ' AND udi.instance_id IS NULL';
-		$sql .= " AND ui.provider='{$this->name}'";
-		$sql .= ' AND ui.instance_id IN (' . implode(',', $instances) . ')';
+		$account_id = $this->session->userdata('account_id');
 		
+		$rows = get_instances_by_provider_name($this->name,$account_id,$instances);
 		$real_ips = array(); $i = 0;
-		$query = $this->db->query($sql);
-		foreach($query->result() as $row)
+		
+		foreach($rows as $row)
 		{
 			$real_ips['realiplist.' . $i . '.ip'] = $row->ip;
 			$real_ips['realiplist.' . $i . '.port'] = 80;
@@ -458,11 +447,7 @@ class Gogrid_model extends Model {
 		// a bit unreliable, should more relay on $lb->realiplist than on $instances
 		foreach($instances as $i_id)
 		{
-			$this->db->insert('load_balancer_instances', array(
-				'load_balancer_id'	=> $lb_id,
-				'instance_id'		=> $i_id,
-				'active'			=> true
-			));	
+			$this->balancer->insert_load_balancer_instance($lb_id,$i_id);
 		}
 		return true;
 	}
@@ -471,9 +456,9 @@ class Gogrid_model extends Model {
 	// it takes gogrid around 30 sec to give back a response with a valid id
 	public function assign_lb_id($id)
 	{
-		$this->db->select('name, ip_address');
-		$query = $this->db->get_where('user_load_balancers', array('load_balancer_id' => $id));
-		$row = $query->row(); $name = $row->name; $ip = $row->ip_address;
+		$user_load_balancer = $this->balancer->get_user_load_balancer($id); 
+		
+		$name = $user_load_balancer->name; $ip = $user_load_balancer->ip_address;
 		
 		$response = $this->gogrid->call('grid.loadbalancer.get', array('name' => $name));
 		$response = json_decode($response);
@@ -483,10 +468,7 @@ class Gogrid_model extends Model {
 		$lb_pid = $response->list[0];
 		$lb_pid = $lb_pid->id;
 		
-		$this->db->where('load_balancer_id', $id);
-		$this->db->update('user_load_balancers', array(
-			'provider_lb_id' => $lb_pid
-		));
+		$this->balancer->update_user_load_balancer($id,$lb_id);
 		
 		return $lb_pid;
 	}
@@ -494,31 +476,14 @@ class Gogrid_model extends Model {
 	public function delete_load_balancer($id)
 	{
 		$user_id = $this->session->userdata('account_id');
-		$sql = 'SELECT lb.provider_lb_id as id, lb.name';
-		$sql .= ' FROM user_load_balancers lb';
-		$sql .= ' LEFT JOIN deleted_load_balancers dlb USING(load_balancer_id)';
-		$sql .= ' WHERE dlb.load_balancer_id IS NULL';
-		$sql .= ' AND lb.account_id = ' . $this->db->escape($user_id);
-		$sql .= ' AND lb.load_balancer_id = ' . $this->db->escape($id);
-		// $sql .= ' ';
-		
-		$query = $this->db->query($sql);
-		if($query->num_rows === 0) $this->die_with_error('The load balancer you have requested was not found');
-		$lb_id = $query->row()->id; // should be only one
+
+		$lb_id = $this->balancer->get_delete_load_balancer_id($id,$user_id); // should be only one
 		
 		$response = $this->gogrid->call('grid.loadbalancer.delete', array('id' => $lb_id));
 		$response = json_decode($response);		
 		$this->test_response($response);
 		
-		$this->db->insert('deleted_load_balancers', array(
-			'account_id'		=> $user_id,
-			'load_balancer_id'	=> $id
-		));
-		
-		$this->db->where('load_balancer_id', $id);
-		$this->db->update('load_balancer_instances', array(
-			'active' => false
-		));
+		$this->balancer->delete_load_balancer($id,$user_id);
 		
 		return true;
 	}
@@ -549,18 +514,10 @@ class Gogrid_model extends Model {
 	
 	public function get_load_balanced_instances($lb_id)
 	{
-		$sql = 'SELECT ui.instance_id as id, ui.instance_name as name, ui.public_ip as ip, lb.provider_lb_id as lb_id';
-		$sql .= ' FROM load_balancer_instances lbi';
-		$sql .= ' INNER JOIN user_load_balancers lb USING(load_balancer_id)';
-		$sql .= ' INNER JOIN user_instances ui USING(instance_id)';
-		$sql .= ' WHERE lbi.load_balancer_id = ' . $this->db->escape($lb_id);
-		$sql .= ' AND lbi.active = 1';
-		$sql .= ' ';
+		$rows = $this->balancer->get_instances_for_load_balancer($lb_id);
 		
-		$query = $this->db->query($sql);
 		$names = array(); $lb_id = '';
-		if(!$query->num_rows()) $this->die_with_error('No instances are registered within this load balancer');
-		foreach($query->result() as $row)
+		foreach($rows as $row)
 		{
 			$names[$row->ip] = array(
 				'id'	=> $row->id,
@@ -593,65 +550,20 @@ class Gogrid_model extends Model {
 	
 	function instances_available_for_lb($lb_id)
 	{
-		$sql = 'SELECT instance_id as id, provider_instance_id as p_id, instance_name as name, public_ip as ip';
-		$sql .= ' FROM user_instances';
-		$sql .= ' WHERE provider = ' . $this->db->escape($this->name);
-		$sql .= ' AND account_id = ' . $this->db->escape($this->session->userdata('account_id'));
-		$sql .= ' AND instance_id NOT IN (';
-		$sql .= '  SELECT instance_id FROM load_balancer_instances where load_balancer_id = ' . $this->db->escape($lb_id) . ' and active = true';
-		$sql .= ' )';
-		$query = $this->db->query($sql);
+		$provider = $this->db->escape($this->name);
+		$account_id = $this->db->escape($this->session->userdata('account_id'));
+		$lb_id = $this->db->escape($lb_id);
 		
-		$instances = array();
-		if($query->num_rows())
-		{
-			foreach($query->result() as $row)
-			{
-				$instances[] = array(
-					'id'			=> $row->id,
-					'instance_id'	=> $row->p_id,
-					'name'			=> $row->name,
-					'ip_address'	=> $row->ip
-				);
-			}
-		}
+		$instances = $this->instance->get_instances_available_for_lb($provider,$account_id,$lb_id);
 		
 		return $instances;
 	}
 	
 	function register_instances_within_lb($lb, $instance_ids)
 	{
-		$sql = 'SELECT ui.instance_id as id, ui.public_ip as ip';
-		$sql .= ' FROM load_balancer_instances lbi';
-		$sql .= ' INNER JOIN user_instances ui USING(instance_id)';
-		$sql .= ' WHERE lbi.load_balancer_id = ' . $this->db->escape($lb->id);
-		$sql .= ' AND lbi.active = 1';
-		$sql .= ' ';
+		$lb = $this->db->escape($lb->id);
 		
-		$query = $this->db->query($sql); $already_registered = array();
-		if($query->num_rows() > 0)
-		{
-			foreach($query->result() as $row)
-			{
-				$already_registered[$row->id] = $row->ip;
-			}
-		}
-		
-		$this->db->delete('load_balancer_instances', array(
-			'load_balancer_id' => $lb->id
-		));
-		
-		$this->db->select('instance_id as id, public_ip as ip')->from('user_instances')->where_in('instance_id', $instance_ids);
-		$query = $this->db->get(); $to_be_registered = array();
-		if($query->num_rows() > 0)
-		{
-			foreach($query->result() as $row)
-			{
-				$to_be_registered[$row->id] = $row->ip;
-			}
-		}
-		
-		$instances = $already_registered + $to_be_registered;
+		$instances = $this->instance->get_register_instances_within_lb($lb,$instance_ids);
 		
 		$response = $this->gogrid->call('grid.loadbalancer.edit', array_merge(array(
 			'id' => $lb->pid
@@ -662,11 +574,7 @@ class Gogrid_model extends Model {
 		// rewrite it to relay more on an realiplist from response, when will have free time
 		foreach($instances as $id => $ip)
 		{
-			$this->db->insert('load_balancer_instances', array(
-				'load_balancer_id'	=> $lb->id,
-				'instance_id'		=> $id,
-				'active'			=> true
-			));
+			$this->balancer->add_load_balancer_instances($id,$lb->id);
 		}
 		
 		return true;
@@ -686,16 +594,7 @@ class Gogrid_model extends Model {
 	
 	function deregister_instances_from_lb($lb, $instance_ids)
 	{
-		$sql = 'SELECT ui.instance_id as id, ui.public_ip as ip';
-		$sql .= ' FROM load_balancer_instances lbi';
-		$sql .= ' INNER JOIN user_instances ui USING(instance_id)';
-		$sql .= ' WHERE lbi.load_balancer_id = ' . $this->db->escape($lb->id);
-		$sql .= ' AND lbi.active = 1';
-		$sql .= ' ';
-		
-		$query = $this->db->query($sql); $deregister = $left = array();
-		$num_registered = $query->num_rows();
-		if(!$num_registered) $this->die_with_error('No instances are currently registered within this load balancer');
+		$rows = $this->balancer->get_instances_for_lb_deregistering($lb_id);
 		
 		foreach($query->result() as $row)
 		{
@@ -719,13 +618,7 @@ class Gogrid_model extends Model {
 		// rewrite it to relay more on an realiplist from response, when will have free time
 		foreach($deregister as $id => $ip)
 		{
-			$this->db->where(array(
-				'load_balancer_id'	=> $lb->id,
-				'instance_id'		=> $id
-			));
-			$this->db->update('load_balancer_instances', array(
-				'active' => false
-			));
+			$this->instance->deregister_instances_in_lb($lb->id,$id);
 		}
 		
 		return true;
