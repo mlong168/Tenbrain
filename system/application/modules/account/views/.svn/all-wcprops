@@ -1,0 +1,107 @@
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/tenbrain/!svn/ver/17/system/application/modules/account/views
+END
+reset_password_sent.php
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/tenbrain/!svn/ver/8/system/application/modules/account/views/reset_password_sent.php
+END
+welcome_email.php
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/tenbrain/!svn/ver/11/system/application/modules/account/views/welcome_email.php
+END
+sign_up.php
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/tenbrain/!svn/ver/8/system/application/modules/account/views/sign_up.php
+END
+reset_password_unsuccessful.php
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/svn/tenbrain/!svn/ver/8/system/application/modules/account/views/reset_password_unsuccessful.php
+END
+reset_password_email.php
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/views/reset_password_email.php
+END
+connect_create.php
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/tenbrain/!svn/ver/7/system/application/modules/account/views/connect_create.php
+END
+account_settings.php
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/tenbrain/!svn/ver/11/system/application/modules/account/views/account_settings.php
+END
+account_profile.php
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/tenbrain/!svn/ver/11/system/application/modules/account/views/account_profile.php
+END
+account_password.php
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/tenbrain/!svn/ver/16/system/application/modules/account/views/account_password.php
+END
+account_menu.php
+K 25
+svn:wc:ra_dav:version-url
+V 82
+/svn/tenbrain/!svn/ver/8/system/application/modules/account/views/account_menu.php
+END
+forgot_password.php
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/tenbrain/!svn/ver/8/system/application/modules/account/views/forgot_password.php
+END
+account_linked.php
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/tenbrain/!svn/ver/17/system/application/modules/account/views/account_linked.php
+END
+index.html
+K 25
+svn:wc:ra_dav:version-url
+V 76
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/views/index.html
+END
+sign_in.php
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/tenbrain/!svn/ver/8/system/application/modules/account/views/sign_in.php
+END
+sign_out.php
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/views/sign_out.php
+END
+reset_password_captcha.php
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svn/tenbrain/!svn/ver/8/system/application/modules/account/views/reset_password_captcha.php
+END
+connect_openid.php
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/tenbrain/!svn/ver/8/system/application/modules/account/views/connect_openid.php
+END

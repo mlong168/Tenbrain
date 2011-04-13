@@ -1,0 +1,59 @@
+K 25
+svn:wc:ra_dav:version-url
+V 77
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/lib/cachecore
+END
+cachepdo.class.php
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/lib/cachecore/cachepdo.class.php
+END
+cacheapc.class.php
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/lib/cachecore/cacheapc.class.php
+END
+LICENSE
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/lib/cachecore/LICENSE
+END
+cachecore.class.php
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/lib/cachecore/cachecore.class.php
+END
+cachexcache.class.php
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/lib/cachecore/cachexcache.class.php
+END
+icachecore.interface.php
+K 25
+svn:wc:ra_dav:version-url
+V 102
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/lib/cachecore/icachecore.interface.php
+END
+README
+K 25
+svn:wc:ra_dav:version-url
+V 84
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/lib/cachecore/README
+END
+cachefile.class.php
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/lib/cachecore/cachefile.class.php
+END
+cachemc.class.php
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/lib/cachecore/cachemc.class.php
+END

@@ -1,0 +1,23 @@
+K 25
+svn:wc:ra_dav:version-url
+V 79
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/lib/requestcore
+END
+LICENSE
+K 25
+svn:wc:ra_dav:version-url
+V 87
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/lib/requestcore/LICENSE
+END
+requestcore.class.php
+K 25
+svn:wc:ra_dav:version-url
+V 101
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/lib/requestcore/requestcore.class.php
+END
+README.md
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/lib/requestcore/README.md
+END

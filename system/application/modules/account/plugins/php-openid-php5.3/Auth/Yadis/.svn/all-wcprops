@@ -1,0 +1,71 @@
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/Yadis
+END
+Yadis.php
+K 25
+svn:wc:ra_dav:version-url
+V 106
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/Yadis/Yadis.php
+END
+Manager.php
+K 25
+svn:wc:ra_dav:version-url
+V 108
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/Yadis/Manager.php
+END
+Misc.php
+K 25
+svn:wc:ra_dav:version-url
+V 105
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/Yadis/Misc.php
+END
+XRIRes.php
+K 25
+svn:wc:ra_dav:version-url
+V 107
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/Yadis/XRIRes.php
+END
+ParanoidHTTPFetcher.php
+K 25
+svn:wc:ra_dav:version-url
+V 120
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/Yadis/ParanoidHTTPFetcher.php
+END
+ParseHTML.php
+K 25
+svn:wc:ra_dav:version-url
+V 110
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/Yadis/ParseHTML.php
+END
+HTTPFetcher.php
+K 25
+svn:wc:ra_dav:version-url
+V 112
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/Yadis/HTTPFetcher.php
+END
+XML.php
+K 25
+svn:wc:ra_dav:version-url
+V 104
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/Yadis/XML.php
+END
+XRDS.php
+K 25
+svn:wc:ra_dav:version-url
+V 105
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/Yadis/XRDS.php
+END
+XRI.php
+K 25
+svn:wc:ra_dav:version-url
+V 104
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/Yadis/XRI.php
+END
+PlainHTTPFetcher.php
+K 25
+svn:wc:ra_dav:version-url
+V 117
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/Yadis/PlainHTTPFetcher.php
+END

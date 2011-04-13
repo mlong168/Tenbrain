@@ -1,0 +1,95 @@
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/services
+END
+s3.class.php
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/services/s3.class.php
+END
+rds.class.php
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/services/rds.class.php
+END
+ses.class.php
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/services/ses.class.php
+END
+cloudwatch.class.php
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/services/cloudwatch.class.php
+END
+elb.class.php
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/services/elb.class.php
+END
+sns.class.php
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/services/sns.class.php
+END
+as.class.php
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/services/as.class.php
+END
+sqs.class.php
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/services/sqs.class.php
+END
+iam.class.php
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/services/iam.class.php
+END
+sdb.class.php
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/services/sdb.class.php
+END
+elasticbeanstalk.class.php
+K 25
+svn:wc:ra_dav:version-url
+V 99
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/services/elasticbeanstalk.class.php
+END
+ec2.class.php
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/services/ec2.class.php
+END
+importexport.class.php
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/services/importexport.class.php
+END
+cloudfront.class.php
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/services/cloudfront.class.php
+END
+emr.class.php
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/services/emr.class.php
+END

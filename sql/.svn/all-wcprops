@@ -1,0 +1,17 @@
+K 25
+svn:wc:ra_dav:version-url
+V 29
+/svn/tenbrain/!svn/ver/28/sql
+END
+create_ref_data.sql
+K 25
+svn:wc:ra_dav:version-url
+V 49
+/svn/tenbrain/!svn/ver/28/sql/create_ref_data.sql
+END
+create_tables.sql
+K 25
+svn:wc:ra_dav:version-url
+V 47
+/svn/tenbrain/!svn/ver/28/sql/create_tables.sql
+END

@@ -1,0 +1,173 @@
+K 25
+svn:wc:ra_dav:version-url
+V 97
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/OpenID
+END
+Consumer.php
+K 25
+svn:wc:ra_dav:version-url
+V 110
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/OpenID/Consumer.php
+END
+URINorm.php
+K 25
+svn:wc:ra_dav:version-url
+V 109
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/OpenID/URINorm.php
+END
+FileStore.php
+K 25
+svn:wc:ra_dav:version-url
+V 111
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/OpenID/FileStore.php
+END
+CryptUtil.php
+K 25
+svn:wc:ra_dav:version-url
+V 111
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/OpenID/CryptUtil.php
+END
+Interface.php
+K 25
+svn:wc:ra_dav:version-url
+V 111
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/OpenID/Interface.php
+END
+SReg.php
+K 25
+svn:wc:ra_dav:version-url
+V 106
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/OpenID/SReg.php
+END
+Nonce.php
+K 25
+svn:wc:ra_dav:version-url
+V 107
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/OpenID/Nonce.php
+END
+KVForm.php
+K 25
+svn:wc:ra_dav:version-url
+V 108
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/OpenID/KVForm.php
+END
+DumbStore.php
+K 25
+svn:wc:ra_dav:version-url
+V 111
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/OpenID/DumbStore.php
+END
+Server.php
+K 25
+svn:wc:ra_dav:version-url
+V 108
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/OpenID/Server.php
+END
+HMAC.php
+K 25
+svn:wc:ra_dav:version-url
+V 106
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/OpenID/HMAC.php
+END
+AX.php
+K 25
+svn:wc:ra_dav:version-url
+V 104
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/OpenID/AX.php
+END
+Parse.php
+K 25
+svn:wc:ra_dav:version-url
+V 107
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/OpenID/Parse.php
+END
+BigMath.php
+K 25
+svn:wc:ra_dav:version-url
+V 109
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/OpenID/BigMath.php
+END
+Extension.php
+K 25
+svn:wc:ra_dav:version-url
+V 111
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/OpenID/Extension.php
+END
+Association.php
+K 25
+svn:wc:ra_dav:version-url
+V 113
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/OpenID/Association.php
+END
+SQLStore.php
+K 25
+svn:wc:ra_dav:version-url
+V 110
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/OpenID/SQLStore.php
+END
+Discover.php
+K 25
+svn:wc:ra_dav:version-url
+V 110
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/OpenID/Discover.php
+END
+SQLiteStore.php
+K 25
+svn:wc:ra_dav:version-url
+V 113
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/OpenID/SQLiteStore.php
+END
+ServerRequest.php
+K 25
+svn:wc:ra_dav:version-url
+V 115
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/OpenID/ServerRequest.php
+END
+PostgreSQLStore.php
+K 25
+svn:wc:ra_dav:version-url
+V 117
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/OpenID/PostgreSQLStore.php
+END
+MySQLStore.php
+K 25
+svn:wc:ra_dav:version-url
+V 112
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/OpenID/MySQLStore.php
+END
+MemcachedStore.php
+K 25
+svn:wc:ra_dav:version-url
+V 116
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/OpenID/MemcachedStore.php
+END
+Message.php
+K 25
+svn:wc:ra_dav:version-url
+V 109
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/OpenID/Message.php
+END
+DatabaseConnection.php
+K 25
+svn:wc:ra_dav:version-url
+V 120
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/OpenID/DatabaseConnection.php
+END
+PAPE.php
+K 25
+svn:wc:ra_dav:version-url
+V 106
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/OpenID/PAPE.php
+END
+TrustRoot.php
+K 25
+svn:wc:ra_dav:version-url
+V 111
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/OpenID/TrustRoot.php
+END
+DiffieHellman.php
+K 25
+svn:wc:ra_dav:version-url
+V 115
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/plugins/php-openid-php5.3/Auth/OpenID/DiffieHellman.php
+END

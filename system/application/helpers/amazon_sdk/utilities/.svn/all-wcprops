@@ -1,0 +1,83 @@
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/utilities
+END
+hadoopstep.class.php
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/utilities/hadoopstep.class.php
+END
+manifest.class.php
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/utilities/manifest.class.php
+END
+request.class.php
+K 25
+svn:wc:ra_dav:version-url
+V 91
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/utilities/request.class.php
+END
+complextype.class.php
+K 25
+svn:wc:ra_dav:version-url
+V 95
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/utilities/complextype.class.php
+END
+batchrequest.class.php
+K 25
+svn:wc:ra_dav:version-url
+V 96
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/utilities/batchrequest.class.php
+END
+simplexml.class.php
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/utilities/simplexml.class.php
+END
+info.class.php
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/utilities/info.class.php
+END
+utilities.class.php
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/utilities/utilities.class.php
+END
+mimetypes.class.php
+K 25
+svn:wc:ra_dav:version-url
+V 93
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/utilities/mimetypes.class.php
+END
+array.class.php
+K 25
+svn:wc:ra_dav:version-url
+V 89
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/utilities/array.class.php
+END
+response.class.php
+K 25
+svn:wc:ra_dav:version-url
+V 92
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/utilities/response.class.php
+END
+policy.class.php
+K 25
+svn:wc:ra_dav:version-url
+V 90
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/utilities/policy.class.php
+END
+stepconfig.class.php
+K 25
+svn:wc:ra_dav:version-url
+V 94
+/svn/tenbrain/!svn/ver/10/system/application/helpers/amazon_sdk/utilities/stepconfig.class.php
+END

@@ -1,0 +1,35 @@
+K 25
+svn:wc:ra_dav:version-url
+V 69
+/svn/tenbrain/!svn/ver/9/system/application/modules/account/libraries
+END
+Recaptcha.php
+K 25
+svn:wc:ra_dav:version-url
+V 83
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/libraries/Recaptcha.php
+END
+Authentication.php
+K 25
+svn:wc:ra_dav:version-url
+V 88
+/svn/tenbrain/!svn/ver/9/system/application/modules/account/libraries/Authentication.php
+END
+Facebook_lib.php
+K 25
+svn:wc:ra_dav:version-url
+V 86
+/svn/tenbrain/!svn/ver/8/system/application/modules/account/libraries/Facebook_lib.php
+END
+index.html
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/libraries/index.html
+END
+Twitter_lib.php
+K 25
+svn:wc:ra_dav:version-url
+V 85
+/svn/tenbrain/!svn/ver/6/system/application/modules/account/libraries/Twitter_lib.php
+END
