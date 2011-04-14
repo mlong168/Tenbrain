@@ -108,7 +108,7 @@ $autoload['language'] = array();
 |
 */
 
-$autoload['model'] = array('provider_model');
+$autoload['model'] = array();
 
 
 

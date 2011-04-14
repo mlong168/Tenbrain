@@ -1,6 +1,8 @@
 <?php
 
-class Gogrid_model extends Model {
+include_once('provider_model.php');
+
+class Gogrid_model extends Provider_model {
 
 	public $gogrid;
 	
