@@ -6,8 +6,6 @@ class Balancer_model extends Model {
 	
 	function __construct(){
 		parent::Model();
-		$this->load->helper('gogrid');
-		$this->gogrid = new GoGridClient();
 	}
 	
 	function get_load_balancer($lb_id)
@@ -17,51 +15,17 @@ class Balancer_model extends Model {
 		return $query->num_rows() ? $query->row() : false;
 	}
 	
-	function get_list_load_balancers($user_id)
+	function get_user_load_balancers()
 	{
 		$sql = 'SELECT lb.load_balancer_id as id, lb.provider_lb_id as p_id, lb.provider, lb.name';
 		$sql .= ' FROM user_load_balancers lb';
 		$sql .= ' LEFT JOIN deleted_load_balancers dlb USING(load_balancer_id)';
 		$sql .= ' WHERE dlb.load_balancer_id IS NULL';
-		$sql .= ' AND lb.account_id = ' . $this->db->escape($user_id);
+		$sql .= ' AND lb.account_id = ' . $this->session->userdata('account_id');
 		
-		$lbs = $load_balancers = array();
+		
 		$query = $this->db->query($sql);
-		if($query->num_rows() > 0)
-		{
-			foreach($query->result() as $row)
-			{
-				$id = $row->id;
-				$lb_pid = $row->p_id;
-				$provider = $row->provider;
-				
-				// GoGrid-only exception - ids are not assigned immediately after creation, that sucks...
-				if(!$lb_pid && $provider === 'GoGrid')
-				{
-					$lb_pid = $this->gogrid->assign_lb_id($id);
-					if(!$lb_pid)
-					{
-						$load_balancers []= array(
-							'id'		=> 0,
-							'name'		=> $row->name,
-							'provider'	=> 'GoGrid',
-							'state'		=> 'pending',
-							// ''	=> $lb->,
-						);
-						continue;
-					}
-				}
-				
-				if(!array_key_exists($provider, $lbs)) $lbs[$provider] = array();
-				$lbs[$row->provider][$lb_pid] = $id;
-			}
-			foreach($this->providers as $provider)
-			{
-				if(!array_key_exists($provider->name, $lbs)) continue;
-				$load_balancers = array_merge($load_balancers, $provider->list_load_balancers($lbs[$provider->name]));
-			}
-		}
-		return $load_balancers;
+		return $query->num_rows() > 1 ? $query->result() : array();
 	}
 
 	function get_delete_load_balancer_id($id,$user_id)

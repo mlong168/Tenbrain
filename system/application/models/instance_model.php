@@ -21,12 +21,23 @@ class Instance_model extends Model {
 		return $query->num_rows() ? $query->result() : array();
 	}
 
+	function get_updated_instance_id($vars)
+	{
+		$this->db->where(array(
+			'public_ip'		=> $vars['public_ip'],
+			'instance_name'	=> $vars['instance_name']
+		));
+		$this->db->update('user_instances', array('provider_instance_id' => $vars['id']));
+		$this->db->select('instance_id');
+		$query = $this->db->get_where('user_instances', array('provider_instance_id' => $vars['id']));
+		return $query->row()->instance_id;
+	}	
+	
 	function get_instances($account_id,$ids)
 	{
 		$sql = 'SELECT ui.provider, ui.provider_instance_id';
 		$sql .= ' FROM user_instances ui';
 		$sql .= ' LEFT JOIN user_deleted_instances udi USING(instance_id)';
-		// $sql .= ' NATURAL JOIN user_deleted_instances udi';
 		$sql .= ' WHERE ui.account_id = ' . $account_id;
 		$sql .= ' AND udi.instance_id IS NULL';
 		$sql .= ' AND ui.instance_id IN (' . implode(',', $ids) . ')';

@@ -11,7 +11,6 @@ class Gogrid_model extends Model {
 		parent::Model();
 		$this->load->helper('gogrid');
 		$this->gogrid = new GoGridClient();
-		
 	}
 	
 	private function test_response($response)
@@ -136,26 +135,22 @@ class Gogrid_model extends Model {
 	
 	public function get_instances()
 	{
-		$sql = 'SELECT ui.instance_id, ui.instance_name, ui.provider_instance_id, ui.public_ip';
-		$sql .= ' FROM user_instances ui';
-		$sql .= ' LEFT JOIN user_deleted_instances udi USING(instance_id)';
-		$sql .= ' WHERE ui.account_id = ' . $this->session->userdata('account_id');
-		$sql .= ' AND udi.instance_id IS NULL';
+		$this->load->model('Instance', 'instance');
 		
-		$query = $this->db->query($sql);
+		$instances = $this->instance->get_user_instances();
 		$names = array();
 		$empties = array();
 		$ids = array();
-		foreach($query->result() as $row)
+		foreach($instances as $row)
 		{
-			$names []= $row->instance_name;
-			if(is_null($row->provider_instance_id))
+			$names []= $row->name;
+			if(is_null($row->pid))
 			{
-				$empties[$row->public_ip] = $row->instance_name;
+				$empties[$row->ip] = $row->name;
 			}
 			else
 			{
-				$ids[$row->provider_instance_id] = $row->instance_id;
+				$ids[$row->pid] = $row->id;
 			}
 		}
 		if(empty($names)) return array();
@@ -182,14 +177,11 @@ class Gogrid_model extends Model {
 				
 				if($id && isset($empties[$ip]))
 				{
-					$this->db->where(array(
-						'public_ip'		=> $ip,
-						'instance_name'	=> $empties[$ip]
+					$id = $this->instance->get_updated_instance_id(array(
+						'public_ip' => $ip,
+						'instance_name' => $empties[$ip],
+						'id' => $id
 					));
-					$this->db->update('user_instances', array('provider_instance_id' => $id));
-					$this->db->select('instance_id');
-					$query = $this->db->get_where('user_instances', array('provider_instance_id' => $id));
-					$id = $query->row()->instance_id;
 				}
 				
 				if(isset($ids[$id])) $id = $ids[$id];
@@ -209,17 +201,6 @@ class Gogrid_model extends Model {
 			return $out;
 		}
 		else return false;		
-	}
-	
-	private function retrieve_provider_instance_id($instance_id)
-	{
-		$this->db->select('provider_instance_id')->from('user_instances')->where(array(
-			'instance_id'	=> $instance_id,
-			'account_id'	=> $this->session->userdata('account_id')
-		));
-		$query = $this->db->get();
-		
-		return $query->num_rows === 1 ? (int) $query->row()->provider_instance_id : false;
 	}
 	
 	public function get_free_addresses()

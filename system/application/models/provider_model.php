@@ -1,6 +1,6 @@
 <?php
 
-class Provider extends Model {
+class Provider_model extends Model {
 	
 	function __construct(){
 		parent::__construct();

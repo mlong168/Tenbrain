@@ -1,6 +1,6 @@
 <?php
 
-class Amazon_model extends Provider {
+class Amazon_model extends Provider_model {
 
 	private $ec2;
 	private $username;

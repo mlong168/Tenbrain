@@ -116,6 +116,8 @@ class Common extends Controller {
 	
 	function reboot_instances()
 	{
+		$this->load->model('Instance_model', 'instance');
+		
 		$ids = json_decode($this->input->post('instances'));
 		$account_id = $this->session->userdata('account_id');
 		
@@ -132,6 +134,8 @@ class Common extends Controller {
 	
 	function stop_instances()
 	{
+		$this->load->model('Instance_model', 'instance');
+		
 		$ids = json_decode($this->input->post('instances'));
 		$account_id = $this->session->userdata('account_id');
 		
@@ -148,6 +152,8 @@ class Common extends Controller {
 	
 	function terminate_instances()
 	{
+		$this->load->model('Instance_model', 'instance');
+		
 		$ids = json_decode($this->input->post('instances'));
 		$account_id = $this->session->userdata('account_id');
 		
@@ -167,10 +173,45 @@ class Common extends Controller {
 	 */
 	function list_load_balancers()
 	{
-		$user_id = $this->session->userdata('account_id');
+		$this->load->model('Balancer_model', 'balancer');
 		
-		$load_balancers = $this->balancer->get_list_load_balancers($user_id);
-		
+		$instances = $this->balancer->get_user_load_balancers();
+		$lbs = $load_balancers = array();
+		if(count($instances) > 0)
+		{
+			foreach($instances as $row)
+			{
+				$id = $row->id;
+				$lb_pid = $row->p_id;
+				$provider = $row->provider;
+				
+				// GoGrid-only exception - ids are not assigned immediately after creation, that sucks...
+				if(!$lb_pid && $provider === 'GoGrid')
+				{
+					$lb_pid = $this->gogrid->assign_lb_id($id);
+					if(!$lb_pid)
+					{
+						$load_balancers []= array(
+							'id'		=> 0,
+							'name'		=> $row->name,
+							'provider'	=> 'GoGrid',
+							'state'		=> 'pending',
+							// ''	=> $lb->,
+						);
+						continue;
+					}
+				}
+				
+				if(!array_key_exists($provider, $lbs)) $lbs[$provider] = array();
+				$lbs[$row->provider][$lb_pid] = $id;
+			}
+			foreach($this->providers as $provider)
+			{
+				if(!array_key_exists($provider->name, $lbs)) continue;
+				$load_balancers = array_merge($load_balancers, $provider->list_load_balancers($lbs[$provider->name]));
+			}
+		}
+
 		// print_r($lbs);die;
 		echo json_encode(array(
 			'success'			=> true,
@@ -180,6 +221,8 @@ class Common extends Controller {
 	
 	function get_load_balanced_instances()
 	{
+		$this->load->model('Balancer_model', 'balancer');
+		
 		$lb = $this->balancer->get_load_balancer($this->input->post('lb_id'));
 		
 		echo json_encode(array(
@@ -190,6 +233,8 @@ class Common extends Controller {
 	
 	function instances_available_for_lb()
 	{
+		$this->load->model('Balancer_model', 'balancer');
+		
 		$lb = $this->balancer->get_load_balancer($this->input->post('lb_id'));
 		
 		echo json_encode(array(
@@ -200,6 +245,8 @@ class Common extends Controller {
 	
 	function register_instances_within_lb()
 	{
+		$this->load->model('Balancer_model', 'balancer');
+		
 		$instance_ids = json_decode($this->input->post('instances'));
 		$lb = $this->balancer->get_load_balancer($this->input->post('lb_id'));
 		
@@ -210,6 +257,8 @@ class Common extends Controller {
 	
 	function deregister_instances_from_lb()
 	{
+		$this->load->model('Balancer_model', 'balancer');
+		
 		$instance_ids = json_decode($this->input->post('instances'));
 		$lb = $this->balancer->get_load_balancer($this->input->post('lb_id'));
 		
