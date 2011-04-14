@@ -8,51 +8,17 @@ class Instance_model extends Model {
 		parent::__construct();
 	}
 	
-	function get_list_instances($account_id)
+	function get_user_instances()
 	{
 		$sql = 'SELECT ui.instance_id as id, ui.provider, ui.provider_instance_id as pid,';
 		$sql .= ' ui.instance_name as name, ui.public_ip as ip';
 		$sql .= ' FROM user_instances ui';
 		$sql .= ' LEFT JOIN user_deleted_instances udi USING(instance_id)';
-		// $sql .= ' NATURAL JOIN user_deleted_instances udi';
-		$sql .= ' WHERE ui.account_id = ' . $account_id;
+		$sql .= ' WHERE ui.account_id = ' . $this->session->userdata('account_id');
 		$sql .= ' AND udi.instance_id IS NULL';
 		
-		$instances = array();
 		$query = $this->db->query($sql);
-		foreach($query->result() as $row)
-		{
-			$id = $row->id;
-			$pid = $row->pid;
-			$provider = $row->provider;
-			
-			// GoGrid-only exception - ids are not assigned immediately after creation, that sucks...
-			if(!$pid && $provider === 'GoGrid')
-			{
-				$pid = $this->gogrid->assign_instance_id($id);
-				if(!$pid)
-				{
-					$instances []= array(
-						'id'			=> 0,
-						'name'			=> $row->name,
-						'provider'		=> 'GoGrid',
-						'state'			=> 'pending',
-						'dns_name'		=> $row->ip,
-						'ip_address'	=> $row->ip
-						// ''			=> $row->, 
-					);
-					continue;
-				}
-			}
-			
-			$instances[$row->provider][] = array(
-				'id'			=> $id,
-				'instance_id'	=> $pid,
-				'name'			=> $row->name
-			);
-		}
-		
-		return $instances;
+		return $query->num_rows() ? $query->result() : array();
 	}
 
 	function get_instances($account_id,$ids)

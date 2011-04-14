@@ -19,9 +19,6 @@ class Common extends Controller {
 		$this->load->model('Gogrid_model', 'gogrid');
 		$this->load->model('Rackspace_model', 'rackspace');
 
-		$this->load->model('Instance_model', 'instance');
-// 		$this->load->model('Balancer_model', 'balancer');*/
-
 		$providers = array($this->amazon, $this->gogrid, $this->rackspace);
 		$this->providers = array();
 		foreach($providers as $provider)
@@ -71,19 +68,52 @@ class Common extends Controller {
 	
 	function list_instances($state = 'running')
 	{
-		$account_id = $this->session->userdata('account_id');
+		$this->load->model('Instance_model', 'instance');
 		
-		$instances = $this->instance->get_list_instances($account_id);
+		$instances = $this->instance->get_user_instances();
+		$out = $provider_instances = array();
+		foreach($instances as &$row)
+		{
+			$id = $row->id;
+			$pid = $row->pid;
+			$provider = $row->provider;
+			
+			// GoGrid-only exception - ids are not assigned immediately after creation, that sucks...
+			if(!$pid && $provider === 'GoGrid')
+			{
+				$pid = $this->gogrid->assign_instance_id($id);
+				if(!$pid)
+				{
+					$out []= array(
+						'id'			=> 0,
+						'name'			=> $row->name,
+						'provider'		=> 'GoGrid',
+						'state'			=> 'pending',
+						'dns_name'		=> $row->ip,
+						'ip_address'	=> $row->ip
+						// ''			=> $row->, 
+					);
+					continue;
+				}
+			}
+			
+			$provider_instances[$row->provider][] = array(
+				'id'			=> $id,
+				'instance_id'	=> $pid
+			);
+		}
+		
 		foreach($this->providers as $provider)
 		{
-			if(!array_key_exists($provider->name, $instances)) continue;
-			$instances = array_merge($instances, $provider->list_instances($instances[$provider->name]));
-			unset($instances[$provider->name]);
+			if(array_key_exists($provider->name, $provider_instances))
+			{
+				$out = array_merge($out, $provider->list_instances($provider_instances[$provider->name]));
+			}
 		}
 		
 		echo json_encode(array(
 			'success'	=> true,
-			'instances'	=> $instances
+			'instances'	=> $out
 		));
 	}
 	

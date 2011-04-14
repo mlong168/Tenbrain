@@ -10,9 +10,7 @@ class Amazon_model extends Provider {
 	
 	function __construct()
 	{
-		parent::Model();
-		print_r($this->get_provider_instance_id(73));
-		die;
+		parent::__construct();
 
 		$this->load->helper('amazon_sdk/sdk');
 
@@ -112,10 +110,7 @@ class Amazon_model extends Provider {
 	{
 		foreach($input_ary as $i => $inst)
 		{
-			$input_ary[$inst['instance_id']] = array(
-				'name'	=> $inst['name'],
-				'db_id'	=> $inst['id']
-			);
+			$input_ary[$inst['instance_id']] = $inst['id'];
 			unset($input_ary[$i]);
 		}
 
@@ -132,7 +127,7 @@ class Amazon_model extends Provider {
 			$name = $name ? (string) $name[0] : '<i>not set</i>';
 			$id = (string) $node->instanceId;
 			$instances[] = array(
-				'id'				=> $input_ary[$id]['db_id'],
+				'id'				=> $input_ary[$id],
 				'name'				=> $name,
 				'dns_name'			=> (string) $node->dnsName,
 				'ip_address'		=> (string) $node->ipAddress,

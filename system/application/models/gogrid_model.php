@@ -270,13 +270,13 @@ class Gogrid_model extends Model {
 	}
 	
 	public function launch_instance($params)
-	{
-		$this->load->model('Instance_model', 'instance');
-		
+	{	
 		$response = $this->gogrid->call('grid.server.add', $params);
 		$response = json_decode($response);
 		// print_r($response);die;
 		$this->test_response($response);
+		
+		$this->load->model('Instance_model', 'instance');
 		
 		// write to db if things went fine
 		$instance = $response->list[0];
