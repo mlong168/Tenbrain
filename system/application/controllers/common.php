@@ -20,7 +20,7 @@ class Common extends Controller {
 		$this->load->model('Rackspace_model', 'rackspace');
 
 		$this->load->model('Instance_model', 'instance');
-		$this->load->model('Balancer_model', 'balancer');
+// 		$this->load->model('Balancer_model', 'balancer');*/
 
 		$providers = array($this->amazon, $this->gogrid, $this->rackspace);
 		$this->providers = array();
@@ -74,7 +74,6 @@ class Common extends Controller {
 		$account_id = $this->session->userdata('account_id');
 		
 		$instances = $this->instance->get_list_instances($account_id);
-		
 		foreach($this->providers as $provider)
 		{
 			if(!array_key_exists($provider->name, $instances)) continue;

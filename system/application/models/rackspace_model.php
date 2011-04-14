@@ -14,7 +14,7 @@ class Rackspace_model extends Model {
 
 	function __construct()
 	{
-		parent::Model();
+		parent::__construct();
 		
 		$auth_params = $this->authenticate();
 		$this->auth_token = $auth_params['auth_token'];
@@ -137,7 +137,7 @@ class Rackspace_model extends Model {
 	
 	public function list_flavors()
 	{
-		$flavors = $this->GET_request('flavors/detail');		
+		$flavors = $this->GET_request('flavors/detail');
 		return empty($flavors) ? false : $flavors->flavors;
 	}
 
@@ -200,7 +200,7 @@ class Rackspace_model extends Model {
 	{
 		$data = array(
 			'reboot' => array(
-				'type' => 'HARD'
+				'type' => 'SOFT'
 			)
 		);
 		return $this->POST_request('servers/' . $id . '/action', $data);

@@ -1,6 +1,6 @@
 <?php
 
-class Amazon_model extends Model {
+class Amazon_model extends Provider {
 
 	private $ec2;
 	private $username;
@@ -11,6 +11,8 @@ class Amazon_model extends Model {
 	function __construct()
 	{
 		parent::Model();
+		print_r($this->get_provider_instance_id(73));
+		die;
 
 		$this->load->helper('amazon_sdk/sdk');
 

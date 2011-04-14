@@ -5,9 +5,7 @@ class Instance_model extends Model {
 	public $gogrid;
 	
 	function __construct(){
-		parent::Model();
-		$this->load->helper('gogrid');
-		$this->gogrid = new GoGridClient();
+		parent::__construct();
 	}
 	
 	function get_list_instances($account_id)
