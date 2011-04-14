@@ -1,6 +1,6 @@
 <?php
 
-class Provider extends Model {
+abstract class Provider extends Model {
 	
 	function __construct(){
 		parent::__construct();
@@ -17,15 +17,13 @@ class Provider extends Model {
 		return $query->num_rows === 1 ? $query->row()->provider_instance_id : false;
 	}
 	
-	/*
 	abstract public function list_images();
 	abstract public function list_instances($ids);
-	abstract public function launch_instance($params);
-	abstract public function delete_instance($id);
+// 	abstract public function launch_instance($params);*/
+// 	abstract public function delete_instance($id);*/
 	abstract public function start_instance($id);
 	abstract public function stop_instance($id);
-	abstract public function restart_instance($id);
-	*/
+// 	abstract public function restart_instance($id);*/
 }
 
 /* End of file provider.php */

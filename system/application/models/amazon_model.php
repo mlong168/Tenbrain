@@ -1,5 +1,7 @@
 <?php
 
+include_once('provider.php');
+
 class Amazon_model extends Provider {
 
 	private $ec2;

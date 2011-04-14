@@ -1,6 +1,8 @@
 <?php
 
-class Rackspace_model extends Model {
+include_once('provider.php');
+
+class Rackspace_model extends Provider {
 	
 	private $server_url = '';
 	private $auth_token = '';
@@ -194,6 +196,17 @@ class Rackspace_model extends Model {
 	public function delete_instance($id)
 	{
 		return $this->DELETE_request('servers/' . $id);
+	}
+	
+	// no start or stop for rackspace
+	public function start_instance($id)
+	{
+		return false;
+	}
+
+	public function stop_instance($id)
+	{
+		return false;
 	}
 
 	public function restart_instance($id)
