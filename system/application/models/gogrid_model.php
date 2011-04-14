@@ -83,14 +83,8 @@ class Gogrid_model extends Model {
 	 * 'name'	- instance name
 	 * 'instance_ip'	- an IP address of the instance
 	 */
-	public function list_instances($input_ary, $state = 'running')
+	public function list_instances($ids, $state = 'running')
 	{
-		$ids = array();
-		foreach($input_ary as $inst)
-		{
-			$ids[$inst['instance_id']] = $inst['id'];
-		}
-		
 		$response = $this->gogrid->call('grid.server.get', array(
 			'id' => array_keys($ids)
 		));

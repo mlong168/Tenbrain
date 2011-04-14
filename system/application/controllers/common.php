@@ -97,10 +97,7 @@ class Common extends Controller {
 				}
 			}
 			
-			$provider_instances[$row->provider][] = array(
-				'id'			=> $id,
-				'instance_id'	=> $pid
-			);
+			$provider_instances[$row->provider][$pid] = $id;
 		}
 		
 		foreach($this->providers as $provider)

@@ -169,14 +169,14 @@ class Rackspace_model extends Model {
 	public function list_instances($instances = null)
 	{
 		$out = array();
-		foreach($instances as $instance)
+		foreach($instances as $instance_id => $db_id)
 		{
-			$server = $this->GET_request('servers/' . $instance['instance_id']);
+			$server = $this->GET_request('servers/' . $instance_id);
 			if(!$server) continue;
 			$server = $server->server;
 			$ip = $server->addresses->public[0];
 			$out[] = array(
-// 				'id'				=> $instance['id'],*/
+// 				'id'				=> $db_id,*/
 				'id'				=> $server->id,
 				'name'				=> $server->name,
 				'dns_name'			=> $ip,

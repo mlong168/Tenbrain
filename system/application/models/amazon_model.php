@@ -108,12 +108,6 @@ class Amazon_model extends Provider {
 	 */
 	public function list_instances($input_ary, $state = 'running')
 	{
-		foreach($input_ary as $i => $inst)
-		{
-			$input_ary[$inst['instance_id']] = $inst['id'];
-			unset($input_ary[$i]);
-		}
-
 		$response = $this->ec2->describe_instances(array(
 			'InstanceId' => array_keys($input_ary)
 		));
