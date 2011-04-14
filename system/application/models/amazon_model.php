@@ -7,9 +7,6 @@ class Amazon_model extends Model {
 	private $premium;
 	
 	public $name = 'Amazon';
-
-	public $balancer;
-	public $instance;
 	
 	function __construct()
 	{
@@ -28,9 +25,6 @@ class Amazon_model extends Model {
 			? $this->account_model->get_by_id($this->session->userdata('account_id'))->username
 			: 'anonymous';
 			
-		$ci =& get_instance();
-		$this->instance = $ci->load->model('Instance_model', 'instance');
-		$this->balancer = $ci->load->model('Balancer_model', 'balancer');
 	}
 	
 	private function get_user_aws_credentials()
@@ -391,6 +385,8 @@ class Amazon_model extends Model {
 
 	public function launch_instance($image_id, $type, $name)
 	{
+		$this->load->model('Instance_model', 'instance');
+		
 		$response = $this->ec2->describe_images(array(
 			'ImageId' => $image_id
 		));
@@ -428,6 +424,8 @@ class Amazon_model extends Model {
 
 	public function terminate_instance($id)
 	{
+		$this->load->model('Instance_model', 'instance');
+		
 		$instance_id = $this->instance->retrieve_provider_instance_id($id);
 		if(!$instance_id) return false;
 		
@@ -442,6 +440,8 @@ class Amazon_model extends Model {
 
 	public function start_instance($id)
 	{
+		$this->load->model('Instance_model', 'instance');
+		
 		$instance_id = $this->instance->retrieve_provider_instance_id($id);
 		if(!$instance_id) return false;
 		
@@ -453,6 +453,8 @@ class Amazon_model extends Model {
 
 	public function stop_instance($id)
 	{
+		$this->load->model('Instance_model', 'instance');
+		
 		$instance_id = $this->instance->retrieve_provider_instance_id($id);
 		if(!$instance_id) return false;
 		
@@ -464,6 +466,8 @@ class Amazon_model extends Model {
 
 	public function reboot_instance($id)
 	{
+		$this->load->model('Instance_model', 'instance');
+		
 		$instance_id = $this->instance->retrieve_provider_instance_id($id);
 		if(!$instance_id) return false;
 		
@@ -492,6 +496,8 @@ class Amazon_model extends Model {
 	
 	public function terminate_instances($ids)
 	{
+		$this->load->model('Instance_model', 'instance');
+		
 		$response = $this->ec2->terminate_instances($ids);
 		$this->test_response($response);
 		foreach($ids as $id)
@@ -518,6 +524,8 @@ class Amazon_model extends Model {
 
 	public function created_snapshots($instance_id = false)
 	{
+		$this->load->model('Instance_model', 'instance');
+		
 		if($instance_id)
 		{
 			$instance_id = $this->instance->retrieve_provider_instance_id($instance_id);
@@ -629,6 +637,8 @@ class Amazon_model extends Model {
 
 	public function create_snapshot($id, $name, $description = 'sample description')
 	{
+		$this->load->model('Instance_model', 'instance');
+		
 		$instance_id = $this->instance->retrieve_provider_instance_id($id);
 		if(!$instance_id) return false;
 		
@@ -939,6 +949,8 @@ class Amazon_model extends Model {
 
 	public function delete_load_balancer($id)
 	{
+		$this->load->model('Balancer_model', 'balancer');
+		
 		$user_id = $this->session->userdata('account_id');
 		
 		$name = $this->balancer->get_delete_load_balancer_id($id,$user_id); // should be only one, for amazon unique id is name

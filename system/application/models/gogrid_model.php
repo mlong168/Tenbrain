@@ -6,18 +6,12 @@ class Gogrid_model extends Model {
 	
 	public $name = 'GoGrid';
 	
-	public $balancer;
-	public $instance;
-	
 	function __construct()
 	{
 		parent::Model();
 		$this->load->helper('gogrid');
 		$this->gogrid = new GoGridClient();
 		
-		$ci =& get_instance();
-		$this->instance = $ci->load->model('Instance_model', 'instance');
-		$this->balancer = $ci->load->model('Balancer_model', 'balancer');
 	}
 	
 	private function test_response($response)
@@ -277,6 +271,8 @@ class Gogrid_model extends Model {
 	
 	public function launch_instance($params)
 	{
+		$this->load->model('Instance_model', 'instance');
+		
 		$response = $this->gogrid->call('grid.server.add', $params);
 		$response = json_decode($response);
 		// print_r($response);die;
@@ -386,6 +382,8 @@ class Gogrid_model extends Model {
 	
 	public function terminate_instances($instance_ids)
 	{
+		$this->load->model('Instance_model', 'instance');
+		
 		foreach($instance_ids as $instance_id)
 		{
 			$response = $this->gogrid->call('grid.server.delete', array(
@@ -406,6 +404,8 @@ class Gogrid_model extends Model {
 	
 	public function get_instances_for_lb()
 	{
+		$this->load->model('Balancer_model', 'balancer');
+		
 		$account_id = $this->session->userdata('account_id');
 		
 		$instances = $this->balancer->get_instances_for_lb($account_id,$this->name);
@@ -415,9 +415,11 @@ class Gogrid_model extends Model {
 	
 	public function create_load_balancer($name, $ip, $instances)
 	{
+		$this->load->model('Balancer_model', 'balancer');
+		
 		$account_id = $this->session->userdata('account_id');
 		
-		$rows = get_instances_by_provider_name($this->name,$account_id,$instances);
+		$rows = $this->balancer->get_instances_by_provider_name($this->name,$account_id,$instances);
 		$real_ips = array(); $i = 0;
 		
 		foreach($rows as $row)
@@ -456,6 +458,8 @@ class Gogrid_model extends Model {
 	// it takes gogrid around 30 sec to give back a response with a valid id
 	public function assign_lb_id($id)
 	{
+		$this->load->model('Balancer_model', 'balancer');
+		
 		$user_load_balancer = $this->balancer->get_user_load_balancer($id); 
 		
 		$name = $user_load_balancer->name; $ip = $user_load_balancer->ip_address;
@@ -475,6 +479,8 @@ class Gogrid_model extends Model {
 	
 	public function delete_load_balancer($id)
 	{
+		$this->load->model('Balancer_model', 'balancer');
+		
 		$user_id = $this->session->userdata('account_id');
 
 		$lb_id = $this->balancer->get_delete_load_balancer_id($id,$user_id); // should be only one
@@ -514,6 +520,8 @@ class Gogrid_model extends Model {
 	
 	public function get_load_balanced_instances($lb_id)
 	{
+		$this->load->model('Balancer_model', 'balancer');
+		
 		$rows = $this->balancer->get_instances_for_load_balancer($lb_id);
 		
 		$names = array(); $lb_id = '';
@@ -550,6 +558,8 @@ class Gogrid_model extends Model {
 	
 	function instances_available_for_lb($lb_id)
 	{
+		$this->load->model('Instance_model', 'instance');
+		
 		$provider = $this->db->escape($this->name);
 		$account_id = $this->db->escape($this->session->userdata('account_id'));
 		$lb_id = $this->db->escape($lb_id);
@@ -561,6 +571,9 @@ class Gogrid_model extends Model {
 	
 	function register_instances_within_lb($lb, $instance_ids)
 	{
+		$this->load->model('Instance_model', 'instance');
+		$this->load->model('Balancer_model', 'balancer');
+		
 		$lb = $this->db->escape($lb->id);
 		
 		$instances = $this->instance->get_register_instances_within_lb($lb,$instance_ids);
@@ -594,6 +607,9 @@ class Gogrid_model extends Model {
 	
 	function deregister_instances_from_lb($lb, $instance_ids)
 	{
+		$this->load->model('Instance_model', 'instance');
+		$this->load->model('Balancer_model', 'balancer');
+		
 		$rows = $this->balancer->get_instances_for_lb_deregistering($lb_id);
 		
 		foreach($query->result() as $row)
