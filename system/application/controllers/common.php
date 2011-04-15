@@ -108,9 +108,30 @@ class Common extends Controller {
 			}
 		}
 		
+
+		$instances = array();
+		
+		if($state == 'terminated')
+		{
+			$terminated = $this->instance->get_user_terminated_instances();
+				echo json_encode(array(
+				'success'	=> true,
+				'instances'	=> isset($terminated) ? $terminated : array()
+			));
+			return;
+		}
+		
+		foreach($out as $instance)
+		{
+			if($instance['state'] != 'stopped')
+				$instances['running'][] = $instance;
+			else
+				$instances['stopped'][] = $instance;
+		}
+		
 		echo json_encode(array(
 			'success'	=> true,
-			'instances'	=> $out
+			'instances'	=> isset($instances[$state]) ? $instances[$state] : array()
 		));
 	}
 	
