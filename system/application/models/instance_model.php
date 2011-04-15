@@ -71,17 +71,6 @@ class Instance_model extends Model {
 			'account_id'	=> $account_id
 		));		
 	}
-	
-	function retrieve_provider_instance_id($instance_id)
-	{
-		$this->db->select('provider_instance_id')->from('user_instances')->where(array(
-			'instance_id'	=> $instance_id,
-			'account_id'	=> $this->session->userdata('account_id')
-		));
-		$query = $this->db->get();
-		
-		return $query->num_rows === 1 ? $query->row()->provider_instance_id : false;
-	}
 
 	function add_user_deleted_instance($instance_id,$account_id)
 	{

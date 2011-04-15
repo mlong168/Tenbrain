@@ -419,7 +419,7 @@ class Amazon_model extends Provider_model {
 	{
 		$this->load->model('Instance_model', 'instance');
 		
-		$instance_id = $this->instance->retrieve_provider_instance_id($id);
+		$instance_id = $this->get_provider_instance_id($id);
 		if(!$instance_id) return false;
 		
 		$response = $this->ec2->terminate_instances($instance_id);
@@ -435,7 +435,7 @@ class Amazon_model extends Provider_model {
 	{
 		$this->load->model('Instance_model', 'instance');
 		
-		$instance_id = $this->instance->retrieve_provider_instance_id($id);
+		$instance_id = $this->get_provider_instance_id($id);
 		if(!$instance_id) return false;
 		
 		$response = $this->ec2->start_instances($instance_id);
@@ -448,7 +448,7 @@ class Amazon_model extends Provider_model {
 	{
 		$this->load->model('Instance_model', 'instance');
 		
-		$instance_id = $this->instance->retrieve_provider_instance_id($id);
+		$instance_id = $this->get_provider_instance_id($id);
 		if(!$instance_id) return false;
 		
 		$response = $this->ec2->stop_instances($instance_id);
@@ -461,7 +461,7 @@ class Amazon_model extends Provider_model {
 	{
 		$this->load->model('Instance_model', 'instance');
 		
-		$instance_id = $this->instance->retrieve_provider_instance_id($id);
+		$instance_id = $this->get_provider_instance_id($id);
 		if(!$instance_id) return false;
 		
 		$response = $this->ec2->reboot_instances($instance_id);
@@ -521,7 +521,7 @@ class Amazon_model extends Provider_model {
 		
 		if($instance_id)
 		{
-			$instance_id = $this->instance->retrieve_provider_instance_id($instance_id);
+			$instance_id = $this->get_provider_instance_id($instance_id);
 			// if(!$instance_id) return false;
 		}
 		$filter = array(
@@ -632,7 +632,7 @@ class Amazon_model extends Provider_model {
 	{
 		$this->load->model('Instance_model', 'instance');
 		
-		$instance_id = $this->instance->retrieve_provider_instance_id($id);
+		$instance_id = $this->get_provider_instance_id($id);
 		if(!$instance_id) return false;
 		
 		$response = $this->ec2->describe_instances(array('InstanceId' => $instance_id));

@@ -270,7 +270,7 @@ class Gogrid_model extends Provider_model {
 	
 	public function delete_instance($id)
 	{
-		$instance_id = $this->retrieve_provider_instance_id($id);
+		$instance_id = $this->get_provider_instance_id($id);
 		if(!$instance_id) return false;
 		
 		$response = $this->gogrid->call('grid.server.delete', array(
@@ -292,7 +292,7 @@ class Gogrid_model extends Provider_model {
 	
 	public function get_password($instance_id)
 	{
-		$instance_id = $this->retrieve_provider_instance_id($instance_id);
+		$instance_id = $this->get_provider_instance_id($instance_id);
 		$response = $this->gogrid->call('support.password.list');
 		$response = json_decode($response);
 		$this->test_response($response);
@@ -313,7 +313,7 @@ class Gogrid_model extends Provider_model {
 	
 	private function power_instance($instance_id, $action)
 	{
-		// $instance_id = $this->retrieve_provider_instance_id($instance_id);
+		// $instance_id = $this->get_provider_instance_id($instance_id);
 		$response = $this->gogrid->call('grid.server.power', array(
 			'id'	=> $instance_id,
 			'power'	=> $action
