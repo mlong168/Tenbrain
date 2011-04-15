@@ -1,6 +1,6 @@
 <?php
 
-	abstract class Provider_model extends Model {
+abstract class Provider_model extends Model {
 	
 	function __construct(){
 		parent::__construct();

@@ -4,9 +4,9 @@ class Rackspace extends Controller {
 
 	function __construct()
 	{
-		parent::Controller();
+		parent::__construct();
 		
-		//authentication stuff:		
+		//authentication stuff:
 		$this->load->helper(array('language'));
         $this->load->library(array('account/authentication'));
 		$this->load->model(array('account/account_model'));
@@ -78,6 +78,24 @@ class Rackspace extends Controller {
 	{
 		echo json_encode(array(
 			'success' => $this->rack->stop_instance($this->input->post('instance_id'))
+		));
+	}
+
+	function get_instances_for_lb()
+	{
+		echo json_encode(array(
+			'success'	=> true,
+			'instances'	=> $this->rack->get_instances_for_lb()
+		));
+	}
+	
+	function create_load_balancer()
+	{
+		echo json_encode(array(
+			'success' => $this->rack->create_load_balancer(
+				$this->input->post('name'),
+				$this->input->post('instances')
+			)
 		));
 	}
 }

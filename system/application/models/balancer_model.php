@@ -2,10 +2,19 @@
 
 class Balancer_model extends Model {
 	
-	public $gogrid;
-	
 	function __construct(){
 		parent::Model();
+	}
+	
+	public function create_load_balancer($name, $provider, $ip_address)
+	{
+		$this->db->insert('user_load_balancers', array(
+			'account_id'	=> $this->session->userdata('account_id'),
+			'name'			=> $name,
+			'provider'		=> $provider,
+			'ip_address'	=> $ip_address
+		));
+		return $this->db->insert_id();
 	}
 	
 	function get_load_balancer($lb_id)
@@ -22,7 +31,6 @@ class Balancer_model extends Model {
 		$sql .= ' LEFT JOIN deleted_load_balancers dlb USING(load_balancer_id)';
 		$sql .= ' WHERE dlb.load_balancer_id IS NULL';
 		$sql .= ' AND lb.account_id = ' . $this->session->userdata('account_id');
-		
 		
 		$query = $this->db->query($sql);
 		return $query->num_rows() > 1 ? $query->result() : array();
@@ -64,15 +72,14 @@ class Balancer_model extends Model {
 		));
 	}
 
-	function get_instances_for_lb($account_id,$name)
+	function get_instances_for_lb($account_id, $provider_name)
 	{
 		$sql = 'SELECT ui.instance_id as id, ui.instance_name as name, ui.public_ip as address';
 		$sql .= ' FROM user_instances ui';
 		$sql .= ' LEFT JOIN user_deleted_instances udi USING(instance_id)';
 		$sql .= ' WHERE ui.account_id = ' . $account_id;
-		// $sql .= ' WHERE ui.account_id = 1';
 		$sql .= ' AND udi.instance_id IS NULL';
-		$sql .= " AND ui.provider='{$name}'";
+		$sql .= " AND ui.provider='{$provider_name}'";
 		
 		$instances = array();
 		$query = $this->db->query($sql);
@@ -138,13 +145,4 @@ class Balancer_model extends Model {
 		
 		return $result;
 	}
-	
-	function insert_load_balancer_instance($lb_id,$i_id)
-	{
-		$this->db->insert('load_balancer_instances', array(
-			'load_balancer_id'	=> $lb_id,
-			'instance_id'		=> $i_id,
-			'active'			=> true
-		));	
-	}	
 }

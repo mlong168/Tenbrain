@@ -59,7 +59,8 @@ class Rackspace_model extends Provider_model {
 		$curl_session = curl_init($this->server_url . '/' . $action);
 		
 		$headers = array(
-			'X-Auth-Token: ' . $this->auth_token
+			'X-Auth-Token: ' . $this->auth_token,
+			'Accept: application/json'
 		);
 
 		curl_setopt($curl_session, CURLOPT_HEADER, true);
@@ -156,7 +157,7 @@ class Rackspace_model extends Provider_model {
 		$instance = $this->POST_request('servers', $setup);
 		if(!$instance) return false;
 		
-		$instance = $instance->server;		
+		$instance = $instance->server;
 		$this->db->insert('user_instances', array(
 			'account_id'			=> $this->session->userdata('account_id'),
 			'provider_instance_id'	=> $instance->id,
@@ -219,8 +220,79 @@ class Rackspace_model extends Provider_model {
 		return $this->POST_request('servers/' . $id . '/action', $data);
 	}
 	
+	public function get_instances_for_lb()
+	{
+		$this->load->model('Balancer_model', 'balancer');
+		
+		return $this->balancer->get_instances_for_lb(
+			$this->session->userdata('account_id'),
+			$this->name
+		);;
+	}
+	
+	public function create_load_balancer($name, $instances)
+	{
+		$this->load->model('Instance_model', 'instances');
+		$ips = $this->instances->get_instances_details($instances, 'provider_instance_id');
+		foreach($ips as $id)
+		{
+			$instance = $this->GET_request('servers/' . $id->provider_instance_id);
+			$nodes []= array(
+				'address'	=> $instance->server->addresses->private[0],
+				'port'		=> '80',
+				'condition'	=> 'ENABLED'
+			);
+		}
+		$setup = array(
+			'loadBalancer' => array(
+				'name'			=> $name,
+				'port'			=> '80',
+				'protocol'		=> 'HTTP',
+				'virtualIps'	=> array(
+					array('type' => 'PUBLIC')
+				),
+				'nodes'			=> $nodes
+			)
+		);
+		$this->server_url = str_replace('servers', 'ord.loadbalancers', $this->server_url);
+		$lb = $this->POST_request('loadbalancers', $setup);
+		if(!$lb) return false;
+		$this->load->model('Balancer_model', 'balancer');
+		$lb = $lb->loadbalancer;
+		$this->balancer->create_load_balancer($lb->name, $this->name, 'PUBLIC');
+		
+		return true;
+	}
+	
+	public function list_load_balancers($ids)
+	{
+		$this->server_url = str_replace('servers', 'ord.loadbalancers', $this->server_url);
+		$response = $this->GET_request('loadbalancers');
+		if(!$response) return array();
+// 		print_r($response);*/
+		$lbs = array();
+		foreach($response->loadBalancers as $lb)
+		{
+			$id = $lb->id;
+			if(array_key_exists($id, $ids))
+			{
+				$lbs[] = array(
+					'id'		=> $ids[$id],
+					'name'		=> $lb->name,
+					'provider'	=> $this->name,
+					'dns_name'	=> $lb->virtualIps[0]->address,
+					'state'		=> $lb->status === 'ACTIVE' ? 'On' : 'pending'
+					// ''	=> $lb->,
+				);
+			}
+		}
+		return $lbs;
+	}
+	
 	public function test()
 	{
+		$this->server_url = str_replace('servers', 'ord.loadbalancers', $this->server_url);
+		print_r($this->GET_request('loadbalancers'));
 		// $images = $this->launch_instance('tenbrain first', 4, 1);
 		// print_r($images);
 		echo PHP_EOL; die;

@@ -426,7 +426,7 @@ class Gogrid_model extends Provider_model {
 		// a bit unreliable, should more relay on $lb->realiplist than on $instances
 		foreach($instances as $i_id)
 		{
-			$this->balancer->insert_load_balancer_instance($lb_id,$i_id);
+			$this->balancer->add_load_balancer_instance($lb_id,$i_id);
 		}
 		return true;
 	}

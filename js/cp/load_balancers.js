@@ -278,7 +278,7 @@ var Load_balancers = function(){
 			allowBlank: false,
 			store: new Ext.data.ArrayStore({
 				fields: ['name'],
-				data: [['Amazon'], ['GoGrid']]
+				data: [['Amazon'], ['GoGrid'], ['Rackspace']]
 			}),
 			mode: 'local',
 			displayField: 'name',
@@ -320,13 +320,15 @@ var Load_balancers = function(){
 						}
 					});
 				}
-				else if(provider === 'GoGrid')
+				else
 				{
-					gogrid_lb_form.getForm().reset().setValues({name: name});
+					var submit_form_id = provider.toLowerCase() + '_lb_submit_form';
+					console.log(Ext.getCmp(submit_form_id)); 
+					Ext.getCmp(submit_form_id).getForm().reset().setValues({name: name});
 					modal_window
 						.setTitle('Proceed creating load balancer "' + name + '"')
 						.setSize(300, 150).show().center()
-						.getLayout().setActiveItem('gogrid_lb_submit_form');
+						.getLayout().setActiveItem(submit_form_id);
 				}
 			}
 		}, {
@@ -336,6 +338,7 @@ var Load_balancers = function(){
 			}
 		}]
 	});
+	
 	var instances_to_load_balance = {
 		xtype: 'superboxselect',
 		allowBlank: false,
@@ -346,7 +349,6 @@ var Load_balancers = function(){
 		emptyText: 'Select one or more instances',
 		resizable: true,
 		name: 'instances[]',
-		anchor: '100%',
 		store: new Ext.data.JsonStore({
 			url: '/gogrid/get_instances_for_lb',
 			autoLoad: true,
@@ -360,7 +362,6 @@ var Load_balancers = function(){
 		extraItemCls: 'x-tag',
 		listeners: {
 			newitem: function(bs,v, f){
-				console.log(bs, v, f);
 				v = v.slice(0,1).toUpperCase() + v.slice(1).toLowerCase();
 				var newObj = {
 					id: v,
@@ -441,13 +442,91 @@ var Load_balancers = function(){
 			}
 		}]
 	});
+	
+	var rack_lb_instances = {
+		xtype: 'superboxselect',
+		allowBlank: false,
+		msgTarget: 'under',
+		allowAddNewData: false,
+		addNewDataOnBlur : true, 
+		fieldLabel: 'Instances',
+		emptyText: 'Select one or more instances',
+		resizable: true,
+		name: 'instances[]',
+		store: new Ext.data.JsonStore({
+			url: '/rackspace/get_instances_for_lb',
+			autoLoad: true,
+			successProperty: 'success',
+			root: 'instances',
+			fields: ['id', 'name']
+		}),
+		mode: 'local',
+		displayField: 'name',
+		valueField: 'id',
+		extraItemCls: 'x-tag',
+		listeners: {
+			newitem: function(bs,v, f){
+				v = v.slice(0,1).toUpperCase() + v.slice(1).toLowerCase();
+				var newObj = {
+					id: v,
+					name: v
+				};
+				bs.addItem(newObj);
+			}
+		}
+	};
+	
+	var rackspace_lb_form = new Ext.FormPanel({
+		id: 'rackspace_lb_submit_form',
+		labelWidth: 70,
+		frame: true,
+		url: '/rackspace/create_load_balancer',
+		monitorValid: true,
+		autoHeight: true,
+		items: [{
+			xtype: 'hidden',
+			name: 'name'
+		}, rack_lb_instances],
+
+		buttons: [{
+			text: 'Proceed',
+			formBind: true,
+			handler: function(){
+				var title = 'Create load balancer',
+					success = 'Load balancer was created successfully',
+					error = 'A problem has occured while creating a load balancer',
+					form = gogrid_lb_form.getForm(), vals = form.getFieldValues(),
+					name = vals.name;
+					
+				modal_window.hide();
+				Ext.Msg.wait('Your load balancer is being created', title);
+				rackspace_lb_form.getForm().submit({
+					success: function(form, action){
+						var s = action.result.success;
+						Ext.Msg.alert(title, s ? success : error, function(){
+							reload_until_stable();
+							instances_grid.ref_lb_name = name;
+						});
+					},
+					failure: function(form, action){
+						Ext.Msg.alert(title, error);
+					}
+				});
+			}
+		}, {
+			text: 'Cancel',
+			handler: function(){
+				modal_window.hide();
+			}
+		}]
+	});
 
 	var modal_window = new Ext.Window({
 		title: 'Create load balancer',
 		id: 'modal_window',
 		layout: 'card',
 		closeAction: 'hide',
-		items: [deploy_form, instances_grid, registered_instances_grid, gogrid_lb_form],
+		items: [deploy_form, instances_grid, registered_instances_grid, gogrid_lb_form, rackspace_lb_form],
 		activeItem: 0,
 		border: false,
 		modal : true

@@ -20,6 +20,31 @@ class Instance_model extends Model {
 		$query = $this->db->query($sql);
 		return $query->num_rows() ? $query->result() : array();
 	}
+	
+	public function get_instances_details($instance_ids, $fields = array('instance_name'))
+	{
+		$possible_fields = array('ínstance_id', 'provider_instance_id', 'instance_name', 'provider', 'public_ip', 'created_on');
+		$fields_to_retrieve = array();
+		if(!is_array($fields)) $fields = array($fields);
+		foreach($fields as $field)
+		{
+			if(in_array($field, $possible_fields)) $fields_to_retrieve []= $field;
+		}
+		if($fields === array('*')) $fields_to_retrieve = $possible_fields;	// select all
+		foreach($fields_to_retrieve as &$field) $field = 'ui.' . $field;
+		
+		if(!is_array($instance_ids)) $instance_ids = array($instance_ids);
+		
+		$sql = 'SELECT ' . implode(',', $fields_to_retrieve);
+		$sql .= ' FROM user_instances ui';
+		$sql .= ' LEFT JOIN user_deleted_instances udi USING(instance_id)';
+		$sql .= ' WHERE ui.account_id = ' . $this->session->userdata('account_id');
+		$sql .= ' AND udi.instance_id IS NULL';
+		$sql .= ' AND ui.instance_id IN(' . implode($instance_ids) . ')';
+		
+		$query = $this->db->query($sql);
+		return $query->num_rows() ? $query->result() : array();
+	}
 
 	function get_updated_instance_id($vars)
 	{
