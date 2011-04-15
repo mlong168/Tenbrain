@@ -6,13 +6,14 @@ class Balancer_model extends Model {
 		parent::Model();
 	}
 	
-	public function create_load_balancer($name, $provider, $ip_address)
+	public function create_load_balancer($name, $provider, $provider_lb_id, $ip_address)
 	{
 		$this->db->insert('user_load_balancers', array(
-			'account_id'	=> $this->session->userdata('account_id'),
-			'name'			=> $name,
-			'provider'		=> $provider,
-			'ip_address'	=> $ip_address
+			'account_id'		=> $this->session->userdata('account_id'),
+			'name'				=> $name,
+			'provider'			=> $provider,
+			'provider_lb_id'	=> $provider_lb_id,
+			'ip_address'		=> $ip_address
 		));
 		return $this->db->insert_id();
 	}
@@ -33,7 +34,7 @@ class Balancer_model extends Model {
 		$sql .= ' AND lb.account_id = ' . $this->session->userdata('account_id');
 		
 		$query = $this->db->query($sql);
-		return $query->num_rows() > 1 ? $query->result() : array();
+		return $query->num_rows() ? $query->result() : array();
 	}
 
 	function get_delete_load_balancer_id($id,$user_id)

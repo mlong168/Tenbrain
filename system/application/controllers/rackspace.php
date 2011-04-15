@@ -98,6 +98,13 @@ class Rackspace extends Controller {
 			)
 		));
 	}
+	
+	function delete_load_balancer()
+	{
+		echo json_encode(array(
+			'success' => $this->rack->delete_load_balancer($this->input->post('id'))
+		));
+	}
 }
 
 /* End of file rackspace.php */

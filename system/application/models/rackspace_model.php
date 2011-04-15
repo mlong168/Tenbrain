@@ -258,8 +258,8 @@ class Rackspace_model extends Provider_model {
 		$lb = $this->POST_request('loadbalancers', $setup);
 		if(!$lb) return false;
 		$this->load->model('Balancer_model', 'balancer');
-		$lb = $lb->loadbalancer;
-		$this->balancer->create_load_balancer($lb->name, $this->name, 'PUBLIC');
+		$lb = $lb->loadBalancer;
+		$this->balancer->create_load_balancer($lb->name, $this->name, $lb->id, 'PUBLIC');
 		
 		return true;
 	}
@@ -269,7 +269,7 @@ class Rackspace_model extends Provider_model {
 		$this->server_url = str_replace('servers', 'ord.loadbalancers', $this->server_url);
 		$response = $this->GET_request('loadbalancers');
 		if(!$response) return array();
-// 		print_r($response);*/
+		
 		$lbs = array();
 		foreach($response->loadBalancers as $lb)
 		{
@@ -287,6 +287,20 @@ class Rackspace_model extends Provider_model {
 			}
 		}
 		return $lbs;
+	}
+	
+	public function delete_load_balancer($id)
+	{
+		$user_id = $this->session->userdata('account_id');
+		$this->load->model('Balancer_model', 'balancer');
+		$lb_id = $this->balancer->get_delete_load_balancer_id($id, $user_id); // should be only one
+		
+		$this->server_url = str_replace('servers', 'ord.loadbalancers', $this->server_url);
+		$this->DELETE_request('loadbalancers/' . $lb_id);		
+		
+		$this->balancer->delete_load_balancer($id,$user_id);
+		
+		return true;
 	}
 	
 	public function test()
