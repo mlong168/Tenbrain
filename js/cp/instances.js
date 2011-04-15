@@ -91,7 +91,8 @@ var Instances = function(){
 						} else if(action === 'stop') {
 							store.stopped.reload();
 						} else if(action === 'start') {
-							store.running.reload();
+							reload_until_stable('running');
+							store.stopped.reload();
 						}
 					});
 				},

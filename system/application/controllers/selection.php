@@ -95,7 +95,7 @@ class Selection extends Controller {
 				),
 				'rackspace'	=> array(
 					'type'		=> 'small',
-					'disabled'	=> true,
+					'disabled'	=> false,
 					'text'		=> 'Rackspace'
 				)
 			)
@@ -214,15 +214,34 @@ class Selection extends Controller {
 			$this->session->set_userdata('sign_in_redirect', '/selection/confirm');
 			redirect('account/sign_in');
 		}
-		
-		if($this->session->userdata('selection'))
+		$selection = $this->session->userdata('selection');
+		if($selection)
 		{
-			/**
-			 * do smth. based on the selection here (i.e., load the model for the chosen provider, take options into account, etc.)
-			 */
-			$this->load->model('Amazon_model', 'amazon');
-			$this->amazon->launch_instance('ami-326c9f5b', 't1.micro', 'TenBrain UC Stack for ' . $this->account_model->get_by_id($this->session->userdata('account_id'))->username);
-			$this->session->unset_userdata('selection');
+			//print_r($this->session->userdata('selection'));
+			$user_name = $this->account_model->get_by_id($this->session->userdata('account_id'))->username;
+			//die;
+			switch($selection['providers'])
+			{
+				case 'rackspace':
+					$this->load->model('Rackspace_model', 'rackspace');
+					$this->rackspace->launch_instance('TenBrain UC Stack for ' . $user_name, 49, 1 );
+				break;	
+				case 'amazon':
+					$this->load->model('Amazon_model', 'amazon');
+					$this->amazon->launch_instance('ami-326c9f5b', 't1.micro', 'TenBrain UC Stack for ' . $user_name);
+				break;
+				case 'gogrid':
+					echo 'Started GoGrid Instance';
+					die;
+					//$this->load->model('GoGrid_model', 'gogrid');
+					//$this->gogrid->launch_instance('512MB', '5825', 'TenBrain UC Stack for ' . $user_name);
+				break;
+				default:
+					$this->load->model('Amazon_model', 'amazon');
+					$this->amazon->launch_instance('ami-326c9f5b', 't1.micro', 'TenBrain UC Stack for ' . $user_name);
+				break;
+			}
+			$this->session->unset_userdata('selection');			
 		}
 		
 		redirect('/control_panel');

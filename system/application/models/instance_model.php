@@ -195,4 +195,17 @@ class Instance_model extends Model {
 		
 		return $result;
 	}
+	
+	function get_user_terminated_instances()
+	{
+		$sql = 'SELECT ui.instance_id as id, ui.provider, ui.provider_instance_id as pid,';
+		$sql .= ' ui.instance_name as name, ui.public_ip as ip';
+		$sql .= ' FROM user_instances ui';
+		$sql .= ' LEFT JOIN user_deleted_instances udi USING(instance_id)';
+		$sql .= ' WHERE ui.account_id = ' . $this->session->userdata('account_id');
+		$sql .= ' AND udi.instance_id IS NOT NULL';
+		
+		$query = $this->db->query($sql);
+		return $query->num_rows() ? $query->result() : array();
+	}
 }
