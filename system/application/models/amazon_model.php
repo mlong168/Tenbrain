@@ -666,6 +666,8 @@ class Amazon_model extends Provider_model {
 
 	public function restore_snapshot_to_corresponding_instance($snapshot_id = false)
 	{
+		$this->load->model('Instance_model', 'instance');
+		
 		$response = $this->ec2->describe_instances(array(
 			'Filter' => array(
 				array('Name' => 'block-device-mapping.volume-id', 'Value' => $this->get_snapshot_volume($snapshot_id))
@@ -688,8 +690,12 @@ class Amazon_model extends Provider_model {
 		{
 			$this->die_with_error('Sorry, a problem has occurred while restoring your snapshot');
 		}
-
-		$this->terminate_instance($old_instance['id']);
+		
+		$response = $this->ec2->terminate_instances($old_instance['id']);
+		$this->test_response($response);
+		
+		$id = $this->instance->get_instance_ids($old_instance['id']);
+		$this->instance->terminate_instance($id[0]);
 
 		return true;
 	}
