@@ -78,14 +78,14 @@ class Instance_model extends Model {
 		
 	}
 	
-	function add_user_instance($account_id,$provider_instance_id = null,$instance_name,$provider,$public_ip = null)
+	function add_user_instance(array $params)
 	{
 		$this->db->insert('user_instances', array(
-			'account_id'			=> $account_id,
-			'provider_instance_id'	=> $provider_instance_id,
-			'instance_name'			=> $instance_name,
-			'provider'				=> $provider,
-			'public_ip'				=> $public_ip
+			'account_id'			=> isset($params['account_id']) ? $params['account_id'] : null,
+			'provider_instance_id'	=> isset($params['provider_instance_id']) ? $params['provider_instance_id'] : null,
+			'instance_name'			=> isset($params['instance_name']) ? $params['instance_name'] : null,
+			'provider'				=> isset($params['provider']) ? $params['provider'] : null,
+			'public_ip'				=> isset($params['public_ip']) ? $params['public_ip'] : null
 		));
 	}
 

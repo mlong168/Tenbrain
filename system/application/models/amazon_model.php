@@ -136,6 +136,7 @@ class Amazon_model extends Provider_model {
 				// ''				=> (string) $node->,
 			);
 		});
+		
 		return $instances;
 	}
 
@@ -396,6 +397,7 @@ class Amazon_model extends Provider_model {
 				'Ebs.DeleteOnTermination'	=> true
 			)
 		));
+		
 		$this->test_response($response);
 
 		$instance_id = $response->body->instanceId();
@@ -404,14 +406,12 @@ class Amazon_model extends Provider_model {
 		$this->tag_instance($instance_id, 'Name', $name);
 		
 		// write to db if things went fine
-		$this->instance->add_user_instance(
-			$this->session->userdata('account_id'),
-			$instance_id,
-			$name,
-			'Amazon',
-			null
-		);
-
+		$this->instance->add_user_instance(array(
+			'account_id' => $this->session->userdata('account_id'),
+			'provider_instance_id' => $instance_id,
+			'instance_name' => $name,
+			'provider' => 'Amazon'
+		));
 		return true;
 	}
 
@@ -678,6 +678,8 @@ class Amazon_model extends Provider_model {
 	 */
 	private function restore_snapshot($snapshot_id, $name = '', $type = 't1.micro')
 	{
+		$this->load->model('Instance_model', 'instance');
+		
 		$response = $this->ec2->describe_snapshots(array('SnapshotId' => $snapshot_id));
 		$this->test_response($response);
 
@@ -705,7 +707,15 @@ class Amazon_model extends Provider_model {
 				array('Key' => 'Name', 'Value' => $name)
 			));
 		}
-
+		
+		// write to db if things went fine
+		$this->instance->add_user_instance(array(
+			'account_id' => $this->session->userdata('account_id'),
+			'provider_instance_id' => $new_instance_id,
+			'instance_name' => $name,
+			'provider' => 'Amazon'
+		));
+		
 		return array(
 			'success'			=> true,
 			'new_instance_id'	=> $new_instance_id

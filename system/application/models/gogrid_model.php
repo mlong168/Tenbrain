@@ -258,13 +258,12 @@ class Gogrid_model extends Provider_model {
 		// write to db if things went fine
 		$instance = $response->list[0];
 		// print_r($instance);
-		$this->instance->add_user_instance(
-			$this->session->userdata('account_id'),
-			null,
-			$instance->name,
-			'GoGrid',
-			$instance->ip->ip
-		);
+		$this->instance->add_user_instance(array(
+			'account_id' => $this->session->userdata('account_id'),
+			'instance_name' => $instance->name,
+			'provider' => 'GoGrid',
+			'public_ip' => $instance->ip->ip
+		));
 		return true;
 	}
 	
