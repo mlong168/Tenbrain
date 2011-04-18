@@ -153,6 +153,24 @@ class Common extends Controller {
 		echo json_encode(array('success' => true));
 	}
 	
+	function start_instances()
+	{
+		$this->load->model('Instance_model', 'instance');
+		
+		$ids = json_decode($this->input->post('instances'));
+		$account_id = $this->session->userdata('account_id');
+		
+		$instances = $this->instance->get_instances($account_id, $ids);
+		
+		foreach($this->providers as $provider)
+		{
+			if(!array_key_exists($provider->name, $instances)) continue;
+			$provider->start_instances($instances[$provider->name]);
+		}
+		
+		echo json_encode(array('success' => true));
+	}
+	
 	function stop_instances()
 	{
 		$this->load->model('Instance_model', 'instance');

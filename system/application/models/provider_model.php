@@ -19,11 +19,13 @@ abstract class Provider_model extends Model {
 	
 	abstract public function list_images();
 	abstract public function list_instances($ids);
-// 	abstract public function launch_instance($params);*/
-// 	abstract public function delete_instance($id);*/
-	abstract public function start_instance($id);
-	abstract public function stop_instance($id);
-// 	abstract public function restart_instance($id);*/
+	
+// 	abstract public function launch_instance(array $params);*/
+
+	abstract public function start_instances(array $ids);
+	abstract public function stop_instances(array $ids);
+	abstract public function reboot_instances(array $ids);
+	abstract public function terminate_instances(array $ids);
 }
 
 /* End of file provider.php */

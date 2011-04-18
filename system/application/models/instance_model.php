@@ -21,6 +21,18 @@ class Instance_model extends Model {
 		return $query->num_rows() ? $query->result() : array();
 	}
 	
+	public function get_instance_ids($provider_instance_ids)
+	{
+		if(!is_array($provider_instance_ids)) $provider_instance_ids = array($provider_instance_ids);
+		$this->db->select('instance_id')->from('user_instances')->where_in('provider_instance_id', $provider_instance_ids);
+		
+		$query = $this->db->get();
+		$count = $query->num_rows();
+		if(!$count) return false;
+		
+		return array_values($query->row_array());
+	}
+	
 	public function get_instances_details($instance_ids, $fields = array('instance_name'))
 	{
 		$possible_fields = array('ínstance_id', 'provider_instance_id', 'instance_name', 'provider', 'public_ip', 'created_on');
@@ -94,11 +106,24 @@ class Instance_model extends Model {
 		$this->db->insert('user_deleted_instances', array(
 			'instance_id'	=> $id,
 			'account_id'	=> $account_id
-		));		
+		));
 	}
 
-	function add_user_deleted_instance($instance_id,$account_id)
+	function terminate_instances($ids, $account_id)
 	{
+		$ids = $this->get_instance_ids($ids);
+		foreach($ids as $id)
+		{	
+			$this->db->insert('user_deleted_instances', array(
+				'instance_id'	=> $id,
+				'account_id'	=> $account_id
+			));
+		}
+	}
+
+	function add_user_deleted_instance($instance_id, $account_id)
+	{
+		$instance_id = $this->db->escape($instance_id);
 		$this->db->set('instance_id', "(SELECT instance_id FROM user_instances WHERE provider_instance_id = $instance_id)", false);
 		$this->db->insert('user_deleted_instances', array(
 			'account_id'	=> $account_id

@@ -179,8 +179,7 @@ class Rackspace_model extends Provider_model {
 			$server = $server->server;
 			$ip = $server->addresses->public[0];
 			$out[] = array(
-// 				'id'				=> $db_id,*/
-				'id'				=> $server->id,
+				'id'				=> $db_id,
 				'name'				=> $server->name,
 				'dns_name'			=> $ip,
 				'ip_address'		=> $ip,
@@ -194,30 +193,42 @@ class Rackspace_model extends Provider_model {
 		return $out;
 	}
 
-	public function delete_instance($id)
+	public function terminate_instances(array $ids)
 	{
-		return $this->DELETE_request('servers/' . $id);
+		foreach($ids as $id)
+		{
+			$this->DELETE_request('servers/' . $id);
+		}
+		
+		$this->load->model('Instance_model', 'instance');
+		$this->instance->terminate_instances($ids, $this->session->userdata('account_id'));
+		
+		return true;
 	}
 	
 	// no start or stop for rackspace
-	public function start_instance($id)
+	public function start_instances(array $ids)
+	{
+		return false;
+	}
+	
+	public function stop_instances(array $ids)
 	{
 		return false;
 	}
 
-	public function stop_instance($id)
-	{
-		return false;
-	}
-
-	public function restart_instance($id)
+	public function reboot_instances(array $ids)
 	{
 		$data = array(
 			'reboot' => array(
 				'type' => 'SOFT'
 			)
 		);
-		return $this->POST_request('servers/' . $id . '/action', $data);
+		foreach($ids as $id)
+		{
+			$this->POST_request('servers/' . $id . '/action', $data);
+		}
+		return true;
 	}
 	
 	public function get_instances_for_lb()

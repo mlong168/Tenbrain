@@ -64,7 +64,6 @@ var Instances = function(){
 			parent_menu = item.parentMenu.findParentByType('menu'),
 			record = parent_menu.ref_grid.getStore().getAt(parent_menu.selected_record_id),
 			instance_id = record.get('id'),
-			provider = record.get('provider').toLowerCase(),
 			titles = {
 				reboot: 'Reboot Instance',
 				stop: 'Stop Instance',
@@ -79,8 +78,8 @@ var Instances = function(){
 		
 			Ext.Msg.wait('Processing your request', title);
 			Ext.Ajax.request({
-				url: [provider, action + '_instance'].join('/'),
-				params: { instance_id: instance_id },
+				url: 'common/' + action + '_instances',
+				params: { instances: Ext.encode([instance_id]) },
 				success: function(response){
 					response = Ext.decode(response.responseText);
 					Ext.Msg.alert(title, response.success ? success : response.error_message || error);
@@ -501,7 +500,7 @@ var Instances = function(){
 					
 						Ext.Msg.wait('Starting selected instances', title);
 						Ext.Ajax.request({
-							url: 'amazon/start_instance',
+							url: 'common/start_instances',
 							params: {
 								instances: Ext.encode(instances)
 							},

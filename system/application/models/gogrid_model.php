@@ -324,22 +324,7 @@ class Gogrid_model extends Provider_model {
 		return true;
 	}
 	
-	public function stop_instance($instance_id)
-	{
-		return $this->power_instance($instance_id, 'stop');
-	}
-	
-	public function start_instance($instance_id)
-	{
-		return $this->power_instance($instance_id, 'start');
-	}
-	
-	public function restart_instance($instance_id)
-	{
-		return $this->power_instance($instance_id, 'restart');
-	}
-	
-	public function reboot_instances($instance_ids)
+	public function reboot_instances(array $instance_ids)
 	{
 		foreach($instance_ids as $instance_id)
 		{
@@ -348,7 +333,7 @@ class Gogrid_model extends Provider_model {
 		return true;
 	}
 	
-	public function stop_instances($instance_ids)
+	public function stop_instances(array $instance_ids)
 	{
 		foreach($instance_ids as $instance_id)
 		{
@@ -357,7 +342,16 @@ class Gogrid_model extends Provider_model {
 		return true;
 	}
 	
-	public function terminate_instances($instance_ids)
+	public function start_instances(array $instance_ids)
+	{
+		foreach($instance_ids as $instance_id)
+		{
+			$this->power_instance($instance_id, 'start');
+		}
+		return true;
+	}
+	
+	public function terminate_instances(array $instance_ids)
 	{
 		$this->load->model('Instance_model', 'instance');
 		
@@ -368,14 +362,11 @@ class Gogrid_model extends Provider_model {
 			));
 			$response = json_decode($response);
 			$this->test_response($response);
-			
-			$instance_id = $this->db->escape($instance_id);
-
-			$this->instance->add_user_deleted_instance(
-				$instance_id,
-				$this->session->userdata('account_id')
-			);
 		}
+		
+		$this->load->model('Instance_model', 'instance');
+		$this->instance->terminate_instances($instance_ids, $this->session->userdata('account_id'));
+		
 		return true;
 	}
 	

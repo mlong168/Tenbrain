@@ -415,92 +415,34 @@ class Amazon_model extends Provider_model {
 		return true;
 	}
 
-	public function terminate_instance($id)
+	public function start_instances(array $ids)
 	{
-		$this->load->model('Instance_model', 'instance');
-		
-		$instance_id = $this->get_provider_instance_id($id);
-		if(!$instance_id) return false;
-		
-		$response = $this->ec2->terminate_instances($instance_id);
-		$this->test_response($response);
-		
-		$account_id = $this->session->userdata('account_id');
-
-		$this->instance->terminate_instance($id,$account_id);
-		return true;
-	}
-
-	public function start_instance($id)
-	{
-		$this->load->model('Instance_model', 'instance');
-		
-		$instance_id = $this->get_provider_instance_id($id);
-		if(!$instance_id) return false;
-		
-		$response = $this->ec2->start_instances($instance_id);
-		$this->test_response($response);
-
-		return true;
-	}
-
-	public function stop_instance($id)
-	{
-		$this->load->model('Instance_model', 'instance');
-		
-		$instance_id = $this->get_provider_instance_id($id);
-		if(!$instance_id) return false;
-		
-		$response = $this->ec2->stop_instances($instance_id);
-		$this->test_response($response);
-
-		return true;
-	}
-
-	public function reboot_instance($id)
-	{
-		$this->load->model('Instance_model', 'instance');
-		
-		$instance_id = $this->get_provider_instance_id($id);
-		if(!$instance_id) return false;
-		
-		$response = $this->ec2->reboot_instances($instance_id);
-		$this->test_response($response);
-
-		return true;
-	}
-	
-	/*
-	 * These methods define actions on multiple instances
-	 */
-	public function reboot_instances($ids)
-	{
-		$response = $this->ec2->reboot_instances($ids);
+		$response = $this->ec2->start_instances($ids);
 		$this->test_response($response);
 		return true;
 	}
 	
-	public function stop_instances($ids)
+	public function stop_instances(array $ids)
 	{
 		$response = $this->ec2->stop_instances($ids);
 		$this->test_response($response);
 		return true;
 	}
 	
-	public function terminate_instances($ids)
+	public function reboot_instances(array $ids)
 	{
-		$this->load->model('Instance_model', 'instance');
-		
+		$response = $this->ec2->reboot_instances($ids);
+		$this->test_response($response);
+		return true;
+	}
+	
+	public function terminate_instances(array $ids)
+	{
 		$response = $this->ec2->terminate_instances($ids);
 		$this->test_response($response);
-		foreach($ids as $id)
-		{
-			$id = $this->db->escape($id);
-			$this->instance->add_user_deleted_instance(
-				$id,
-				$this->session->userdata('account_id')
-			);
-		}
+		
+		$this->load->model('Instance_model', 'instance');
+		$this->instance->terminate_instances($ids, $this->session->userdata('account_id'));
 		return true;
 	}
 
