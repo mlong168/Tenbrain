@@ -177,7 +177,7 @@ var Load_balancers = function(){
 		sm: reg_checkbox_sm,
 		view: new xg.GridView({
 			forceFit: true,
-			emptyText: '<p style="text-align: center">No instances have been registered with this load balancer so far</p>'
+			emptyText: '<p style="text-align: center">No instances are available to register with this load balancer</p>'
 		}),
 		cm: new xg.ColumnModel({
 			defaultSortable: false,
