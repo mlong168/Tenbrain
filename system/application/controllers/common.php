@@ -123,6 +123,8 @@ class Common extends Controller {
 		
 		foreach($out as $instance)
 		{
+			if($instance['state'] == 'terminated')
+				continue;
 			if($instance['state'] != 'stopped')
 				$instances['running'][] = $instance;
 			else

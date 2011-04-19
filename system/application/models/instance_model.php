@@ -101,11 +101,11 @@ class Instance_model extends Model {
 		));
 	}
 
-	function terminate_instance($id,$account_id)
+	function terminate_instance($id)
 	{
 		$this->db->insert('user_deleted_instances', array(
 			'instance_id'	=> $id,
-			'account_id'	=> $account_id
+			'account_id'	=> $this->session->userdata('account_id')
 		));
 	}
 
