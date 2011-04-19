@@ -139,6 +139,53 @@ class Gogrid extends Controller {
 			'success' => $this->gg->delete_load_balancer($this->input->post('id'))
 		));
 	}
+	
+	function create_backup($instance_id,$name,$description)
+	{
+		echo json_encode(array(
+			'success' => $this->gg->create_backup(
+				//$this->input->post('instance_id'),
+				//$this->input->post('name'),
+				//$this->input->post('description')
+				$instance_id,
+				$name,
+				$description
+			)
+		));
+	}
+	
+	function created_backups()
+	{
+		echo json_encode(array(
+			'success' => $this->gg->created_backups()
+		));
+	}
+	
+	function delete_backup($backup_id)
+	{
+		echo json_encode(array(
+			'success' => $this->gg->delete_backup($backup_id)
+		));
+	}
+	
+	function backup_instance($backup_id)
+	{
+		echo json_encode();
+	}
+	
+	function restore_backup_to_corresponding_instance($provider_backup_id)
+	{
+		echo json_encode(array(
+			'success' => $this->gg->restore_snapshot_to_corresponding_instance($this->input->post('provider_backup_id'))
+		));
+	}
+	
+	function restore_backup_to_new_instance()
+	{
+		echo json_encode(array(
+			'success' => $this->gg->restore_backup_to_new_instance($this->input->post('provider_backup_id'))
+		));
+	}
 }
 
 /* End of file gogrid.php */

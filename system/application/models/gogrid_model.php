@@ -615,4 +615,123 @@ class Gogrid_model extends Provider_model {
 		print_r($this->list_load_balancers());
 		echo PHP_EOL;die;
 	}
+	
+	//Snapshots
+	
+	function create_backup($id,$name,$description = 'sample description')
+	{
+		$this->load->model("Backup_model","backup");
+		
+		$instance_id = $this->get_provider_instance_id($id);
+		if(!$instance_id) return false;
+		
+		$response = $this->gogrid->call('grid.image.get', array(
+			'id' => $instance_id
+		));
+		$response = json_decode($response);
+
+		//TODO debug
+		$status = $response->status;
+		if(!$status == 'failure') $this->die_with_error('The snapshot could not be created from an instance yet');
+		
+		$response = $this->gogrid->call('grid.image.save', array(
+			'server' => $instance_id,
+			'description' => $description,
+			'friendlyName'	=> $name
+		));
+
+		$response = json_decode($response);
+	
+		$this->test_response($response);
+		
+		$backup_id = $response->list[0]->id;
+		$this->backup->add_backup(array(
+			'instance_id'	=>	$instance_id,
+			'provider_backup_id'	=>	$backup_id 
+		));
+		return true;
+	}
+	
+	public function delete_backup($backup_id = false)
+	{
+		$this->load->model("Backup_model","backup");
+		
+		if(!$backup_id) $this->die_with_error('No snapshot specified');
+		$response = $this->gogrid->call('grid.image.delete', array(
+			'id' => $backup_id
+		));
+		
+		$response = json_decode($response);
+		$this->test_response($response);
+		
+		$this->backup->remove_backup($backup_id);
+		return true;
+	}
+	
+	public function created_backups()
+	{
+		$response = $this->gogrid->call('grid.image.list',array(
+			'isPublic' => false 
+		));
+		
+		$response = json_decode($response);
+		
+		$this->test_response($response);
+		
+		return true;
+	}
+	//Temp method
+	public function get_backup($id)
+	{
+		$this->load->model("Backup_model","backup");
+		$backup = $this->backup->get_backup($id);
+		return true;
+	}
+	
+	private function start_backup_image($instance)
+	{
+		$this->gogrid->call('grid.server.add', array(
+			'name' => $name,
+			'image' => $instance,
+			'server.ram' => $ram,
+			'ip' => $ip
+		));
+		
+
+		$response = json_decode($response);
+		// print_r($response);die;
+		$this->test_response($response);
+		
+		$this->load->model('Instance_model', 'instance');
+		
+		// write to db if things went fine
+		$instance = $response->list[0];
+		// print_r($instance);
+		$this->instance->add_user_instance(array(
+			'account_id' => $this->session->userdata('account_id'),
+			'instance_name' => $instance->name,
+			'provider' => 'GoGrid',
+			'public_ip' => $instance->ip->ip
+		));
+		
+		return true;
+	}
+	
+	public function restore_snapshot_to_corresponding_instance($provider_backup_id)
+	{
+		$this->load->model("Backup_model","backup");
+		$backup = $this->backup->get_backup_by_provider_id($provider_backup_id);
+		
+		$this->start_backup_image($provider_backup_id);
+	}
+	
+	public function restore_backup_to_new_instance($provider_backup_id)
+	{
+		//$this->load->model("Backup_model","backup");
+		//$backup = $this->backup->get_backup_by_provider_id($provider_backup_id);
+		
+		$this->start_backup_image($provider_backup_id);
+		
+		return true;
+	}
 }

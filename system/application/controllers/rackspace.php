@@ -105,6 +105,36 @@ class Rackspace extends Controller {
 			'success' => $this->rack->delete_load_balancer($this->input->post('id'))
 		));
 	}
+
+	function create_backup()
+	{
+		echo json_encode();
+	}
+	
+	function created_backups()
+	{
+		echo json_encode();
+	}
+	
+	function delete_backup()
+	{
+		echo json_encode();
+	}
+	
+	function backup_instance()
+	{
+		echo json_encode();
+	}
+	
+	function restore_backup_to_corresponding_instance()
+	{
+		echo json_encode();
+	}
+	
+	function restore_backup_to_new_instance()
+	{
+		echo json_encode();
+	}
 }
 
 /* End of file rackspace.php */
