@@ -247,10 +247,10 @@ class Gogrid_model extends Provider_model {
 	}
 	
 	public function launch_instance($params)
-	{	
+	{
 		$response = $this->gogrid->call('grid.server.add', $params);
 		$response = json_decode($response);
-		// print_r($response);die;
+
 		$this->test_response($response);
 		
 		$this->load->model('Instance_model', 'instance');
@@ -265,28 +265,6 @@ class Gogrid_model extends Provider_model {
 			'public_ip' => $instance->ip->ip
 		));
 		return true;
-	}
-	
-	public function delete_instance($id)
-	{
-		$instance_id = $this->get_provider_instance_id($id);
-		if(!$instance_id) return false;
-		
-		$response = $this->gogrid->call('grid.server.delete', array(
-			'id' => $instance_id
-		));
-		$response = json_decode($response);
-		$this->test_response($response);
-		
-		$success =  $response->status === 'success';
-		if($success)
-		{
-			$this->db->insert('user_deleted_instances', array(
-				'instance_id'	=> $id,
-				'account_id'	=> $this->session->userdata('account_id')
-			));
-		}
-		return $success;
 	}
 	
 	public function get_password($instance_id)

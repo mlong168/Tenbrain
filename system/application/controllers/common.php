@@ -283,6 +283,41 @@ class Common extends Controller {
 		));
 	}
 	
+	function instances_for_load_balancing()
+	{
+		$supported_providers = array('Amazon', 'GoGrid', 'Rackspace'); // possibly to be added to config
+		$provider = $this->input->post('provider');
+		
+		if(!in_array($provider, $supported_providers)) return false;
+		
+		$this->load->model('Balancer_model', 'balancer');
+		$instances = $this->balancer->get_instances_for_lb($this->session->userdata('account_id'), $provider);
+		
+		echo json_encode(array(
+			'success'	=> true,
+			'instances'	=> $instances
+		));
+	}
+	
+	function create_load_balancer()
+	{
+		$name = $this->input->post('name');
+		$instances = $this->input->post('instances');
+		$provider = $this->input->post('provider');
+		
+		if(!in_array($provider, array('Amazon', 'GoGrid', 'Rackspace'))) return false;
+		
+		// complete the functionality for creating lb's here!!!
+		
+		echo json_encode(array(
+			'success'	=> true
+		));
+		
+		return true;
+		
+		$this->providers[$provider]->create_load_balancer($name, $instances);
+	}
+	
 	function register_instances_within_lb()
 	{
 		$this->load->model('Balancer_model', 'balancer');

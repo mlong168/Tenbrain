@@ -87,8 +87,9 @@ class Balancer_model extends Model {
 		foreach($query->result() as $row)
 		{
 			$instances[] = array(
-				'id'		=> $row->id,
-				'name'		=> $row->name . ' (' . $row->address . ')'
+				'id'		=> (int) $row->id,
+				'name'		=> $row->name,
+				'address'	=> $row->address ? $row->address : 'no public IP'
 			);
 		}
 

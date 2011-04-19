@@ -4,9 +4,9 @@ class Gogrid extends Controller {
 
 	function __construct()
 	{
-		parent::Controller();
+		parent::__construct();
 		
-		//authentication stuff:		
+		//authentication stuff:
 		$this->load->helper(array('language'));
         $this->load->library(array('account/authentication'));
 		$this->load->model(array('account/account_model'));
@@ -69,34 +69,6 @@ class Gogrid extends Controller {
 		
 		echo json_encode(array(
 			'success' => $this->gg->launch_instance($params)
-		));
-	}
-	
-	function terminate_instance()
-	{
-		echo json_encode(array(
-			'success' => $this->gg->delete_instance($this->input->post('instance_id'))
-		));
-	}
-	
-	function reboot_instance()
-	{
-		echo json_encode(array(
-			'success' => $this->gg->restart_instance($this->input->post('instance_id'))
-		));
-	}
-	
-	function start_instance()
-	{
-		echo json_encode(array(
-			'success' => $this->gg->start_instance($this->input->post('instance_id'))
-		));
-	}
-	
-	function stop_instance()
-	{
-		echo json_encode(array(
-			'success' => $this->gg->stop_instance($this->input->post('instance_id'))
 		));
 	}
 	

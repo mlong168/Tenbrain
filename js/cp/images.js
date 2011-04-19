@@ -308,8 +308,7 @@ var Images = function(){
 				successProperty: 'success',
 				idProperty: 'id'
 			}, record),
-			groupField: 'provider',
-			autoLoad: true
+			groupField: 'provider'
 		});
 	}();
 	
@@ -328,6 +327,10 @@ var Images = function(){
 				e.preventDefault();
 				images_menu.selected_image = grid.getStore().getAt(id);
 				images_menu.showAt(e.getXY());
+			},
+			activate: function(p){
+				var store = p.getStore();
+				if(store.lastOptions === null) store.load();
 			}
 		},
 		colModel: new Ext.grid.ColumnModel({

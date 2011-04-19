@@ -20,8 +20,7 @@ var Instances = function(){
 					root: 'instances',
 					successProperty: 'success',
 					idProperty: 'id'
-				}, record),
-				autoLoad: true
+				}, record)
 			});
 		}
 		return stores;
@@ -205,6 +204,20 @@ var Instances = function(){
 	var link_wrapper = function(link){
 		return '<a target="_blank" href="http://' + link + '/">' + link + '</a>';
 	};
+	
+	var first_time_loader = function(p){
+		var store = p.getStore(),
+			mask = new Ext.LoadMask(p.getGridEl(), {
+				msg: 'Loading, please wait',
+				removeMask: true,
+				store: store
+			});
+		if(store.lastOptions === null)	// show the mask only for the first time store is loaded
+		{
+			store.load();
+			mask.disable();
+		}
+	};
 
 	// layouts:
 	var xg = Ext.grid, sm_running = new xg.CheckboxSelectionModel(), grids = { };
@@ -224,7 +237,8 @@ var Instances = function(){
 				if(menu.ref_grid === null) menu.ref_grid = grid;
 				menu.selected_record_id = id;
 				menu.showAt(e.getXY());
-			}
+			},
+			activate: first_time_loader
 		},
 		sm: sm_running,
 		cm: new xg.ColumnModel({
@@ -469,7 +483,8 @@ var Instances = function(){
 				if(menu.ref_grid === null) menu.ref_grid = grid;
 				menu.selected_record_id = id;
 				menu.showAt(e.getXY());
-			}
+			},
+			activate: first_time_loader
 		},
 		tbar: {
 			xtype: 'toolbar',
@@ -555,6 +570,9 @@ var Instances = function(){
 			forceFit: true,
 			emptyText: '<p style="text-align: center">You do not have any terminated instance so far</p>'
 		}),
+		listeners: {
+			activate: first_time_loader
+		},
 		cm: new xg.ColumnModel({
 			defaultSortable: false,
 			columns: [
@@ -568,6 +586,12 @@ var Instances = function(){
 			]
 		})
 	});
+	
+	// var terminated_mask = new Ext.LoadMask('terminated_instances-panel', {
+	// 	msg: 'Loading the list of terminated instances, please wait',
+	// 	removeMask: true,
+	// 	store: store.terminated
+	// });
 	
 	return {
 		get_panel: function(state){ return grids[state] },

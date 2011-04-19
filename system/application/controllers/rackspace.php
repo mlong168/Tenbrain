@@ -52,34 +52,6 @@ class Rackspace extends Controller {
 			)
 		));
 	}
-	
-	function terminate_instance()
-	{
-		echo json_encode(array(
-			'success' => $this->rack->delete_instance($this->input->post('instance_id'))
-		));
-	}
-	
-	function reboot_instance()
-	{
-		echo json_encode(array(
-			'success' => $this->rack->restart_instance($this->input->post('instance_id'))
-		));
-	}
-	
-	function start_instance()
-	{
-		echo json_encode(array(
-			'success' => $this->rack->start_instance($this->input->post('instance_id'))
-		));
-	}
-	
-	function stop_instance()
-	{
-		echo json_encode(array(
-			'success' => $this->rack->stop_instance($this->input->post('instance_id'))
-		));
-	}
 
 	function get_instances_for_lb()
 	{
