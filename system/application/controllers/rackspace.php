@@ -78,34 +78,51 @@ class Rackspace extends Controller {
 		));
 	}
 
-	function create_backup()
+	function create_backup($instance_id,$name,$description)
 	{
-		echo json_encode();
+		echo json_encode(array(
+			'success' => $this->rack->create_backup(
+				//$this->input->post('instance_id'),
+				//$this->input->post('name'),
+				//$this->input->post('description')
+				$instance_id,
+				$name,
+				$description
+			)
+		));
 	}
 	
 	function created_backups()
 	{
-		echo json_encode();
+		echo json_encode(array(
+			'success' => $this->rack->created_backups()
+		));
 	}
 	
-	function delete_backup()
+	function delete_backup($backup_id)
 	{
-		echo json_encode();
+		echo json_encode(array(
+			'success' => $this->rack->delete_backup($backup_id)
+		));
 	}
 	
-	function backup_instance()
+	function backup_instance($provider_backup_id)
 	{
-		echo json_encode();
+		echo json_encode($this->rack->describe_backup_instance($provider_backup_id));
 	}
 	
-	function restore_backup_to_corresponding_instance()
+	function restore_backup_to_corresponding_instance($provider_backup_id)
 	{
-		echo json_encode();
+		echo json_encode(array(
+			'success' => $this->rack->restore_backup_to_corresponding_instance($provider_backup_id)
+		));
 	}
 	
-	function restore_backup_to_new_instance()
+	function restore_backup_to_new_instance($provider_backup_id)
 	{
-		echo json_encode();
+		echo json_encode(array(
+			'success' => $this->rack->restore_backup_to_new_instance($provider_backup_id)
+		));
 	}
 }
 

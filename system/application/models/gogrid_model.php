@@ -639,30 +639,30 @@ class Gogrid_model extends Provider_model {
 		
 		$this->test_response($response);
 		
-		return true;
-	}
-	//Temp method
-	public function get_backup($id)
-	{
-		$this->load->model("Backup_model","backup");
-		$backup = $this->backup->get_backup($id);
-		return true;
+		return $response;
 	}
 	
-	private function start_backup_image($instance)
+	private function start_backup_image($backup_id)
 	{
-		$this->gogrid->call('grid.server.add', array(
+		$ips = $this->get_free_addresses();
+		//$ips = null;
+		$name = "NewName4";
+		$ram = 1;
+		if(!count($ips)>0)
+			return false;
+		$ip = $ips[0]['address'];
+		
+		$response= $this->gogrid->call('grid.server.add', array(
 			'name' => $name,
-			'image' => $instance,
+			'image' => $backup_id,
 			'server.ram' => $ram,
 			'ip' => $ip
 		));
-		
 
 		$response = json_decode($response);
 		// print_r($response);die;
 		$this->test_response($response);
-		
+		print_r($response);
 		$this->load->model('Instance_model', 'instance');
 		
 		// write to db if things went fine
@@ -678,21 +678,74 @@ class Gogrid_model extends Provider_model {
 		return true;
 	}
 	
-	public function restore_snapshot_to_corresponding_instance($provider_backup_id)
+	public function restore_backup_to_corresponding_instance($provider_backup_id)
 	{
 		$this->load->model("Backup_model","backup");
 		$backup = $this->backup->get_backup_by_provider_id($provider_backup_id);
+
+		if(!$backup)
+			return false;
+		print_r($backup);
+		$response = $this->gogrid->call('grid.server.get', array(
+			'id' => $backup->instance_id
+		));
+		$_instance = json_decode($response);
+
+		if(isset($_instance) && $_instance->status == 'success')
+		{
+			$response = $this->gogrid->call('grid.server.delete', array(
+				'id' => $_instance->list[0]->id
+			));
+		}
 		
-		$this->start_backup_image($provider_backup_id);
+		return $this->start_backup_image($provider_backup_id);
 	}
 	
 	public function restore_backup_to_new_instance($provider_backup_id)
 	{
-		//$this->load->model("Backup_model","backup");
-		//$backup = $this->backup->get_backup_by_provider_id($provider_backup_id);
+		$this->load->model("Backup_model","backup");
+		$backup = $this->backup->get_backup_by_provider_id($provider_backup_id);
+		if(!$backup)
+			return false;
+			
+		return $this->start_backup_image($provider_backup_id);
+	}
+	
+	public function describe_backup_instance($provaider_backup_id = false)
+	{
+		if(!$provaider_backup_id) $this->die_with_error('No backup specified');
 		
-		$this->start_backup_image($provider_backup_id);
+		$instances = $this->get_backuped_instance($provaider_backup_id);
 		
-		return true;
+		return array(
+			'success'	=> true,
+			'instances'	=> $instances
+		);
+	}
+	
+	private function get_backuped_instance($provaider_backup_id)
+	{
+		$this->load->model("Backup_model","backup");
+		$backup = $this->backup->get_backup_by_provider_id($provaider_backup_id);
+		
+		$response = $this->gogrid->call('grid.server.get', array(
+			'id' => $backup->instance_id
+		));
+		$instance = json_decode($response);
+		$instance = $instance->list[0];
+		//print_r($instance);
+		$instance_desrc = array(
+			'id'				=> $instance->id,
+			'name'				=> (string) $instance->name,
+			'snapshot_id'		=> (string) $provaider_backup_id,
+			'capacity'			=> (string) ($instance->diskSize/1024) . 'GB',
+			//'description'		=> (string) $instance->description,
+			'status'			=> (string) $instance->state->name,
+			//'progress'			=> (string) $instance->progress,
+			//'started'			=> $instance->started
+			// ''				=> (string) $instance->,
+		);
+
+		return $instance_desrc;
 	}
 }
