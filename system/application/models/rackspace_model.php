@@ -241,13 +241,13 @@ class Rackspace_model extends Provider_model {
 		);;
 	}
 	
-	public function create_load_balancer($name, $instances)
+	public function create_load_balancer($name, array $instances, $gg_lb_address = false)
 	{
 		$this->load->model('Instance_model', 'instances');
-		$ips = $this->instances->get_instances_details($instances, 'provider_instance_id');
-		foreach($ips as $id)
+		$nodes = array();
+		foreach(array_keys($instances) as $id)
 		{
-			$instance = $this->GET_request('servers/' . $id->provider_instance_id);
+			$instance = $this->GET_request('servers/' . $id);
 			$nodes []= array(
 				'address'	=> $instance->server->addresses->private[0],
 				'port'		=> '80',
@@ -270,8 +270,11 @@ class Rackspace_model extends Provider_model {
 		if(!$lb) return false;
 		$this->load->model('Balancer_model', 'balancer');
 		$lb = $lb->loadBalancer;
-		$this->balancer->create_load_balancer($lb->name, $this->name, $lb->id, 'PUBLIC');
-		
+		$lb_id = $this->balancer->create_load_balancer($lb->name, $this->name, $lb->id, 'PUBLIC');
+		foreach($instances as $instance)
+		{
+			$this->balancer->add_load_balancer_instances($lb_id, $instance['instance_id']);
+		}
 		return true;
 	}
 	
@@ -321,5 +324,33 @@ class Rackspace_model extends Provider_model {
 		// $images = $this->launch_instance('tenbrain first', 4, 1);
 		// print_r($images);
 		echo PHP_EOL; die;
+	}
+	
+	public function get_load_balanced_instances($lb_pid, $lb_dbid)
+	{
+		$db_instances = $this->balancer->get_load_balanced_instances($lb_dbid);
+		$instances = array();
+		foreach(array_keys($db_instances) as $id)
+		{
+			$instance = $this->GET_request('servers/' . $id);
+			$instances[$instance->server->addresses->private[0]]= $db_instances[$instance->server->id];
+		}
+		
+		$this->server_url = str_replace('servers', 'ord.loadbalancers', $this->server_url);
+		$nodes = $this->GET_request('loadbalancers/' . $lb_pid . '/nodes');
+		$nodes = $nodes->nodes;
+		
+		$out = array();
+		foreach($nodes as $node)
+		{
+			$out []= array(
+				'id'				=> $instances[$node->address]['id'],
+				'name'				=> $instances[$node->address]['name'],
+				'ip_address'		=> $node->address,
+				'healthy'			=> $node->status === 'ONLINE',
+				'health_message'	=> $node->condition
+			);
+		}
+		return $out;
 	}
 }

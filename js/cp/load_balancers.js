@@ -1,33 +1,36 @@
 var Load_balancers = function(){
-	var registered_instances_store = function(){
-		var record = Ext.data.Record.create([
-			'id',
-			'name',
-			'ip_address',
-			'healthy',
-			'health_message'
-		]);
-		return new Ext.data.Store({
-			url: '/common/get_load_balanced_instances',
-			reader: new Ext.data.JsonReader({
-				root: 'instances',
-				successProperty: 'success',
-				idProperty: 'id'
-			}, record)
-		});
-	}();
 	
-	var xg = Ext.grid, checkbox_sm = new xg.CheckboxSelectionModel();
-	var reg_checkbox_sm = new xg.CheckboxSelectionModel()
+	var registered_instances_store = new Ext.data.JsonStore({
+		url: 'common/get_load_balanced_instances',
+		root: 'instances',
+		fields: [{name: 'id', type: 'int'}, {name: 'name', type: 'string'},
+				{name: 'ip_address', type: 'string'}, {name: 'healthy', type: 'string'}, {name: 'health_message', type: 'string'}],
+		baseParams: {
+			lb_id: 0
+		}
+	});
+	
+	var show_lb_instances = function(lb_id){
+		var record = lb_menu.selected_record,
+			name = record.get('name'),
+			id = record.get('id');
+		
+		lb_menu.hide();
+		registered_instances_window.show().center().setTitle('Instances registered within the load balancer "' + name + '"');
+		registered_instances_store.baseParams.lb_id = id;
+		registered_instances_store.reload();
+	};
+	
+	var xg = Ext.grid, checkbox_sm = new xg.CheckboxSelectionModel()
 	var registered_instances_grid = new xg.GridPanel({
 		id: 'lb_registered_instances',
 		layout: 'fit',
 		loadMask: true,
 		store: registered_instances_store,
-		sm: reg_checkbox_sm,
+		sm: checkbox_sm,
 		view: new xg.GridView({
 			forceFit: true,
-			emptyText: '<p style="text-align: center">No instances are available to register with this load balancer</p>'
+			emptyText: '<p style="text-align: center">No instances have been registered with this load balancer</p>'
 		}),
 		listeners: {
 			activate: function(p){
@@ -38,7 +41,7 @@ var Load_balancers = function(){
 		cm: new xg.ColumnModel({
 			defaultSortable: false,
 			columns: [
-				reg_checkbox_sm,
+				checkbox_sm,
 				{header: "Name", dataIndex: 'name', width: 150},
 				{header: "Healthy?", dataIndex: 'healthy', width: 100, renderer: function(value, metadata, record){
 					var tpl = new Ext.XTemplate('<tpl for=".">sick <span ext:qtip="{health_message}" style="color:blue; text-decoration:underline">(why?)</span></tpl>');
@@ -57,12 +60,12 @@ var Load_balancers = function(){
 				cls: 'x-btn-text-icon',
 				iconCls: 'terminate',
 				handler: function(){
-					var selected = reg_checkbox_sm.getSelections(), instances = [],
+					var selected = checkbox_sm.getSelections(), instances = [],
 						title = 'Deregister Instances with load balancer',
 						success = 'Selected instances have been deregistered successfully',
 						error = 'A problem has occurred while deregistering selected instances';
 
-					if(!reg_checkbox_sm.getCount())
+					if(!checkbox_sm.getCount())
 					{
 						Ext.Msg.alert('Warning', 'Please select some instances to perform the action');
 						return false;
@@ -110,6 +113,20 @@ var Load_balancers = function(){
 			}]
 		},
 		ref_lb_name: null
+	});
+
+	var registered_instances_window = new Ext.Window({
+		layout: 'fit',
+		closeAction: 'hide',
+		border: false,
+		width: 700,
+		height: 300,
+		minWidth: 400,
+		minHeight: 200,
+		plain: 'true',
+		items: registered_instances_grid,
+		bodyStyle: 'padding:5px;',
+		modal : true
 	});
 	
 	var instances_to_register_store = new Ext.data.JsonStore({
@@ -224,7 +241,7 @@ var Load_balancers = function(){
 					success = 'Load balancer was created successfully',
 					error = 'A problem has occured while creating a load balancer';
 				
-				modal_window.hide();
+				deploy_window.hide();
 				Ext.Msg.wait('Your load balancer is being created', title);
 				deploy_form.getForm().submit({
 					success: function(form, action){
@@ -239,19 +256,18 @@ var Load_balancers = function(){
 		}, {
 			text: 'Cancel',
 			handler: function(){
-				modal_window.hide();
+				deploy_window.hide();
 			}
 		}]
 	});
 
-	var modal_window = new Ext.Window({
+	var deploy_window = new Ext.Window({
 		title: 'Create load balancer',
-		id: 'modal_window',
 		layout: 'fit',
 		closeAction: 'hide',
 		width: 350,
 		minWidth: 300,
-		minHeight: 200,
+		// minHeight: 200,
 		plain: 'true',
 		items: deploy_form,
 		bodyStyle: 'padding:5px;',
@@ -270,34 +286,11 @@ var Load_balancers = function(){
 							record = lb_menu.selected_record;
 						
 						lb_menu.hide();						
-						modal_window
-							.setTitle('Instances available to register within the load balancer "' + record.get('name') + '"')
-							.setSize(700, 250).show().center()
-							.getLayout().setActiveItem('lb_multi_purpose_instances');
-						
-						instance_store.reload({
-							params: {
-								lb_id: record.get('id')
-							}
-						});
+						Ext.Msg.Alert('This is to be completed till evening no matter what');
 					}
 				}, {
 					text: 'Deregister instances from load balancer',
-					handler: function(){
-						var grid = lb_menu.ref_grid,
-							record = lb_menu.selected_record;
-						
-						lb_menu.hide();
-						modal_window
-							.setTitle('Instances registered within the load balancer "' + record.get('name') + '"')
-							.setSize(700, 250).show().center()
-							.getLayout().setActiveItem('lb_registered_instances');
-						registered_instances_store.reload({
-							params: {
-								lb_id: record.get('id')
-							}
-						});
-					}
+					handler: show_lb_instances
 				}]
 			}
 		}, {
@@ -305,21 +298,7 @@ var Load_balancers = function(){
 			menu: {
 				items: [{
 					text: 'View instances registered within the load balancer',
-					handler: function(){
-						var grid = lb_menu.ref_grid,
-							record = lb_menu.selected_record;
-						
-						lb_menu.hide();
-						modal_window
-							.setTitle('Instances registered within the load balancer "' + record.get('name') + '"')
-							.setSize(700, 250).show().center()
-							.getLayout().setActiveItem('lb_registered_instances');
-						registered_instances_store.reload({
-							params: {
-								lb_id: record.get('id')
-							}
-						});
-					}
+					handler: show_lb_instances
 				}, {
 					text: 'Delete load balancer',
 					handler: function(){
@@ -441,9 +420,7 @@ var Load_balancers = function(){
 					var form = deploy_form.getForm().reset();					
 					form.findField('gogrid_lb_address').disable().hide();
 					form.findField('instance_to_register_within_lb').disable();
-					modal_window
-						.setTitle('Create Load Balancer')
-						.show().center()
+					deploy_window.show().center();
 				}
 			}, '->', {
 				xtype: 'button',
@@ -471,12 +448,6 @@ var Load_balancers = function(){
 	});
 	
 	return {
-		deploy: function(){
-			modal_window
-				.setTitle('Create Load Balancer')
-				.setSize(270, 102).show().center()
-				.getLayout().setActiveItem('lb_deploy_form');
-		},
 		get_grid: function(){
 			return grid;
 		}

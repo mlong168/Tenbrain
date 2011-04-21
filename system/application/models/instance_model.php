@@ -35,7 +35,7 @@ class Instance_model extends Model {
 	
 	public function get_instances_details($instance_ids, $fields = array('instance_name'))
 	{
-		$possible_fields = array('ínstance_id', 'provider_instance_id', 'instance_name', 'provider', 'public_ip', 'created_on');
+		$possible_fields = array('instance_id', 'provider_instance_id', 'instance_name', 'provider', 'public_ip', 'created_on');
 		$fields_to_retrieve = array();
 		if(!is_array($fields)) $fields = array($fields);
 		foreach($fields as $field)
@@ -46,13 +46,14 @@ class Instance_model extends Model {
 		foreach($fields_to_retrieve as &$field) $field = 'ui.' . $field;
 		
 		if(!is_array($instance_ids)) $instance_ids = array($instance_ids);
+		foreach($instance_ids as &$ins) $ins = $this->db->escape($ins);
 		
 		$sql = 'SELECT ' . implode(',', $fields_to_retrieve);
 		$sql .= ' FROM user_instances ui';
 		$sql .= ' LEFT JOIN user_deleted_instances udi USING(instance_id)';
 		$sql .= ' WHERE ui.account_id = ' . $this->session->userdata('account_id');
 		$sql .= ' AND udi.instance_id IS NULL';
-		$sql .= ' AND ui.instance_id IN(' . implode($instance_ids) . ')';
+		$sql .= ' AND ui.instance_id IN(' . implode(',', $instance_ids) . ')';
 		
 		$query = $this->db->query($sql);
 		return $query->num_rows() ? $query->result() : array();
@@ -201,24 +202,6 @@ class Instance_model extends Model {
 		$this->db->update('load_balancer_instances', array(
 			'active' => false
 		));
-	}
-
-	function get_instances_by_provider_name($name,$account_id,$instances)
-	{
-		$sql = 'SELECT ui.public_ip as ip';
-		$sql .= ' FROM user_instances ui';
-		$sql .= ' LEFT JOIN user_deleted_instances udi USING(instance_id)';
-		$sql .= ' WHERE ui.account_id = ' . $account_id;
-		$sql .= ' AND udi.instance_id IS NULL';
-		$sql .= " AND ui.provider='{$name}'";
-		$sql .= ' AND ui.instance_id IN (' . implode(',', $instances) . ')';
-		
-		$real_ips = array(); $i = 0;
-		$query = $this->db->query($sql);
-		
-		$result = $query->result();
-		
-		return $result;
 	}
 	
 	function get_user_terminated_instances()

@@ -64,11 +64,12 @@ class Balancer_model extends Model {
 			'active' => false
 		));
 	}
-	function add_load_balancer_instances($id,$lb_id)
+	
+	function add_load_balancer_instances($lb_id, $id)
 	{
 		$this->db->insert('load_balancer_instances', array(
-			'load_balancer_id'	=> $id,
-			'instance_id'		=> $lb_id,
+			'load_balancer_id'	=> $lb_id,
+			'instance_id'		=> $id,
 			'active'			=> true
 		));
 	}
@@ -135,7 +136,7 @@ class Balancer_model extends Model {
 		$sql = 'SELECT ui.instance_id as id, ui.public_ip as ip';
 		$sql .= ' FROM load_balancer_instances lbi';
 		$sql .= ' INNER JOIN user_instances ui USING(instance_id)';
-		$sql .= ' WHERE lbi.load_balancer_id = ' . $this->db->escape($lb->id);
+		$sql .= ' WHERE lbi.load_balancer_id = ' . $this->db->escape($lb_id);
 		$sql .= ' AND lbi.active = 1';
 		$sql .= ' ';
 		
@@ -146,5 +147,31 @@ class Balancer_model extends Model {
 		$result = $query->result();
 		
 		return $result;
+	}
+	
+	function get_load_balanced_instances($lb_id)
+	{
+		$sql = 'SELECT ui.instance_id as id, ui.provider_instance_id as pid,';
+		$sql .= ' ui.public_ip as ip_address, ui.instance_name as name';
+		$sql .= ' FROM load_balancer_instances lbi';
+		$sql .= ' INNER JOIN user_instances ui USING(instance_id)';
+		$sql .= ' WHERE lbi.load_balancer_id = ' . $this->db->escape($lb_id);
+		$sql .= ' AND lbi.active = 1';
+		$sql .= ' ';
+		
+		$query = $this->db->query($sql);
+		$num_registered = $query->num_rows();
+		if(!$num_registered) return array();
+		
+		$out = array();
+		foreach($query->result() as $row)
+		{
+			$out[$row->pid] = array(
+				'id'			=> $row->id,
+				'name'			=> $row->name,
+				'ip_address'	=> $row->ip_address
+			);
+		}		
+		return $out;
 	}
 }

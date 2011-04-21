@@ -38,6 +38,26 @@ class Common extends Controller {
 			die();
 		}
 	}
+	
+	private function successfull_response($message = '', $additional_params = array())
+	{
+		echo json_encode(array_merge(array(
+			'success'	=> true,
+			'message'	=> $message
+		), $additional_params));
+		
+		return true;
+	}
+	
+	private function failure_response($message, $additional_params = array())
+	{
+		echo json_encode(array_merge(array(
+			'success'	=> true,
+			'message'	=> $message
+		), $additional_params));
+		
+		return true;
+	}
 
 	function index()
 	{
@@ -216,12 +236,12 @@ class Common extends Controller {
 	{
 		$this->load->model('Balancer_model', 'balancer');
 		
-		$instances = $this->balancer->get_user_load_balancers();
+		$balancers = $this->balancer->get_user_load_balancers();
 		$lbs = $load_balancers = array();
 
-		if(count($instances) > 0)
+		if(count($balancers) > 0)
 		{
-			foreach($instances as $row)
+			foreach($balancers as $row)
 			{
 				$id = $row->id;
 				$lb_pid = $row->p_id;
@@ -247,10 +267,13 @@ class Common extends Controller {
 				if(!array_key_exists($provider, $lbs)) $lbs[$provider] = array();
 				$lbs[$row->provider][$lb_pid] = $id;
 			}
+
 			foreach($this->providers as $provider)
 			{
-				if(!array_key_exists($provider->name, $lbs)) continue;
-				$load_balancers = array_merge($load_balancers, $provider->list_load_balancers($lbs[$provider->name]));
+				if(array_key_exists($provider->name, $lbs))
+				{
+					$load_balancers = array_merge($load_balancers, $provider->list_load_balancers($lbs[$provider->name]));
+				}
 			}
 		}
 
@@ -269,7 +292,7 @@ class Common extends Controller {
 		
 		echo json_encode(array(
 			'success'	=> true,
-			'instances'	=> $this->providers[$lb->provider]->get_load_balanced_instances($lb->id)
+			'instances'	=> $this->providers[$lb->provider]->get_load_balanced_instances($lb->pid, $lb->id)
 		));
 	}
 	
@@ -306,18 +329,29 @@ class Common extends Controller {
 		$name = $this->input->post('name');
 		$instances = $this->input->post('instances');
 		$provider = $this->input->post('provider');
+		$gogrid_lb_address = $this->input->post('address');
+
+		if(!in_array($provider, array('Amazon', 'GoGrid', 'Rackspace'))) return $this->failure_response('sometheing bad happened...');
+	
+		$this->load->model('Instance_model', 'instances');
+		$instances = $this->instances->get_instances_details($instances, array('instance_id', 'provider_instance_id', 'provider', 'public_ip'));
 		
-		if(!in_array($provider, array('Amazon', 'GoGrid', 'Rackspace'))) return false;
+		$to_register = array();
+		foreach($instances as $instance)
+		{
+			if($instance->provider === $provider)
+			{
+				$to_register[$instance->provider_instance_id] = array(
+					'instance_id'	=> $instance->instance_id,
+					'public_ip'		=> $instance->public_ip ? $instance->public_ip : 'not set'
+				);
+			}
+		}
+		if(empty($to_register)) return $this->failure_response('sometheing bad happened...');
 		
-		// complete the functionality for creating lb's here!!!
+		$this->providers[$provider]->create_load_balancer($name, $to_register, $gogrid_lb_address);
 		
-		echo json_encode(array(
-			'success'	=> true
-		));
-		
-		return true;
-		
-		$this->providers[$provider]->create_load_balancer($name, $instances);
+		return $this->successfull_response('Load balancer was created successfully');
 	}
 	
 	function register_instances_within_lb()

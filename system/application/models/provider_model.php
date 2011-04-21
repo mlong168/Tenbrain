@@ -26,6 +26,9 @@ abstract class Provider_model extends Model {
 	abstract public function stop_instances(array $ids);
 	abstract public function reboot_instances(array $ids);
 	abstract public function terminate_instances(array $ids);
+	
+	abstract public function create_load_balancer($name, array $instances, $gogrid_lb_address);
+	abstract public function delete_load_balancer($id);
 }
 
 /* End of file provider.php */

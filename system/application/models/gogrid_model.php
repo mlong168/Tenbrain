@@ -358,43 +358,30 @@ class Gogrid_model extends Provider_model {
 		return $instances;
 	}
 	
-	public function create_load_balancer($name, $ip, $instances)
-	{
-		$this->load->model('Balancer_model', 'balancer');
-		
-		$account_id = $this->session->userdata('account_id');
-		
-		$rows = $this->balancer->get_instances_by_provider_name($this->name,$account_id,$instances);
-		$real_ips = array(); $i = 0;
-		
-		foreach($rows as $row)
+	public function create_load_balancer($name, array $instances, $ip)
+	{	
+		$ips = array();
+		foreach($instances as $inst)
 		{
-			$real_ips['realiplist.' . $i . '.ip'] = $row->ip;
-			$real_ips['realiplist.' . $i . '.port'] = 80;
+			$ips []= $inst['public_ip'];
 		}
-		
+
 		$response = $this->gogrid->call('grid.loadbalancer.add', array_merge(array(
 			'name'				=> $name,
 			'virtualip.ip'		=> $ip,
 			'virtualip.port'	=> 80
-		), $real_ips));
+		), $this->form_realip_array($ips)));
 		$response = json_decode($response);
 		$this->test_response($response);
 		
 		$lb = $response->list[0];
-		
-		$this->db->insert('user_load_balancers', array(
-			'account_id'	=> $this->session->userdata('account_id'),
-			'name'			=> $lb->name,
-			'provider'		=> $this->name,
-			'ip_address'	=> $ip
-		));
-		$lb_id = $this->db->insert_id();
+		$this->load->model('Balancer_model', 'balancer');
+		$lb_id = $this->balancer->create_load_balancer($lb->name, $this->name, null, $ip);
 		
 		// a bit unreliable, should more relay on $lb->realiplist than on $instances
-		foreach($instances as $i_id)
+		foreach($instances as $instance)
 		{
-			$this->balancer->add_load_balancer_instance($lb_id,$i_id);
+			$this->balancer->add_load_balancer_instances($lb_id, $instance['instance_id']);
 		}
 		return true;
 	}
@@ -417,7 +404,7 @@ class Gogrid_model extends Provider_model {
 		$lb_pid = $response->list[0];
 		$lb_pid = $lb_pid->id;
 		
-		$this->balancer->update_user_load_balancer($id,$lb_id);
+		$this->balancer->update_user_load_balancer($id, $lb_pid);
 		
 		return $lb_pid;
 	}
@@ -463,23 +450,19 @@ class Gogrid_model extends Provider_model {
 		return $lbs;
 	}
 	
-	public function get_load_balanced_instances($lb_id)
+	public function get_load_balanced_instances($lb_pid, $lb_dbid)
 	{
-		$this->load->model('Balancer_model', 'balancer');
-		
-		$rows = $this->balancer->get_instances_for_load_balancer($lb_id);
-		
-		$names = array(); $lb_id = '';
+		$rows = $this->balancer->get_load_balanced_instances($lb_dbid);
+		$names = array();
 		foreach($rows as $row)
 		{
-			$names[$row->ip] = array(
-				'id'	=> $row->id,
-				'name'	=> $row->name
+			$names[$row['ip_address']] = array(
+				'id'	=> $row['id'],
+				'name'	=> $row['name']
 			);
-			if(!$lb_id) $lb_id = $row->lb_id;
 		}
 		$response = $this->gogrid->call('grid.loadbalancer.get', array(
-			'id' => $lb_id
+			'id' => $lb_pid
 		));
 		$response = json_decode($response);
 		$this->test_response($response);

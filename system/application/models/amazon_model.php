@@ -875,7 +875,7 @@ class Amazon_model extends Provider_model {
 		);
 	}
 
-	public function create_load_balancer($name)
+	public function create_load_balancer($name, array $instances, $gogrid_lb_address = false)
 	{
 		$elb = $this->get_elb_handle();
 
@@ -888,13 +888,44 @@ class Amazon_model extends Provider_model {
 		), 'us-east-1c');
 		$this->test_response($response);
 		
-		$this->db->insert('user_load_balancers', array(
-			'account_id'		=> $this->session->userdata('account_id'),
-			'name'				=> $name,
-			'provider_lb_id'	=> $name,
-			'provider'			=> $this->name
-		));
+		$this->load->model('Balancer_model', 'balancer');
+		$lb_id = $this->balancer->create_load_balancer($name, $this->name, $name, null);
+		
+		if($this->register_instances_with_load_balancer($name, array_keys($instances)))
+		{
+			foreach($instances as $instance)
+			{
+				$this->balancer->add_load_balancer_instances($lb_id, $instance['instance_id']);
+			}
+		}
 
+		return true;
+	}
+
+	public function register_instances_with_load_balancer($lb_name, $instances)
+	{
+		$enabled_zones = $this->get_lb_availability_zones($lb_name);		
+		$instances_to_register = array();
+		$zones_to_register = array();
+		foreach($instances as $instance)
+		{
+			$response = $this->ec2->describe_instances(array('InstanceId' => $instance));
+			$instance_zone = (string) $response->body->availabilityZone()->first();
+			if(!in_array($instance_zone, $enabled_zones))
+			{
+				$zones_to_register []= $instance_zone;
+			}
+			$instances_to_register []= array('InstanceId' => $instance);
+		}
+		
+		$elb = $this->get_elb_handle();
+		if(count($zones_to_register))
+		{
+			$response = $elb->enable_availability_zones_for_load_balancer($lb_name, $zones_to_register);
+		}
+		
+		$response = $elb->register_instances_with_load_balancer($lb_name, $instances_to_register);
+		$this->test_response($response);
 		return true;
 	}
 
@@ -964,33 +995,6 @@ class Amazon_model extends Provider_model {
 		return $zones;
 	}
 
-	public function register_instances_with_load_balancer($lb_name, $instances)
-	{
-		$enabled_zones = $this->get_lb_availability_zones($lb_name);		
-		$instances_to_register = array();
-		$zones_to_register = array();
-		foreach($instances as $instance)
-		{
-			$response = $this->ec2->describe_instances(array('InstanceId' => $instance));
-			$instance_zone = (string) $response->body->availabilityZone()->first();
-			if(!in_array($instance_zone, $enabled_zones))
-			{
-				$zones_to_register []= $instance_zone;
-			}
-			$instances_to_register []= array('InstanceId' => $instance);
-		}
-		
-		$elb = $this->get_elb_handle();
-		if(count($zones_to_register))
-		{
-			$response = $elb->enable_availability_zones_for_load_balancer($lb_name, $zones_to_register);
-		}
-		
-		$response = $elb->register_instances_with_load_balancer($lb_name, $instances_to_register);
-		$this->test_response($response);
-		return true;
-	}
-
 	public function deregister_instances_from_load_balancer($lb_name, $instances)
 	{
 		$instances_to_register = array();
@@ -1004,8 +1008,9 @@ class Amazon_model extends Provider_model {
 		return true;
 	}
 	
-	public function get_load_balanced_instances($lb_name)
+	public function get_load_balanced_instances($lb_pid, $lb_dbid)
 	{
+		$lb_name = $lb_pid;	// for amazon name is a unique lb identifier
 		if(!$lb_name) return array();
 		
 		$elb = $this->get_elb_handle();	
@@ -1016,49 +1021,20 @@ class Amazon_model extends Provider_model {
 		});
 		
 		$instances = array();
-		$instances['healthy'] = array();
-		$results->each(function($node, $i, &$instances){
-			$healthy = (string) $node->State === 'InService';
-			$id = (string) $node->InstanceId;
-			if($healthy) $instances['healthy'][]= $id;
-			
-			$instances[$id] = array(
-				'healthy'			=> $healthy,
+		$results->each(function($node) use (&$instances){
+			$instances[(string) $node->InstanceId] = array(
+				'healthy'			=> (string) $node->State === 'InService',
 				'health_message'	=> (string) $node->Description
 			);
 		}, $instances);
 		
-		if(count($instances['healthy']))
+		$db_instances = $this->balancer->get_load_balanced_instances($lb_dbid);		
+		$out = array();
+		foreach($instances as $id => $instance)
 		{
-			$response = $this->ec2->describe_instances(array('InstanceId' => $instances['healthy']));
-			$list = $response->body->query('descendant-or-self::instanceId');		
-			$results = $list->map(function($node){
-				return $node->parent();
-			});
-			
-			$results->each(function($node, $i, &$instances){
-				$id = (string) $node->instanceId;
-				if(isset($instances[$id]))
-				{
-					$instances[$id] = array_merge($instances[$id], array(
-						'id'			=> $i,
-						'dns_name'		=> (string) $node->dnsName,
-						'ip_address'	=> (string) $node->ipAddress,
-						'name'			=> (string) $node->tagSet->query("descendant-or-self::item[key='Name']/value")->first()
-						// ''	=> (string) $node->,
-					));
-				}
-			}, $instances);
+			$out []= array_merge($instance, $db_instances[$id]);
 		}
-		unset($instances['healthy']);
-		
-		$output = array();
-		foreach($instances as $key => $value)
-		{
-			$output []= array_merge(array('instance_id' => $key), $value);
-		}
-		
-		return $output;
+		return $out;
 	}
 	
 	public function get_elastic_ips()
