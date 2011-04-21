@@ -140,22 +140,25 @@ class Gogrid extends Controller {
 		));
 	}
 	
-	function backup_instance($backup_id)
+	function backup_instance($provider_backup_id)
 	{
-		echo json_encode();
+		echo json_encode($this->gg->describe_backup_instance($provider_backup_id));
 	}
 	
 	function restore_backup_to_corresponding_instance($provider_backup_id)
 	{
 		echo json_encode(array(
-			'success' => $this->gg->restore_snapshot_to_corresponding_instance($this->input->post('provider_backup_id'))
+			'success' => $this->gg->restore_backup_to_corresponding_instance($provider_backup_id)
 		));
+		//echo json_encode(array(
+		//	'success' => $this->gg->restore_snapshot_to_corresponding_instance($this->input->post('provider_backup_id'))
+		//));
 	}
 	
-	function restore_backup_to_new_instance()
+	function restore_backup_to_new_instance($provider_backup_id)
 	{
 		echo json_encode(array(
-			'success' => $this->gg->restore_backup_to_new_instance($this->input->post('provider_backup_id'))
+			'success' => $this->gg->restore_backup_to_new_instance($provider_backup_id)
 		));
 	}
 }
