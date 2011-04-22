@@ -1,83 +1,0 @@
-10
-
-dir
-32
-http://dev.tenbrain.com/svn/tenbrain/system/database/drivers
-http://dev.tenbrain.com/svn/tenbrain
-
-
-
-2011-01-25T14:41:46.875943Z
-1
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-8630e248-272e-11e0-8c07-d7910d7a0169
-
-mssql
-dir
-
-sqlite
-dir
-
-oci8
-dir
-
-postgre
-dir
-
-mysql
-dir
-
-odbc
-dir
-
-index.html
-file
-
-
-
-
-2011-04-13T08:32:18.379667Z
-0227cfd904e99656279202032b98d4a7
-2011-01-25T14:41:46.875943Z
-1
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-114
-
-mysqli
-dir
-

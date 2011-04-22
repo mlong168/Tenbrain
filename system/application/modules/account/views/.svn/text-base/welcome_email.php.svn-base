@@ -1,1 +1,0 @@
-<?php echo sprintf(lang('welcome_email_text'), $username, $welcome_email_url); ?>
