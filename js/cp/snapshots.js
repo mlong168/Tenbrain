@@ -12,14 +12,14 @@ var Snapshots = function(){
 		]);
 		return {
 			common: new Ext.data.Store({
-				url: '/amazon/created_snapshots',
+				url: '/common/available_images',
 				reader: new Ext.data.JsonReader({
 					root: 'snapshots'
 				}, record),
 				autoLoad: true
 			}),
 			specific: new Ext.data.Store({
-				url: '/amazon/created_snapshots',
+				url: '/common/available_images',
 				reader: new Ext.data.JsonReader({
 					root: 'snapshots'
 				}, record),

@@ -70,15 +70,9 @@ class Common extends Controller {
 	function available_images()
 	{
 		$images = array(); $i = 0;
-		foreach($this->providers as $provider)
-		{
-			$imgs = $provider->list_images();
-			foreach($imgs as $img)
-			{
-				$images []= array_merge(array('id' => $i), $img);
-				++$i;
-			}
-		}
+		
+		$this->load->model('backup_model','backup');
+		$images = $this->backup->get_available_backups();
 		
 		echo json_encode(array(
 			'success'	=> true,

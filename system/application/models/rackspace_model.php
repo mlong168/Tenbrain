@@ -341,7 +341,10 @@ class Rackspace_model extends Provider_model {
 		$backup_id = $response->image->id;
 		$this->backup->add_backup(array(
 			'instance_id'	=>	(int)$instance_id,
-			'provider_backup_id'	=>	(int)$backup_id 
+			'provider_backup_id'	=>	(int)$backup_id, 
+			'backup_name' => $name,
+			'description'	=> $description,
+			'provider'	=> 'Rackspace'
 		));
 		return true;
 	}
@@ -350,12 +353,13 @@ class Rackspace_model extends Provider_model {
 	{
 		$this->load->model("Backup_model","backup");
 		
-		if(!$backup_id) $this->die_with_error('No snapshot specified');
-
-		//Remove backup
-		$this->DELETE_request('images/' . $backup_id);	
+		$backup = $this->backup->get_backup_by_id($backup_id);
 		
-		$this->backup->remove_backup($backup_id);
+		if(!$backup) $this->die_with_error('No snapshot specified');
+
+		$this->DELETE_request('images/' . $backup->provider_backup_id);	
+		
+		$this->backup->remove_backup($backup->provider_backup_id);
 		return true;
 	}
 	
@@ -367,11 +371,11 @@ class Rackspace_model extends Provider_model {
 		return $response;
 	}
 	
-	public function describe_backup_instance($provaider_backup_id = false)
+	public function describe_backup_instance($backup_id = false)
 	{
-		if(!$provaider_backup_id) $this->die_with_error('No backup specified');
+		if(!$backup_id) $this->die_with_error('No backup specified');
 		
-		$instances = $this->get_backuped_instance($provaider_backup_id);
+		$instances = $this->get_backup_by_id($backup_id);
 		
 		return array(
 			'success'	=> true,
@@ -379,10 +383,10 @@ class Rackspace_model extends Provider_model {
 		);
 	}
 	
-	private function get_backuped_instance($provaider_backup_id)
+	private function get_backuped_instance($backup_id)
 	{
 		$this->load->model("Backup_model","backup");
-		$backup = $this->backup->get_backup_by_provider_id($provaider_backup_id);
+		$backup = $this->backup->get_backup_by_id($backup_id);
 
 		$instance = $this->GET_request('servers/' . $backup->instance_id);
 
@@ -403,16 +407,18 @@ class Rackspace_model extends Provider_model {
 		return $instance_desrc;
 	}
 	
-	private function start_backup_image($backup_id)
+	private function start_backup_image($backup_image)
 	{
-		$flavorId = 1;
-		$name = "TestRunBackup";
+		$flavorId = $backup_image['flavorId'];
+		$provider_backup_id = $backup_image['imageId'];
+		$name = $backup_image['name'];
+		
 		$this->load->model('Instance_model', 'instance');
 		
 		$setup = array(
 			'server' => array(
 				'name' => $name,
-				'imageId' => (int)$backup_id,
+				'imageId' => (int)$provider_backup_id,
 				'flavorId' => (int) $flavorId
 			)
 		);
@@ -431,32 +437,47 @@ class Rackspace_model extends Provider_model {
 		return true;
 	}
 	
-	public function restore_backup_to_corresponding_instance($provider_backup_id)
+	public function restore_backup_to_corresponding_instance($backup_id)
 	{
 		$this->load->model("Backup_model","backup");
-		$backup = $this->backup->get_backup_by_provider_id($provider_backup_id);
+		$backup = $this->backup->get_backup_by_id($backup_id);
 		if(!$backup)
 			return false;
 			
 		$instance = $this->GET_request('servers/' . $backup->instance_id);
-
+		//print_r($instance->server->id);
+		//die;
 		if(isset($instance->server) && $instance->server->status == "ACTIVE")
 		{
-			$instance = $this->DELETE_request('servers/' . $instance->server->id);
+			$this->load->model("Instance_model","instance");
+			$this->DELETE_request('servers/' . $instance->server->id);
+			$this->instance->terminate_instance($instance->server->id, $this->session->userdata('account_id'));
 		}
-		$this->backup->remove_backup($provider_backup_id);
+		else
+			return false;
 		
-		return $this->start_backup_image($provider_backup_id);
+		$backup_image = array(
+			'flavorId' => $instance->server->flavorId,
+			'imageId'	=> $backup->provider_backup_id,
+			'name'	=> $instance->server->name
+		);
+		
+		return $this->start_backup_image($backup_image);
 	}
 	
-	public function restore_backup_to_new_instance($provider_backup_id)
+	public function restore_backup_to_new_instance($instance)
 	{
 		$this->load->model("Backup_model","backup");
-		$backup = $this->backup->get_backup_by_provider_id($provider_backup_id);
+		$backup = $this->backup->get_backup_by_id($instance['backup_id']);
 		if(!$backup)
 			return false;
-			
-		return $this->start_backup_image($provider_backup_id);
+		
+		$backup_image = array(
+			'flavorId' => $instance['flavorId'],
+			'imageId'	=> $backup->provider_backup_id,
+			'name'	=> $instance['name']
+		);
+		return $this->start_backup_image($backup_image);
 	}
 	
 	public function test()
