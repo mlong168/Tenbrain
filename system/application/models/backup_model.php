@@ -65,7 +65,8 @@ class Backup_model extends Model {
 
 	function get_available_backups($provider = "ALL")
 	{
-		$sql = 'SELECT ub.backup_id, ub.backup_name, ub.description, ub.provider, ub.provider_backup_id, ub.instance_id, ub.account_id, ub.created_on, udb.backup_id as removed_backup_id';
+		$sql = 'SELECT ub.backup_id as id, ub.backup_name as name, ub.description, ub.provider, ub.account_id, ub.created_on';
+		// , udb.backup_id as removed_backup_id';
 		$sql .= ' FROM user_backups ub';
 		$sql .= ' LEFT JOIN user_deleted_backups udb USING(backup_id)';
 		$sql .= ' WHERE ub.account_id = '.$this->session->userdata('account_id');

@@ -68,13 +68,48 @@ class Common extends Controller {
 	function available_images()
 	{
 		$images = array(); $i = 0;
-		
-		$this->load->model('backup_model','backup');
-		$images = $this->backup->get_available_backups();
+		foreach($this->providers as $provider)
+		{
+			$imgs = $provider->list_images();
+			foreach($imgs as $img)
+			{
+				$images []= array_merge(array('id' => $i), $img);
+				++$i;
+			}
+		}
 		
 		echo json_encode(array(
 			'success'	=> true,
 			'images'	=> $images
+		));
+	}
+	
+	function create_backup()
+	{
+		$instance_id = $this->input->post('instance_id');
+		$this->load->model('Instance_model', 'instance');
+		
+		$instance = $this->instance->get_instances_details($instance_id, array('provider', 'provider_instance_id'));
+		$instance = $instance[0];
+
+		$backup = $this->providers[$instance->provider]->create_backup($instance_id,
+			$this->input->post('name'),
+			$this->input->post('description')
+		);
+		
+		return $backup ? $this->successfull_response('Snapshot has been created successfully') : $this->failure_response('Problem'); 
+	}
+
+	function list_backups()
+	{
+		$images = array();
+		
+		$this->load->model('backup_model','backup');
+		$backups = $this->backup->get_available_backups();
+		
+		echo json_encode(array(
+			'success'	=> true,
+			'backups'	=> $backups
 		));
 	}
 	

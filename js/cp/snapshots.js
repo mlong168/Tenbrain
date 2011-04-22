@@ -2,19 +2,16 @@ var Snapshots = function(){
 	var store = function(){
 		var record = Ext.data.Record.create([
 			'id',
-			'snapshot_id',
 			'name',
-			'capacity',
 			'description',
-			'status',
-			'progress',
-			'started'
+			'provider',
+			'created_on'
 		]);
 		return {
 			common: new Ext.data.Store({
-				url: '/common/available_images',
+				url: '/common/list_backups',
 				reader: new Ext.data.JsonReader({
-					root: 'snapshots'
+					root: 'backups'
 				}, record),
 				autoLoad: true
 			}),
@@ -67,7 +64,7 @@ var Snapshots = function(){
 		labelWidth: 70,
 		frame: true,
 		border: false,
-		url: '/amazon/create_snapshot',		
+		url: '/common/create_backup',		
 		monitorValid: true,
 		items: [{
 			xtype: 'hidden',
@@ -217,11 +214,9 @@ var Snapshots = function(){
 			defaultSortable: false,
 			columns: [
 				{header: "Name", dataIndex: 'name', width: 80},
+				{header: "Provider", dataIndex: 'provider', width: 60},
 				{header: "Description", dataIndex: 'description', id: 'description', width: 150},
-				{header: "Capacity", dataIndex: 'capacity', width: 60},
-				{header: "Status", dataIndex: 'status', width: 70},
-				{header: "Start Time", dataIndex: 'started', width: 100},
-				{header: "Progress", dataIndex: 'progress', width: 60}
+				{header: "Start Time", dataIndex: 'created_on', width: 100}
 			]
 		}),
 		view: new Ext.grid.GridView({
