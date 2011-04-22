@@ -162,6 +162,13 @@ class Gogrid extends Controller {
 			'success' => $this->gg->restore_backup_to_new_instance($instance)
 		));
 	}
+	
+	function get_backup_status($id)
+	{
+		echo json_encode(array(
+			'success' => $this->gg->get_backup_status($id)
+		));
+	}
 }
 
 /* End of file gogrid.php */

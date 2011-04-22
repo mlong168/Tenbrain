@@ -633,18 +633,20 @@ class Gogrid_model extends Provider_model {
 	
 	public function created_backups()
 	{
-		$response = $this->gogrid->call('grid.image.list',array(
-			'isPublic' => false 
-		));
+		$this->load->model('Backup_model','backup');
+		$backups = $this->backup->get_available_backups("GoGrid");
 		
-		$response = json_decode($response);
+		foreach($backups as $i => $backup)
+		{
+			$backup->status = 'deleted';
+			$backup->status = $this->get_backup_status($backup->provider_backup_id);
+			$backups[$i] = $backup;
+		}
 		
-		$this->test_response($response);
-		
-		return $response;
+		return $backups;
 	}
 	
-	private function start_backup_image(array $backup) //$provider_backup_id,$name,$description
+	private function start_backup_image(array $backup)
 	{
 		$ips = $this->get_free_addresses();
 
@@ -772,4 +774,24 @@ class Gogrid_model extends Provider_model {
 
 		return $instance_desrc;
 	}
+	
+	function get_backup_status($provider_backup_id)
+	{
+		$this->load->model("Backup_model","backup");
+		$backup = $this->backup->get_backup_by_provider_id($provider_backup_id);
+		if(!$backup)
+			return false;
+		$response = $this->gogrid->call('grid.image.get', array(
+			'id' => $backup->provider_backup_id
+		));
+		
+		$_backup = json_decode($response);
+		
+		$_backup = $_backup->list[0];
+		if(!isset($_backup->state))
+			return false;
+
+		return $_backup->state->name == "Available" ? 'completed' : $_backup->state->name;
+	}
+	
 }

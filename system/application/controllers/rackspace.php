@@ -127,6 +127,13 @@ class Rackspace extends Controller {
 			'success' => $this->rack->restore_backup_to_new_instance($instance)
 		));
 	}
+	
+	function get_backup_status($id)
+	{
+		echo json_encode(array(
+			'success' => $this->rack->get_backup_status($id)
+		));
+	}
 }
 
 /* End of file rackspace.php */

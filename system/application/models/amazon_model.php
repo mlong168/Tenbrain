@@ -487,21 +487,16 @@ class Amazon_model extends Provider_model {
 			$backups[] = array(
 				'id'				=> $i,
 				'name'				=> $this->extract_tag_from_tagset($node->tagSet, 'Name'),
-				'snapshot_id'		=> (string) $node->snapshotId,
-				'capacity'			=> (string) $node->volumeSize . 'GB',
 				'description'		=> (string) $node->description,
 				'status'			=> (string) $node->status,
-				'progress'			=> (string) $node->progress,
-				'started'			=> $time
+				'provider'			=> $this->name,
+				'created_on'			=> $time
 				// ''				=> (string) $node->,
 			);
 			$i++;
 		}
 
-		return array(
-			'success'	=> true,
-			'snapshots'	=> $backups
-		);
+		return $backups;
 	}
 
 	private function get_backup_volume($backup_id = false)
@@ -603,7 +598,15 @@ class Amazon_model extends Provider_model {
 		));
 		$this->load->model("Backup_model","backup");
 		
-		$this->backup->add_backup($snap_id);
+		$backup_image = array(
+			'backup_name' => $name,
+			'instance_id' => $instance_id,
+			'provider_backup_id' => $snap_id,
+			'provider' => 'Amazon',
+			'description' => $description
+		);
+		
+		$this->backup->add_backup($backup_image);
 
 		return true;
 	}

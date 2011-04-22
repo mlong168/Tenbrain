@@ -426,13 +426,20 @@ class Rackspace_model extends Provider_model {
 		$this->backup->remove_backup($backup->provider_backup_id);
 		return true;
 	}
-	
+
 	public function created_backups()
 	{
-		$empty = array();
-		$response = $this->GET_request('images/detail');
-		//print_r($response);
-		return $response;
+		$this->load->model('Backup_model','backup');
+		$backups = $this->backup->get_available_backups("Rackspace");
+		
+		foreach($backups as $i => $backup)
+		{
+			$backup->status = 'deleted';
+			$backup->status = $this->get_backup_status($backup->provider_backup_id);
+			$backups[$i] = $backup;
+		}
+		
+		return $backups;
 	}
 	
 	public function describe_backup_instance($backup_id = false)
@@ -509,8 +516,7 @@ class Rackspace_model extends Provider_model {
 			return false;
 			
 		$instance = $this->GET_request('servers/' . $backup->instance_id);
-		//print_r($instance->server->id);
-		//die;
+
 		if(isset($instance->server) && $instance->server->status == "ACTIVE")
 		{
 			$this->load->model("Instance_model","instance");
@@ -542,6 +548,20 @@ class Rackspace_model extends Provider_model {
 			'name'	=> $instance['name']
 		);
 		return $this->start_backup_image($backup_image);
+	}
+	
+	function get_backup_status($provider_backup_id)
+	{
+		$this->load->model("Backup_model","backup");
+		$backup = $this->backup->get_backup_by_provider_id($provider_backup_id);
+		if(!$backup)
+			return false;
+		$instance = $this->GET_request('images/' . $backup->provider_backup_id);
+
+		if(!isset($instance->image))
+			return false;
+			
+		return $instance->image->status == "ACTIVE" ? 'completed' : $instance->image->status;
 	}
 	
 	public function test()

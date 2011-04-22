@@ -89,6 +89,7 @@ class Common extends Controller {
 		$instance_id = $this->input->post('instance_id');
 		$this->load->model('Instance_model', 'instance');
 		
+
 		$instance = $this->instance->get_instances_details($instance_id, array('provider', 'provider_instance_id'));
 		$instance = $instance[0];
 
@@ -99,13 +100,48 @@ class Common extends Controller {
 		
 		return $backup ? $this->successfull_response('Snapshot has been created successfully') : $this->failure_response('Problem'); 
 	}
-
+	
+	function restore_backup_to_corresponding_instance()
+	{
+		$backup_id = $this->input->post('backup_id');
+		$this->load->model('Backup_model', 'backup');
+		
+		$_backup = $this->backup->get_backup_by_id($backup_id);
+		if(!$_backup)
+			return $this->failure_response('Problem'); 
+			
+		$backup = $this->providers[$_backup->provider]->restore_backup_to_corresponding_instance($backup_id);
+		print_r($backup);
+		return $backup ? $this->successfull_response('Snapshot has been deleted successfully') : $this->failure_response('Problem'); 
+		
+	}
+	
+	function delete_backup()
+	{
+		$backup_id = $this->input->post('backup_id');
+		$this->load->model('Backup_model', 'backup');
+		
+		$_backup = $this->backup->get_backup_by_id($backup_id);
+		if(!$_backup)
+			return $this->failure_response('Problem'); 
+		
+		$backup = $this->providers[$_backup->provider]->delete_backup($backup_id);
+		
+		return $backup ? $this->successfull_response('Snapshot has been deleted successfully') : $this->failure_response('Problem'); 
+	}
 	function list_backups()
 	{
-		$images = array();
-		
-		$this->load->model('backup_model','backup');
-		$backups = $this->backup->get_available_backups();
+		$i = 0; $backups = array();
+
+		foreach($this->providers as $provider)
+		{
+			$_backups = $provider->created_backups();
+			foreach($_backups as $_backup)
+			{
+				$backups[] = array_merge(array('id' => $i), (Array)$_backup);
+				++$i;
+			}
+		}
 		
 		echo json_encode(array(
 			'success'	=> true,

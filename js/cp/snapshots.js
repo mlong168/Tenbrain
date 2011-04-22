@@ -5,7 +5,8 @@ var Snapshots = function(){
 			'name',
 			'description',
 			'provider',
-			'created_on'
+			'created_on',
+			'status'
 		]);
 		return {
 			common: new Ext.data.Store({
@@ -291,7 +292,7 @@ var Snapshots = function(){
 		items: [{
 			text: 'Restore and terminate corresponding instance',
 			handler: function(){
-				var snap_id = snapshot_menu.relative_grid.getStore().getAt(snapshot_menu.selected_record_id).get('snapshot_id');
+				var snap_id = snapshot_menu.relative_grid.getStore().getAt(snapshot_menu.selected_record_id).get('id');
 				snapshot_menu.hide();
 				Ext.Msg.confirm(
 					'Restore snapshot to corresponding instance',
@@ -302,7 +303,7 @@ var Snapshots = function(){
 						{
 							Ext.Msg.wait('Restoring your snapshot', 'Snapshot Restore');
 							Ext.Ajax.request({
-								url: 'amazon/restore_snapshot_to_corresponding_instance',
+								url: 'common/restore_backup_to_corresponding_instance',
 								params: { snapshot_id: snap_id },
 								success: function(response){
 									response = Ext.decode(response.responseText);
@@ -338,13 +339,13 @@ var Snapshots = function(){
 			text: 'View corresponding instance',
 			handler: function(){
 				var record = snapshot_menu.relative_grid.getStore().getAt(snapshot_menu.selected_record_id),
-					snap_id = record.get('snapshot_id'),
+					backup_id = record.get('id'),
 					name = record.get('name');
 				
 				snapshot_menu.hide();
 				snapshot_instance_grid.getStore().reload({
 					params: {
-						snapshot_id: snap_id
+						backup_id: backup_id
 					}
 				});
 				snapshot_instance.setTitle('Instance for snapshot "' + name + '"');
@@ -353,15 +354,15 @@ var Snapshots = function(){
 		}, {
 			text: 'Delete snapshot',
 			handler: function(){
-				var snap_id = snapshot_menu.relative_grid.getStore().getAt(snapshot_menu.selected_record_id).get('snapshot_id');
+				var backup_id = snapshot_menu.relative_grid.getStore().getAt(snapshot_menu.selected_record_id).get('id');
 				snapshot_menu.hide();
 				Ext.MessageBox.confirm('Snapshot Delete', 'Are you sure you want to delete this snapshot?', function(button){
 					if(button === 'yes')
 					{
 						Ext.Ajax.request({
-							url: 'amazon/delete_snapshot',
+							url: 'common/delete_backup',
 							params: {
-								snapshot_id: snap_id
+								backup_id: backup_id
 							},
 							success: function(response){
 								response = Ext.decode(response.responseText);
@@ -417,7 +418,7 @@ var Snapshots = function(){
 						}
 						Ext.Msg.wait('The snapshots are being deleted', 'Deleting snapshots');
 						Ext.Ajax.request({
-							url: 'amazon/delete_snapshot',
+							url: 'common/delete_backup',
 							params: {
 								snapshots: Ext.encode(snaps)
 							},
@@ -459,11 +460,10 @@ var Snapshots = function(){
 					if(record.data.status !== 'completed') metadata.css = 'grid-loader';
 					return value;
 				}},
-				{header: "Description", dataIndex: 'description', width: 100},
-				{header: "Capacity", dataIndex: 'capacity', width: 120},
-				{header: "Status", dataIndex: 'status', width: 100},
-				{header: "Start Time", dataIndex: 'started', width: 100},
-				{header: "Progress", dataIndex: 'progress', width: 100}
+				{header: "Status", dataIndex: 'status', width: 60},
+				{header: "Provider", dataIndex: 'provider', width: 60},
+				{header: "Description", dataIndex: 'description', id: 'description', width: 150},
+				{header: "Start Time", dataIndex: 'created_on', width: 100}
 			]
 		}),
 		sm: sm,

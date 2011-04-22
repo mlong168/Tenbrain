@@ -51,7 +51,7 @@ class Backup_model extends Model {
 		$sql .= ' FROM user_backups ub';
 		$sql .= ' LEFT JOIN user_deleted_backups udb USING(backup_id)';
 		$sql .= ' WHERE ub.account_id = '.$this->session->userdata('account_id');
-		$sql .= ' AND ub.backup_id = '.$backup_id;
+		$sql .= ' AND ub.backup_id = \''.$backup_id.'\'';
 		
 		$result = array(); $query = $this->db->query($sql);
 
@@ -65,21 +65,20 @@ class Backup_model extends Model {
 
 	function get_available_backups($provider = "ALL")
 	{
-		$sql = 'SELECT ub.backup_id as id, ub.backup_name as name, ub.description, ub.provider, ub.account_id, ub.created_on';
+		$sql = 'SELECT ub.backup_id as id, ub.backup_name as name, ub.description, ub.provider, ub.account_id, ub.created_on, ub.provider_backup_id';
 		// , udb.backup_id as removed_backup_id';
 		$sql .= ' FROM user_backups ub';
 		$sql .= ' LEFT JOIN user_deleted_backups udb USING(backup_id)';
 		$sql .= ' WHERE ub.account_id = '.$this->session->userdata('account_id');
 		if(isset($provider) && $provider != 'ALL')
-			$sql .= ' AND ub.provider = '.$provider;
+			$sql .= ' AND ub.provider = \''.$provider.'\'';
 		$sql .= ' AND udb.backup_id IS NULL ';
-		
+
 		$result = array(); $query = $this->db->query($sql);
 
 		if($query->num_rows())
 		{
 			$result = $query->result();
-			$result = $result[0];
 		}
 		return $result;
 	}
