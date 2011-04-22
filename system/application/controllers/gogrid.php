@@ -74,12 +74,17 @@ class Gogrid extends Controller {
 	
 	function get_instance_password()
 	{
-		$password = $this->gg->get_password($this->input->post('instance_id'));
-		$success = !empty($password);
+		$instance_id = $this->input->post('instance_id');
+		$success = $password = false;
+		if($instance_id)
+		{	
+			$password = $this->gg->get_password($instance_id);
+			$success = !empty($password);
+		}
 		
 		echo json_encode(array(
 			'success'		=> $success,
-			'error_message'	=> $success ? '' : 'You are not authorised to do this',
+			'error_message'	=> $success ? '' : 'The password for this server could not be retrieved yet. Pease wait until the server finishes deploying',
 			'username'		=> $success ? $password['username'] : '',
 			'password'		=> $success ? $password['password'] : '',
 		));

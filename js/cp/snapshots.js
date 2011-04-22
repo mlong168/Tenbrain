@@ -459,11 +459,9 @@ var Snapshots = function(){
 					if(record.data.status !== 'completed') metadata.css = 'grid-loader';
 					return value;
 				}},
-				{header: "Description", dataIndex: 'description', width: 100},
-				{header: "Capacity", dataIndex: 'capacity', width: 120},
-				{header: "Status", dataIndex: 'status', width: 100},
-				{header: "Start Time", dataIndex: 'started', width: 100},
-				{header: "Progress", dataIndex: 'progress', width: 100}
+				{header: "Provider", dataIndex: 'provider', width: 60},
+				{header: "Description", dataIndex: 'description', id: 'description', width: 150},
+				{header: "Start Time", dataIndex: 'created_on', width: 100}
 			]
 		}),
 		sm: sm,

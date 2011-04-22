@@ -269,14 +269,16 @@ class Gogrid_model extends Provider_model {
 	
 	public function get_password($instance_id)
 	{
-		$instance_id = $this->get_provider_instance_id($instance_id);
 		$response = $this->gogrid->call('support.password.list');
 		$response = json_decode($response);
 		$this->test_response($response);
 		
+		$instance_id = $this->get_provider_instance_id($instance_id);
 		foreach($response->list as $pass)
 		{
-			if($pass->server->id === $instance_id)
+			if(!isset($pass->server)) continue;
+			
+			if($pass->server->id === (int)$instance_id)
 			{
 				return array(
 					'username'	=> $pass->username,
