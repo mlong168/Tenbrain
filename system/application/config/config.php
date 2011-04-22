@@ -11,7 +11,7 @@
 |	http://example.com/
 |
 */
-$config['base_url']	= "http://ydmytriv.tenbrain.projects.sjua/";
+$config['base_url']	= "http://atsok.tenbrain.projects.sjua/";
 // $config['base_url']	= "http://ydmytriv.tenbrain.projects.softjourn.if.ua/";
 // $config['base_url']	= "http://ec2-50-16-159-79.compute-1.amazonaws.com/";
 
