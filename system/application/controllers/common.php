@@ -39,12 +39,10 @@ class Common extends Controller {
 		}
 	}
 	
-	private function successfull_response($message = '', $additional_params = array())
+	private function successfull_response($out = '')
 	{
-		echo json_encode(array_merge(array(
-			'success'	=> true,
-			'message'	=> $message
-		), $additional_params));
+		$return = is_array($out) ? $out : array('message' => (string) $out);
+		echo json_encode(array_merge(array('success' => true), $return));
 		
 		return true;
 	}
@@ -353,16 +351,26 @@ class Common extends Controller {
 		
 		return $this->successfull_response('Load balancer was created successfully');
 	}
+
+	function instances_for_registering_within_lb()
+	{
+		$lb_id = $this->input->post('lb_id');
+		
+		$this->load->model('Balancer_model', 'balancer');
+		$instances = $this->balancer->get_instances_for_registering_within_lb($lb_id);
+		
+		return $this->successfull_response(array('instances' => $instances));
+	}
 	
-	function register_instances_within_lb()
+	function register_instances_within_load_balancer()
 	{
 		$this->load->model('Balancer_model', 'balancer');
 		
-		$instance_ids = json_decode($this->input->post('instances'));
+		$instance_ids = $this->input->post('instances');
 		$lb = $this->balancer->get_load_balancer($this->input->post('lb_id'));
 		
 		echo json_encode(array(
-			'success' => $this->providers[$lb->provider]->register_instances_within_lb($lb, $instance_ids)
+			'success' => $this->providers[$lb->provider]->register_instances_within_load_balancer($lb, $instance_ids)
 		));
 	}
 	

@@ -302,6 +302,70 @@ class Rackspace_model extends Provider_model {
 		}
 		return $lbs;
 	}
+
+	public function register_instances_within_load_balancer($lb, $instances)
+	{
+		$this->load->model('Instance_model', 'instances');
+		$instance_ids = $this->instances->get_instances_details($instances, 'provider_instance_id');
+		
+		foreach($instance_ids as &$id)
+		{
+			$id = $id->provider_instance_id;
+		}
+		$nodes = array();
+		foreach($instance_ids as $id)
+		{
+			$instance = $this->GET_request('servers/' . $id);
+			$nodes []= array(
+				'address'	=> $instance->server->addresses->private[0],
+				'port'		=> '80',
+				'condition'	=> 'ENABLED'
+			);
+		}
+		$setup = array(
+			'nodes' => $nodes
+		);
+		$this->server_url = str_replace('servers', 'ord.loadbalancers', $this->server_url);
+		$this->POST_request('loadbalancers/' . $lb->pid . '/nodes', $setup);
+		foreach($instances as $id)
+		{
+			$this->balancer->add_load_balancer_instances($lb->id, $id);
+		}
+		return true;
+	}
+
+	public function deregister_instances_from_lb($lb, $instances)
+	{
+		$this->load->model('Instance_model', 'instances');
+		$instance_ids = $this->instances->get_instances_details($instances, array('provider_instance_id', 'instance_id'));
+		$instances = array();
+		foreach($instance_ids as $inst)
+		{
+			$instances[$inst->provider_instance_id] = $inst->instance_id;
+		}
+		$nodes = array();
+		foreach(array_keys($instances) as $id)
+		{
+			$instance = $this->GET_request('servers/' . $id);
+			$nodes[$instance->server->addresses->private[0]]= $id;
+		}
+		
+		$this->server_url = str_replace('servers', 'ord.loadbalancers', $this->server_url);		
+		$node_ids = $this->GET_request('loadbalancers/' . $lb->pid . '/nodes');
+		$node_ids = $node_ids->nodes;
+		foreach($node_ids as $node)
+		{
+			$address = $node->address;
+			if(array_key_exists($address, $nodes))
+			{
+				if($this->DELETE_request('loadbalancers/' . $lb->pid . '/nodes/' . $node->id))
+				{
+					$this->balancer->deregister_instance_from_lb($instances[$nodes[$address]], $lb->id);
+				}
+			}
+		}
+		return true;
+	}
 	
 	public function delete_load_balancer($id)
 	{

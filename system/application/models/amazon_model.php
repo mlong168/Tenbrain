@@ -997,10 +997,10 @@ class Amazon_model extends Provider_model {
 
 	public function deregister_instances_from_load_balancer($lb_name, $instances)
 	{
-		$instances_to_register = array();
+		$instances_to_deregister = array();
 		foreach($instances as $instance)
 		{
-			$instances_to_register []= array('InstanceId' => $instance);
+			$instances_to_deregister []= array('InstanceId' => $instance);
 		}
 		$elb = $this->get_elb_handle();
 		$response = $elb->deregister_instances_from_load_balancer($lb_name, $instances_to_register);

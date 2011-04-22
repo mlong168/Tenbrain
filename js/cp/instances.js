@@ -237,8 +237,7 @@ var Instances = function(){
 				if(menu.ref_grid === null) menu.ref_grid = grid;
 				menu.selected_record_id = id;
 				menu.showAt(e.getXY());
-			},
-			activate: first_time_loader
+			}
 		},
 		sm: sm_running,
 		cm: new xg.ColumnModel({

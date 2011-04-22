@@ -174,4 +174,45 @@ class Balancer_model extends Model {
 		}		
 		return $out;
 	}
+	
+	function get_instances_for_registering_within_lb($lb_id)
+	{
+		$lb = $this->get_load_balancer($lb_id);
+		$provider = $lb->provider;
+		
+		$sql = 'SELECT ui.instance_id as id, ui.public_ip as ip_address, ui.instance_name as name';
+		$sql .= ' FROM user_instances ui';
+		$sql .= ' LEFT JOIN load_balancer_instances lbi USING(instance_id)';
+		$sql .= ' LEFT JOIN user_deleted_instances udi USING(instance_id)';
+		$sql .= ' WHERE lbi.instance_id IS NULL';
+		$sql .= ' AND udi.instance_id IS NULL';
+		$sql .= ' AND ui.account_id = ' . $this->session->userdata('account_id');
+		$sql .= ' AND ui.provider = ' . $this->db->escape($provider);
+		
+		$query = $this->db->query($sql);
+		$num_registered = $query->num_rows();
+		if(!$num_registered) return array();
+		
+		$out = array();
+		foreach($query->result() as $row)
+		{
+			$out[] = array(
+				'id'			=> $row->id,
+				'name'			=> $row->name,
+				'ip_address'	=> $row->ip_address
+			);
+		}		
+		return $out;
+	}
+	
+	function deregister_instance_from_lb($instance_id, $lb_id)
+	{
+		$this->db->where(array(
+			'instance_id'		=> $instance_id,
+			'load_balancer_id'	=> $lb_id 
+		));
+		
+		$this->db->update('load_balancer_instances', array('active' => false));
+		return true;
+	}
 }

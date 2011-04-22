@@ -273,6 +273,88 @@ var Load_balancers = function(){
 		bodyStyle: 'padding:5px;',
 		modal : true
 	});
+	
+	var instances_to_register_within_lb_store = new Ext.data.JsonStore({
+		url: 'common/instances_for_registering_within_lb',
+		root: 'instances',
+		fields: [{name: 'id', type: 'int'}, {name: 'name', type: 'string'}, {name: 'address', type: 'string'}],
+		baseParams: {
+			lb_id: 0
+		}
+	});
+
+	var register_form = new Ext.FormPanel({
+		url: '/common/register_instances_within_load_balancer',
+		labelWidth: 50,
+		baseCls: 'x-plain',
+		monitorValid: true,
+		autoHeight: true,
+		buttonAlign: 'center',
+		items: [{
+			xtype: 'hidden',
+			name: 'lb_id'
+		}, {
+			xtype: 'superboxselect',
+			editable: false,
+			allowBlank: false,
+			msgTarget: 'under',
+			allowAddNewData: false,
+			fieldLabel: 'Servers',
+			anchor: '100%',
+			blankText: 'Please select one or more servers',
+			emptyText: 'Select one or more servers',
+			listEmptyText: 'No servers are available to be registered',
+			resizable: true,
+			name: 'instances[]',
+			store: instances_to_register_within_lb_store,
+			mode: 'remote',
+			displayField: 'name',
+			displayFieldTpl: '{name} ({address})',
+			valueField: 'id',
+			triggerAction: 'all',
+			forceFormValue: false
+			// extraItemCls: 'x-tag',
+		}],
+		buttons: [{
+			text: 'Register',
+			formBind: true,
+			handler: function(){
+				var title = 'Register servers within load balancer',
+					success = 'Selected servers have been registered successfully',
+					error = 'A problem has occured while registering your servers';
+				
+				register_window.hide();
+				Ext.Msg.wait('Servers are registering', title);
+				register_form.getForm().submit({
+					success: function(form, action){
+						var s = action.result.success;
+						Ext.Msg.alert(title, s ? success : action.result.error_message || error);
+					},
+					failure: function(form, action){
+						Ext.Msg.alert(title, action.result.error_message || error);
+					}
+				});
+			}
+		}, {
+			text: 'Cancel',
+			handler: function(){
+				register_window.hide();
+			}
+		}]
+	});
+
+	var register_window = new Ext.Window({
+		title: 'Register instances within load balancer',
+		layout: 'fit',
+		closeAction: 'hide',
+		width: 400,
+		minWidth: 200,
+		// minHeight: 200,
+		plain: 'true',
+		items: register_form,
+		bodyStyle: 'padding:5px;',
+		modal : true
+	});
 
 	var lb_menu = new Ext.menu.Menu({
 		id: 'load_balancers_menu',
@@ -282,11 +364,16 @@ var Load_balancers = function(){
 				items: [{
 					text: 'Register instances with load balancer',
 					handler: function(){
-						var grid = lb_menu.ref_grid,
-							record = lb_menu.selected_record;
+						var record = lb_menu.selected_record,
+							name = record.get('name'),
+							id = record.get('id'),
+							form = register_form.getForm();
 						
-						lb_menu.hide();						
-						Ext.Msg.Alert('This is to be completed till evening no matter what');
+						lb_menu.hide();
+						form.reset().setValues({lb_id: id});
+						register_window.show().center().setTitle('Instances to registered within the load balancer "' + name + '"');
+						instances_to_register_within_lb_store.baseParams.lb_id = id;	
+						register_window.show().center();
 					}
 				}, {
 					text: 'Deregister instances from load balancer',
