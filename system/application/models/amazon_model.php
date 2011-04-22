@@ -457,7 +457,7 @@ class Amazon_model extends Provider_model {
 		return $volume_id;
 	}
 
-	public function created_snapshots($instance_id = false)
+	public function created_backups($instance_id = false)
 	{
 		$this->load->model('Instance_model', 'instance');
 		
@@ -478,13 +478,13 @@ class Amazon_model extends Provider_model {
 			'Filter'	=> $filter
 		));
 		$this->test_response($response);
-		$snapshots = array();
+		$backups = array();
 		$i = 0;
 		foreach($response->body->snapshotSet->item as $node)
 		{
 			$time = (string) $node->startTime;
 			$time = date('Y-m-d H:i', strtotime($time));
-			$snapshots[] = array(
+			$backups[] = array(
 				'id'				=> $i,
 				'name'				=> $this->extract_tag_from_tagset($node->tagSet, 'Name'),
 				'snapshot_id'		=> (string) $node->snapshotId,
@@ -500,25 +500,25 @@ class Amazon_model extends Provider_model {
 
 		return array(
 			'success'	=> true,
-			'snapshots'	=> $snapshots
+			'snapshots'	=> $backups
 		);
 	}
 
-	private function get_snapshot_volume($snapshot_id = false)
+	private function get_backup_volume($backup_id = false)
 	{
-		if(!$snapshot_id) $this->die_with_error('No snapshot specified');
+		if(!$backup_id) $this->die_with_error('No backup specified');
 
-		$response = $this->ec2->describe_snapshots(array('SnapshotId' => $snapshot_id));
+		$response = $this->ec2->describe_snapshots(array('SnapshotId' => $backup_id));
 		$this->test_response($response);
 
 		return (string) $response->body->volumeId()->first();
 	}
 
-	private function get_snapshot_instance($snapshot_id = false, $describe = false)
+	private function get_backup_instance($backup_id = false, $describe = false)
 	{
 		$response = $this->ec2->describe_instances(array(
 			'Filter' => array(
-				array('Name' => 'block-device-mapping.volume-id', 'Value' => $this->get_snapshot_volume($snapshot_id)),
+				array('Name' => 'block-device-mapping.volume-id', 'Value' => $this->get_backup_volume($backup_id)),
 			)
 		));
 		$this->test_response($response);
@@ -559,18 +559,18 @@ class Amazon_model extends Provider_model {
 		return $describe ? $instances : $instances[0]['instance_id'];
 	}
 
-	public function describe_snapshot_instance($snapshot_id = false)
+	public function describe_backup_instance($backup_id = false)
 	{
-		if(!$snapshot_id) $this->die_with_error('No snapshot specified');
+		if(!$backup_id) $this->die_with_error('No backup specified');
 
-		$instances = $this->get_snapshot_instance($snapshot_id, true);
+		$instances = $this->get_backup_instance($backup_id, true);
 		return array(
 			'success'	=> true,
 			'instances'	=> $instances
 		);
 	}
 
-	public function create_snapshot($id, $name, $description = 'sample description')
+	public function create_backup($id, $name, $description = 'sample description')
 	{
 		$this->load->model('Instance_model', 'instance');
 		
@@ -581,13 +581,13 @@ class Amazon_model extends Provider_model {
 		$this->test_response($response);
 
 		$instance = $response->body->instancesSet()->first();
-		if(!$instance->count()) $this->die_with_error('The snapshot could not be created from an instance yet');
+		if(!$instance->count()) $this->die_with_error('The backup could not be created from an instance yet');
 
 		$instance = $instance->item;
 		$image_id = (string) $instance->imageId;
 
 		$volume_id = $instance->blockDeviceMapping->query('descendant-or-self::item[deviceName = "/dev/sda" or deviceName = "/dev/sda1"]/ebs/volumeId');
-		if(!$volume_id->count()) $this->die_with_error('The snapshot could not be created from an instance yet');
+		if(!$volume_id->count()) $this->die_with_error('The backup could not be created from an instance yet');
 		$volume_id = (string) $volume_id->first();
 
 		$response = $this->ec2->create_snapshot($volume_id, $description);
@@ -601,28 +601,34 @@ class Amazon_model extends Provider_model {
 			array('Key' => 'User', 'Value' => $this->username),
 			array('Key' => 'ImageId', 'Value' => $image_id)
 		));
+		$this->load->model("Backup_model","backup");
+		
+		$this->backup->add_backup($snap_id);
 
 		return true;
 	}
 
-	public function delete_snapshot($snapshot_id = false)
+	public function delete_backup($backup_id = false)
 	{
-		if(!$snapshot_id) $this->die_with_error('No snapshot specified');
+		$this->load->model("Backup_model","backup");
+		
+		if(!$backup_id) $this->die_with_error('No backup specified');
 
-		$response = $this->ec2->delete_snapshot($snapshot_id);
+		$response = $this->ec2->delete_snapshot($backup_id);
 		$this->test_response($response);
-
+		
+		$this->backup->remove_backup($backup_id);
 		return true;
 	}
 
 	/*
-	 * restores snapshot to new instance
+	 * restores backup to new instance
 	 */
-	private function restore_snapshot($snapshot_id, $name = '', $type = 't1.micro')
+	private function restore_backup($backup_id, $name = '', $type = 't1.micro')
 	{
 		$this->load->model('Instance_model', 'instance');
 		
-		$response = $this->ec2->describe_snapshots(array('SnapshotId' => $snapshot_id));
+		$response = $this->ec2->describe_snapshots(array('SnapshotId' => $backup_id));
 		$this->test_response($response);
 
 		$tags = $response->body->tagSet()->first();
@@ -635,7 +641,7 @@ class Amazon_model extends Provider_model {
 			'BlockDeviceMapping' => array(
 				'DeviceName'				=> '/dev/sda',
 				'Ebs.DeleteOnTermination'	=> true,
-				'Ebs.SnapshotId'			=> $snapshot_id
+				'Ebs.SnapshotId'			=> $backup_id
 			)
 		));
 		$this->test_response($response);
@@ -664,19 +670,19 @@ class Amazon_model extends Provider_model {
 		);
 	}
 
-	public function restore_snapshot_to_corresponding_instance($snapshot_id = false)
+	public function restore_backup_to_corresponding_instance($backup_id = false)
 	{
 		$this->load->model('Instance_model', 'instance');
 		
 		$response = $this->ec2->describe_instances(array(
 			'Filter' => array(
-				array('Name' => 'block-device-mapping.volume-id', 'Value' => $this->get_snapshot_volume($snapshot_id))
+				array('Name' => 'block-device-mapping.volume-id', 'Value' => $this->get_backup_volume($backup_id))
 			)
 		));
 		$this->test_response($response);
 
 		$old_instance = $response->body->instancesSet();
-		if(!$old_instance) $this->die_with_error('The instance this snapshot was created off has been terminated');
+		if(!$old_instance) $this->die_with_error('The instance this backup was created off has been terminated');
 
 		$old_instance = $old_instance->first()->item;
 
@@ -685,10 +691,10 @@ class Amazon_model extends Provider_model {
 			'type'		=> (string) $old_instance->instanceType,
 			'name'		=> $this->extract_tag_from_tagset($old_instance->tagSet, 'Name')
 		);
-		$new = $this->restore_snapshot($snapshot_id, $old_instance['name'], $old_instance['type']);
+		$new = $this->restore_backup($backup_id, $old_instance['name'], $old_instance['type']);
 		if(!$new['success'])
 		{
-			$this->die_with_error('Sorry, a problem has occurred while restoring your snapshot');
+			$this->die_with_error('Sorry, a problem has occurred while restoring your backup');
 		}
 		
 		$response = $this->ec2->terminate_instances($old_instance['id']);
@@ -700,15 +706,15 @@ class Amazon_model extends Provider_model {
 		return true;
 	}
 
-	public function restore_snapshot_to_new_instance($snapshot_id, $name, $type = 't1.micro')
+	public function restore_backup_to_new_instance($backup_id, $name, $type = 't1.micro')
 	{
-		$this->restore_snapshot($snapshot_id, $name, $type);
+		$this->restore_backup($backup_id, $name, $type);
 		return true;
 	}
 
-	private function wait_for_snapshot_to_complete($snapshot_id)
+	private function wait_for_backup_to_complete($backup_id)
 	{
-		$response = $this->ec2->describe_snapshots(array('SnapshotId' => $snapshot_id));
+		$response = $this->ec2->describe_snapshots(array('SnapshotId' => $backup_id));
 		if(!$response->isOK()) return false;
 
 		$progress = $response->body->snapshotSet->progress()->map_string();
@@ -716,7 +722,7 @@ class Amazon_model extends Provider_model {
 
 		if($progress === '100%') return true;
 
-		$this->wait_for_snapshot_to_complete($snapshot_id);
+		$this->wait_for_backup_to_complete($backup_id);
 	}
 
 	private function wait_for_instance_to_complete($instance_id, $handle = false)
@@ -780,11 +786,11 @@ class Amazon_model extends Provider_model {
 			$response = $this->ec2->create_snapshot($volume[0], 'to be deleted');
 			if(!$response->isOK()) { $success = false; break; }
 
-			$snapshot_id = $response->body->snapshotId()->map_string();
-			$snapshot_id = $snapshot_id[0];
-			$this->wait_for_snapshot_to_complete($snapshot_id);
+			$backup_id = $response->body->snapshotId()->map_string();
+			$backup_id = $backup_id[0];
+			$this->wait_for_backup_to_complete($backup_id);
 
-			$response = $this->ec2->modify_snapshot_attribute($snapshot_id, 'createVolumePermission', 'add', array('UserId' => $new_credentials['user_id']));
+			$response = $this->ec2->modify_snapshot_attribute($backup_id, 'createVolumePermission', 'add', array('UserId' => $new_credentials['user_id']));
 			$this->test_response($response);
 
 			$response = $new_handle->run_instances((string) $node->imageId, 1, 1, array(
@@ -792,7 +798,7 @@ class Amazon_model extends Provider_model {
 				'BlockDeviceMapping' => array(
 					'DeviceName'				=> '/dev/sda',
 					'Ebs.DeleteOnTermination'	=> true,
-					'Ebs.SnapshotId'			=> $snapshot_id
+					'Ebs.SnapshotId'			=> $backup_id
 				)
 			));
 			if(!$response->isOK()) { $success = false; break; }
@@ -806,7 +812,7 @@ class Amazon_model extends Provider_model {
 
 			$this->wait_for_instance_to_complete($instance_id, $new_handle);
 
-			$this->ec2->delete_snapshot($snapshot_id);
+			$this->ec2->delete_snapshot($backup_id);
 		}
 
 		return $success;

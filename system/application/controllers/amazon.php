@@ -178,20 +178,20 @@ class Amazon extends Controller {
 		return false;
 	}
 
-	function created_snapshots()
+	function created_backups()
 	{
-		echo json_encode($this->amazon->created_snapshots($this->input->post('instance_id')));
+		echo json_encode($this->amazon->created_backups($this->input->post('instance_id')));
 	}
 
-	function snapshot_instance()
+	function backup_instance()
 	{
-		echo json_encode($this->amazon->describe_snapshot_instance($this->input->post('snapshot_id')));
+		echo json_encode($this->amazon->describe_backup_instance($this->input->post('backup_id')));
 	}
 
-	function create_snapshot()
+	function create_backup()
 	{
 		echo json_encode(array(
-			'success' => $this->amazon->create_snapshot(
+			'success' => $this->amazon->create_backup(
 				$this->input->post('instance_id'),
 				$this->input->post('name'),
 				$this->input->post('description')
@@ -199,39 +199,39 @@ class Amazon extends Controller {
 		));
 	}
 
-	function delete_snapshot()
+	function delete_backup()
 	{
-		$snaps = $this->input->post('snapshots');
+		$snaps = $this->input->post('backups');
 		if($snaps)
 		{
 			$snaps = json_decode($snaps);
 			foreach($snaps as $snap)
 			{
-				$this->amazon->delete_snapshot($snap);
+				$this->amazon->delete_backup($snap);
 			}
 		}
-		$snap = $this->input->post('snapshot_id');
+		$snap = $this->input->post('backup_id');
 		if($snap)
 		{
-			$this->amazon->delete_snapshot($snap);
+			$this->amazon->delete_backup($snap);
 		}
 		echo json_encode(array(
 			'success' => true
 		));
 	}
 
-	function restore_snapshot_to_corresponding_instance()
+	function restore_backup_to_corresponding_instance()
 	{
 		echo json_encode(array(
-			'success' => $this->amazon->restore_snapshot_to_corresponding_instance($this->input->post('snapshot_id'))
+			'success' => $this->amazon->restore_backup_to_corresponding_instance($this->input->post('backup_id'))
 		));
 	}
 
-	function restore_snapshot_to_new_instance()
+	function restore_backup_to_new_instance()
 	{
 		echo json_encode(array(
-			'success' => $this->amazon->restore_snapshot_to_new_instance(
-				$this->input->post('snapshot_id'),
+			'success' => $this->amazon->restore_backup_to_new_instance(
+				$this->input->post('backup_id'),
 				$this->input->post('name'),
 				$this->input->post('instance_type')
 			)
