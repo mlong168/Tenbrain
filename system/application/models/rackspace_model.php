@@ -233,12 +233,10 @@ class Rackspace_model extends Provider_model {
 	
 	public function get_instances_for_lb()
 	{
+		$account_id = $this->session->userdata('account_id');
 		$this->load->model('Balancer_model', 'balancer');
 		
-		return $this->balancer->get_instances_for_lb(
-			$this->session->userdata('account_id'),
-			$this->name
-		);;
+		return $this->balancer->get_instances_for_lb($account_id,$this->name);
 	}
 	
 	public function create_load_balancer($name, array $instances, $gg_lb_address = false)
