@@ -6,6 +6,9 @@ class Rackspace_model extends Provider_model {
 	
 	private $server_url = '';
 	private $auth_token = '';
+	
+	private $premium = false;
+	private $default_type = 1;	
 
 	public $name = 'Rackspace';
 	
@@ -144,6 +147,19 @@ class Rackspace_model extends Provider_model {
 		return empty($flavors) ? false : $flavors->flavors;
 	}
 
+	public function get_available_server_types()
+	{
+		$_types = $this->list_flavors();
+
+		foreach($_types as $i => $_type)
+		{
+			$available = $this->premium ? true : $_type->id === $this->default_type;
+			$types[$i] = array('id' => $i, 'value' => $_type->id, 'name' => $_type->ram, 'available' => $available);
+		}
+
+		return $types;
+	}
+	
 	public function launch_instance($name, $image_id, $flavor_id)
 	{
 		$setup = array(

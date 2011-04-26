@@ -6,6 +6,9 @@ class Gogrid_model extends Provider_model {
 
 	public $gogrid;
 	
+	private $premium = false;
+	private $default_type = "512MB";
+	
 	public $name = 'GoGrid';
 	
 	function __construct()
@@ -222,6 +225,21 @@ class Gogrid_model extends Provider_model {
 		else return false;
 	}
 	
+	public function get_available_server_types()
+	{
+		$types = array();
+		$_types = $this->get_available_ram_sizes();
+
+		foreach($_types as $i => $_type)
+		{
+			//$available = $this->premium ? true : $_type['size'] === $this->default_type; 
+			$available = $this->premium;
+			$types[$i] = array('id' => $i, 'value' => $_type['size'], 'name' => $_type['description'], 'available' => $available);
+		}
+		
+		return $types;
+	}
+	
 	public function get_available_ram_sizes()
 	{
 		$response = $this->gogrid->call('common.lookup.list', array(
@@ -234,7 +252,8 @@ class Gogrid_model extends Provider_model {
 			foreach($response->list as $ram)
 			{
 				$out []= array(
-					'size' => $ram->name
+					'size' => $ram->name,
+					'description' => $ram->description
 				);
 			}
 			return $out;
