@@ -133,7 +133,7 @@ var Snapshots = function(){
 
 		items: [{
 			xtype: 'hidden',
-			name: 'snapshot_id'	
+			name: 'backup_id'	
 		}, {
 			xtype: 'textfield',
 			width: 170,
@@ -240,7 +240,7 @@ var Snapshots = function(){
 	var snapshot_instance_grid = new Ext.grid.GridPanel({
 		border: false,
 		store: new Ext.data.Store({
-			url: '/amazon/snapshot_instance',
+			url: '/common/backup_instance',
 			reader: new Ext.data.JsonReader({
 				root: 'instances',
 				successProperty: 'success',
@@ -249,7 +249,7 @@ var Snapshots = function(){
 				'id',
 				'name',
 				'dns_name',
-				'ip_address',
+				'ip',
 				'instance_id',
 				'image_id',
 				'state',
@@ -267,7 +267,7 @@ var Snapshots = function(){
 				{header: "Link to instance root", dataIndex: 'dns_name', width: 250, renderer: function(link){
 					return '<a target="_blank" href="http://' + link + '/">' + link + '</a>';
 				}},
-				{header: "IP Address", dataIndex: 'ip_address', width: 120},
+				{header: "IP Address", dataIndex: 'ip', width: 120},
 				{header: "State", dataIndex: 'state', width: 100}
 			]
 		}),
@@ -304,7 +304,7 @@ var Snapshots = function(){
 							Ext.Msg.wait('Restoring your snapshot', 'Snapshot Restore');
 							Ext.Ajax.request({
 								url: 'common/restore_backup_to_corresponding_instance',
-								params: { snapshot_id: snap_id },
+								params: { backup_id: snap_id },
 								success: function(response){
 									response = Ext.decode(response.responseText);
 									var s = response.success;
@@ -329,9 +329,9 @@ var Snapshots = function(){
 		}, {
 			text: 'Redeploy to new instance',
 			handler: function(){
-				var snap_id = snapshot_menu.relative_grid.getStore().getAt(snapshot_menu.selected_record_id).get('snapshot_id');
+				var snap_id = snapshot_menu.relative_grid.getStore().getAt(snapshot_menu.selected_record_id).get('backup_id');
 				snapshot_menu.hide();
-				redeployment_form.getForm().reset().setValues({snapshot_id: snap_id});
+				redeployment_form.getForm().reset().setValues({backup_id: snap_id});
 				redeployment_dialogue.show();
 				return false;
 			}
@@ -414,7 +414,7 @@ var Snapshots = function(){
 					
 						for(var i = selected.length; i--;)
 						{
-							snaps.push(selected[i].data.snapshot_id);
+							snaps.push(selected[i].data.backup_id);
 						}
 						Ext.Msg.wait('The snapshots are being deleted', 'Deleting snapshots');
 						Ext.Ajax.request({
@@ -461,6 +461,7 @@ var Snapshots = function(){
 					return value;
 				}},
 				{header: "Status", dataIndex: 'status', width: 60},
+				{header: "ID", dataIndex: 'id', width: 60},
 				{header: "Provider", dataIndex: 'provider', width: 60},
 				{header: "Description", dataIndex: 'description', id: 'description', width: 150},
 				{header: "Start Time", dataIndex: 'created_on', width: 100}

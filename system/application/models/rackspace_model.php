@@ -452,28 +452,34 @@ class Rackspace_model extends Provider_model {
 		);
 	}
 	
-	private function get_backuped_instance($backup_id)
+	public function get_backuped_instance($backup_id)
 	{
+		$instance_desrc = $instance = array();
+		$this->load->model("Instance_model","inst");
 		$this->load->model("Backup_model","backup");
-		$backup = $this->backup->get_backup_by_id($backup_id);
-
+		
+		$backup = $this->backup->get_backup_details($backup_id, "*");
+		
+		if(!count($backup)>0)
+			return array();
+		$backup = $backup[0];	
+		
+		$instance_id = $this->inst->get_instance_ids($backup->instance_id);
+		$instance_id = $instance_id[0];
+		
 		$instance = $this->GET_request('servers/' . $backup->instance_id);
+		
+		if(!isset($instance->server))
+			return array();
 
-		$instance = $instance->server;
-		//print_r($instance);
-		$instance_desrc = array(
-			'id'				=> $instance->id,
-			'name'				=> (string) $instance->name,
-			'snapshot_id'		=> (string) $provaider_backup_id,
-			//'capacity'			=> (string) ($instance->diskSize/1024) . 'GB',
-			//'description'		=> (string) $instance->description,
-			'status'			=> (string) $instance->status,
-			'progress'			=> (string) $instance->progress,
-			//'started'			=> $instance->started
-			// ''				=> (string) $instance->,
+		$_instance_desrc = array(
+			'id'				=> $instance->server->id,
+			'name'				=> (string) $instance->server->name,
+			'ip'			=> (string) $instance->server->addresses->public[0],
+			'state'			=> (string) $instance->server->status
 		);
-
-		return $instance_desrc;
+		
+		return $_instance_desrc;
 	}
 	
 	private function start_backup_image($backup_image)
@@ -493,6 +499,7 @@ class Rackspace_model extends Provider_model {
 		);
 
 		$response = $this->POST_request('servers',$setup);
+		//print_r($response);
 		// write to db if things went fine
 		$instance = $response->server;
 		$this->instance->add_user_instance(array(
@@ -518,8 +525,10 @@ class Rackspace_model extends Provider_model {
 		if(isset($instance->server) && $instance->server->status == "ACTIVE")
 		{
 			$this->load->model("Instance_model","instance");
-			$this->DELETE_request('servers/' . $instance->server->id);
+			$r = $this->DELETE_request('servers/' . $instance->server->id);
 			$this->instance->terminate_instance($instance->server->id, $this->session->userdata('account_id'));
+			print_r($r);
+			echo 'Delete';
 		}
 		else
 			return false;
@@ -529,7 +538,7 @@ class Rackspace_model extends Provider_model {
 			'imageId'	=> $backup->provider_backup_id,
 			'name'	=> $instance->server->name
 		);
-		
+		//print_r($backup_image);
 		return $this->start_backup_image($backup_image);
 	}
 	
@@ -558,7 +567,7 @@ class Rackspace_model extends Provider_model {
 
 		if(!isset($instance->image))
 			return false;
-			
+		//print_r($instance);
 		return $instance->image->status == "ACTIVE" ? 'completed' : $instance->image->status;
 	}
 	

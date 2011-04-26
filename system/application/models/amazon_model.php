@@ -460,6 +460,7 @@ class Amazon_model extends Provider_model {
 	public function created_backups($instance_id = false)
 	{
 		$this->load->model('Instance_model', 'instance');
+		$this->load->model('Backup_model', 'backup');
 		
 		if($instance_id)
 		{
@@ -482,10 +483,11 @@ class Amazon_model extends Provider_model {
 		$i = 0;
 		foreach($response->body->snapshotSet->item as $node)
 		{
+			$backup = $this->backup->get_backup_by_provider_id($node->snapshotId[0]);
 			$time = (string) $node->startTime;
 			$time = date('Y-m-d H:i', strtotime($time));
 			$backups[] = array(
-				'id'				=> $i,
+				'id'				=> $backup->backup_id,
 				'name'				=> $this->extract_tag_from_tagset($node->tagSet, 'Name'),
 				'description'		=> (string) $node->description,
 				'status'			=> (string) $node->status,
@@ -509,11 +511,14 @@ class Amazon_model extends Provider_model {
 		return (string) $response->body->volumeId()->first();
 	}
 
-	private function get_backup_instance($backup_id = false, $describe = false)
-	{
+	public function get_backuped_instance($backup_id = false, $describe = false)
+	{		
+		$this->load->model('Backup_model', 'backup');
+		$backup = $this->backup->get_backup_by_id($backup_id);
+		
 		$response = $this->ec2->describe_instances(array(
 			'Filter' => array(
-				array('Name' => 'block-device-mapping.volume-id', 'Value' => $this->get_backup_volume($backup_id)),
+				array('Name' => 'block-device-mapping.volume-id', 'Value' => $this->get_backup_volume($backup->provider_backup_id)),
 			)
 		));
 		$this->test_response($response);
@@ -526,7 +531,6 @@ class Amazon_model extends Provider_model {
 			$results = $list->map(function($node){
 				return $node->parent();
 			});
-
 			$results->each(function($node, $i, &$instances){
 				$tags = $node->tagSet;
 				$name = '<i>not set</i>';
@@ -540,18 +544,14 @@ class Amazon_model extends Provider_model {
 					'name'				=> $name,
 					'instance_id'		=> (string) $node->instanceId,
 					'dns_name'			=> (string) $node->dnsName,
-					'ip_address'		=> (string) $node->ipAddress,
-					'image_id'			=> (string) $node->imageId,
-					'state'				=> (string) $node->instanceState->name,
-					'virtualization'	=> (string) $node->virtualizationType,
-					'type'				=> (string) $node->instanceType,
-					'root_device'		=> (string) $node->rootDeviceType
+					'ip'		=> (string) $node->ipAddress,
+					'state'				=> (string) $node->instanceState->name
 					// ''				=> (string) $node->,
 				);
 			}, $instances);
 		}
 
-		return $describe ? $instances : $instances[0]['instance_id'];
+		return $instances;
 	}
 
 	public function describe_backup_instance($backup_id = false)
@@ -614,13 +614,14 @@ class Amazon_model extends Provider_model {
 	public function delete_backup($backup_id = false)
 	{
 		$this->load->model("Backup_model","backup");
+		$backup = $this->backup->get_backup_by_id($backup_id);
 		
 		if(!$backup_id) $this->die_with_error('No backup specified');
 
-		$response = $this->ec2->delete_snapshot($backup_id);
+		$response = $this->ec2->delete_snapshot($backup->provider_backup_id);
 		$this->test_response($response);
 		
-		$this->backup->remove_backup($backup_id);
+		$this->backup->remove_backup($backup->provider_backup_id);
 		return true;
 	}
 
@@ -676,10 +677,12 @@ class Amazon_model extends Provider_model {
 	public function restore_backup_to_corresponding_instance($backup_id = false)
 	{
 		$this->load->model('Instance_model', 'instance');
+		$this->load->model('Backup_model', 'backup');
+		$backup = $this->backup->get_backup_by_id($backup_id);
 		
 		$response = $this->ec2->describe_instances(array(
 			'Filter' => array(
-				array('Name' => 'block-device-mapping.volume-id', 'Value' => $this->get_backup_volume($backup_id))
+				array('Name' => 'block-device-mapping.volume-id', 'Value' => $this->get_backup_volume($backup->provider_backup_id))
 			)
 		));
 		$this->test_response($response);
@@ -694,7 +697,7 @@ class Amazon_model extends Provider_model {
 			'type'		=> (string) $old_instance->instanceType,
 			'name'		=> $this->extract_tag_from_tagset($old_instance->tagSet, 'Name')
 		);
-		$new = $this->restore_backup($backup_id, $old_instance['name'], $old_instance['type']);
+		$new = $this->restore_backup($backup->provider_backup_id, $old_instance['name'], $old_instance['type']);
 		if(!$new['success'])
 		{
 			$this->die_with_error('Sorry, a problem has occurred while restoring your backup');
