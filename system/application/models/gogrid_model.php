@@ -115,12 +115,18 @@ class Gogrid_model extends Provider_model {
 		
 		if($response->status !== 'success') return false;
 		
-		$pid = $response->list[0]->id;
-		
-		$this->db->where('instance_id', $id);
-		$this->db->update('user_instances', array(
-			'provider_instance_id' => $pid
-		));
+		$pid = false;
+		foreach($response->list as $server)
+		{
+			if($server->ip->ip === $ip)
+			{
+				$pid = $server->id;
+				$this->db->where('instance_id', $id);
+				$this->db->update('user_instances', array(
+					'provider_instance_id' => $pid
+				));
+			}
+		}
 		
 		return $pid;
 	}
@@ -463,14 +469,14 @@ class Gogrid_model extends Provider_model {
 			$ip = $instance->ip->ip;
 			if(array_key_exists($ip, $names))
 			{	
-				$instances []= array(
-					'id'				=> $names[$ip]['id'],
-					'name'				=> $names[$ip]['name'],
-					'ip_address'		=> $ip,
-					'healthy'			=> (int) $instance->ip->state->id === 2,
-					'health_message'	=> $instance->ip->state->description
-					// ''	=> $lb->,
-				);
+			$instances []= array(
+				'id'				=> $names[$ip]['id'],
+				'name'				=> $names[$ip]['name'],
+				'ip_address'		=> $ip,
+				'healthy'			=> (int) $instance->ip->state->id === 2,
+				'health_message'	=> $instance->ip->state->description
+				// ''	=> $lb->,
+			);
 			}
 		}
 		
