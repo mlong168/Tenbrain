@@ -267,6 +267,18 @@ class Gogrid_model extends Provider_model {
 		return true;
 	}
 	
+	public function modify_instance()
+	{
+		$response = $this->gogrid->call('grid.server.edit', array(
+			'id'		=> $instance_id,
+			'server.ram'	=> $ram 
+		));
+		$response = json_decode($response);
+		$this->test_response($response);
+		
+		return true;
+	}
+	
 	public function get_password($instance_id)
 	{
 		$response = $this->gogrid->call('support.password.list');
@@ -329,6 +341,8 @@ class Gogrid_model extends Provider_model {
 		}
 		return true;
 	}
+	
+	
 	
 	public function terminate_instances(array $instance_ids)
 	{

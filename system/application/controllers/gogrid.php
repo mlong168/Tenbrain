@@ -72,6 +72,13 @@ class Gogrid extends Controller {
 		));
 	}
 	
+	function modify_instance()
+	{
+		echo json_encode(array(
+			'success' => $this->gg->modify_instance()
+		));
+	}
+	
 	function get_instance_password()
 	{
 		$instance_id = $this->input->post('instance_id');
