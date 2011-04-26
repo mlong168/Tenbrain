@@ -72,18 +72,32 @@ class Amazon extends Controller {
 	function launch_instance()
 	{
 		$image_id = $this->input->post('image_id');
-
-		$available_types = array('t1.micro', 'm1.small', 'm1.large', 'm1.xlarge', 'm2.xlarge', 'm2.2xlarge', 'm2.4xlarge', 'c1.medium', 'c1.xlarge', 'cc1.4xlarge', 'cg1.4xlarge');
 		$type = $this->input->post('instance_type');
+		$available_types = $this->amazon->available_types;
 		if(!in_array($type, $available_types))
 		{
-			$type = 't1.micro';
+			$type = $this->amazon->default_type;
 		}
 
 		$name = $this->input->post('instance_name');
 
 		echo json_encode(array(
 			'success' => $this->amazon->launch_instance($image_id, $type, $name)
+		));
+	}
+	
+	function modify_instance()
+	{
+		$instance_id = $this->input->post('instance_id');
+		$type = $this->input->post('instance_type');
+		$available_types = $this->amazon->available_types;
+		if(!in_array($type, $available_types))
+		{
+			$type = $this->amazon->default_type;
+		}
+		
+		echo json_encode(array(
+			'success' => $this->amazon->modify_instance($instance_id, $type)
 		));
 	}
 
