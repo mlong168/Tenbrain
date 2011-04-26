@@ -142,6 +142,17 @@ class Common extends Controller {
 		//Func
 	}
 	
+	function get_available_server_types()
+	{
+		$provider = $this->input->post('provider');
+		$types = $this->providers[$provider]->get_available_server_types();
+		
+		echo json_encode(array(
+			'success'	=> true,
+			'backups'	=> $types
+		));
+	}
+	
 	function delete_backup()
 	{
 		$backup_id = $this->input->post('backup_id');
