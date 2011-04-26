@@ -90,11 +90,11 @@ var Snapshots = function(){
 			text: 'Proceed',
 			formBind: true,
 			handler: function(){
-				var title = 'Create Snapshot',
-					success = 'The snapshot has been created successfully',
-					error = 'A problem occured while creating your snapshot';
+				var title = 'Create Backup',
+					success = 'Backup has been created successfully',
+					error = 'A problem occured while creating your backup';
 				create_dialogue.hide();
-				Ext.Msg.wait('The snapshot is being created', title);
+				Ext.Msg.wait('Backup is being created', title);
 				creator.getForm().submit({
 					success: function(form, action){
 						var s = action.result.success
@@ -115,7 +115,7 @@ var Snapshots = function(){
 	});
 	
 	var create_dialogue = new Ext.Window({
-		title: 'Create a Snapshot for the instance',
+		title: 'Create backup for the instance',
 		height: 128,
 		width: 350,
 		closeAction: 'hide',
@@ -126,43 +126,68 @@ var Snapshots = function(){
 	
 	var redeployment_form = new Ext.form.FormPanel({
 		labelWidth: 100,
-		url: '/amazon/restore_snapshot_to_new_instance',
-		border: false,
-		frame: true,
+		url: '/common/restore_snapshot_to_new_instance',
+		baseCls: 'x-plain',
+		autoHeight: true,
+		buttonAlign: 'center',
+		defaults: {
+			xtype: 'textfield'
+		},
 		monitorValid: true,
 
 		items: [{
 			xtype: 'hidden',
 			name: 'backup_id'	
 		}, {
-			xtype: 'textfield',
-			width: 170,
+			anchor: '100%',
 			fieldLabel: 'Name',
 			name: 'name',
 			allowBlank: false,
 			vtype: 'alphanum'
 		}, {
+			id: 'backup_restore_gogrid_address',
 			xtype: 'combo',
-			width: 150,
-			fieldLabel: 'Instance Type',
+			anchor: '100%',
+			disabled: true,
+			hidden: true,
+			fieldLabel: 'IP address',
+			allowBlank: false,
+			vtype: 'IPAddress',
+			store: new Ext.data.JsonStore({
+				url: '/gogrid/get_free_addresses',
+				root: 'addresses',
+				fields: ['address']
+			}),
+			mode: 'remote',
+			name: 'address',
+			displayField: 'address',
+			hiddenName: 'address', // POST-var name
+			valueField: 'ip_address', // POST-var value
+			autoSelect: true,
+			forceSelection: true,
+			typeAhead: true,
+			triggerAction: 'all',
+		}, {
+			xtype: 'combo',
+			anchor: '100%',
+			fieldLabel: 'Server Type',
 			allowBlank: false,
 			editable: false,
 			store: new Ext.data.JsonStore({
-				url: '/amazon/get_available_instance_types',
-				autoLoad: true,
-				successProperty: 'success',
+				url: '/common/get_available_server_types',
 				root: 'types',
-				fields: ['name', 'available', 'reason']
+				fields: ['value', 'name', 'available']
 			}),
-			mode: 'local',
-			name: 'instance_type',
+			mode: 'remote',
+			name: 'server_type',
 			displayField: 'name',
-			hiddenName: 'instance_type', // POST-var name
-			valueField: 'name', // POST-var value
+			hiddenName: 'server_type', // POST-var name
+			valueField: 'value', // POST-var value
 			emptyText: 'Select type',
-			tpl: '<tpl for="."><div ext:qtip="{reason}" class="x-combo-list-item">{name}</div></tpl>',
+			tpl: '<tpl for="."><div ext:qtip="Not available for a free account" class="x-combo-list-item">{name}</div></tpl>',
 			forceSelection: true,
 			typeAhead: true,
+			triggerAction: 'all',
 			listeners: {
 				beforeselect: function(combo, record){
 					return record.data.available; // false if not selectable
@@ -174,11 +199,11 @@ var Snapshots = function(){
 			text: 'Proceed',
 			formBind: true,
 			handler: function(){
-				var title = 'Create new instance from a snapshot',
-					success = 'A new instance has been successfully created from a snapshot',
-					error = 'A problem has occurred while creating a new instance from a snapshot';
+				var title = 'Create new server from backup',
+					success = 'A new server has been successfully created from backup',
+					error = 'A problem has occurred while creating new server from backup';
 				redeployment_dialogue.hide();
-				Ext.Msg.wait('A new instance is being created', title);
+				Ext.Msg.wait('Creating the server', title);
 				redeployment_form.getForm().submit({
 					success: function(form, action){
 						Ext.Msg.alert(title, action.result.success ? success : response.error_message || error);
@@ -198,15 +223,17 @@ var Snapshots = function(){
 	});
 	
 	var redeployment_dialogue = new Ext.Window({
-		title: 'Create a new instance from snapshot',
-		height: 128,
-		width: 310,
-		border: false,
+		title: 'Create a new server from backup',
+		width: 350,
 		closeAction: 'hide',
 		items: redeployment_form,
-		modal : true
+		modal : true,
+		layout: 'fit',
+		minWidth: 300,
+		plain: 'true',
+		bodyStyle: 'padding:5px;'
 	});
-	
+
 	var instance_snapshots_grid = new Ext.grid.GridPanel({
 		border: false,
 		store: store.specific,
@@ -222,13 +249,13 @@ var Snapshots = function(){
 		}),
 		view: new Ext.grid.GridView({
 			// forceFit: true,
-			emptyText: '<p style="text-align: center">No snapshots were created for this instance</p>'
+			emptyText: '<p style="text-align: center">No backups were created for this instance</p>'
 		}),
 		autoExpandColumn: 'description'
 	});
 	
 	var instance_snapshots = new Ext.Window({
-		title: 'Instance snapshots',
+		title: 'Server backups',
 		height: 250,
 		width: 700,
 		layout: 'fit',
@@ -240,7 +267,7 @@ var Snapshots = function(){
 	var snapshot_instance_grid = new Ext.grid.GridPanel({
 		border: false,
 		store: new Ext.data.Store({
-			url: '/common/backup_instance',
+			url: '/amazon/snapshot_instance',
 			reader: new Ext.data.JsonReader({
 				root: 'instances',
 				successProperty: 'success',
@@ -249,7 +276,7 @@ var Snapshots = function(){
 				'id',
 				'name',
 				'dns_name',
-				'ip',
+				'ip_address',
 				'instance_id',
 				'image_id',
 				'state',
@@ -267,19 +294,19 @@ var Snapshots = function(){
 				{header: "Link to instance root", dataIndex: 'dns_name', width: 250, renderer: function(link){
 					return '<a target="_blank" href="http://' + link + '/">' + link + '</a>';
 				}},
-				{header: "IP Address", dataIndex: 'ip', width: 120},
+				{header: "IP Address", dataIndex: 'ip_address', width: 120},
 				{header: "State", dataIndex: 'state', width: 100}
 			]
 		}),
 		view: new Ext.grid.GridView({
 			// forceFit: true,
-			emptyText: '<p style="text-align: center">The instance snapshot has been created of has either been terminated or is currently not available</p>'
+			emptyText: '<p style="text-align: center">The server backup has been created of has either been terminated or is currently not available</p>'
 		}),
 		autoExpandColumn: 'name'
 	});
 	
 	var snapshot_instance = new Ext.Window({
-		title: 'Instance for snapshot',
+		title: 'Server for backup',
 		height: 250,
 		width: 700,
 		layout: 'fit',
@@ -290,26 +317,26 @@ var Snapshots = function(){
 
 	var snapshot_menu = new Ext.menu.Menu({
 		items: [{
-			text: 'Restore and terminate corresponding instance',
+			text: 'Restore and terminate corresponding server',
 			handler: function(){
-				var snap_id = snapshot_menu.relative_grid.getStore().getAt(snapshot_menu.selected_record_id).get('id');
+				var snap_id = snapshot_menu.selected_record.get('id');
 				snapshot_menu.hide();
 				Ext.Msg.confirm(
-					'Restore snapshot to corresponding instance',
-					"Are you sure you want to restore snapshot to it's instance?",
+					'Restore backup to corresponding server',
+					"Are you sure you want to restore backup to it's server?",
 					function(button){
-						var error_message = 'A problem has occurred while restoring snapshot';
+						var error_message = 'A problem has occurred while restoring backup';
 						if(button === 'yes')
 						{
-							Ext.Msg.wait('Restoring your snapshot', 'Snapshot Restore');
+							Ext.Msg.wait('Restoring your backup', 'Backup Restore');
 							Ext.Ajax.request({
 								url: 'common/restore_backup_to_corresponding_instance',
-								params: { backup_id: snap_id },
+								params: { snapshot_id: snap_id },
 								success: function(response){
 									response = Ext.decode(response.responseText);
 									var s = response.success;
 									Ext.Msg.alert(s ? 'Success' : 'Error', s
-										? 'Snapshot has been restored successfully'
+										? 'Backup has been restored successfully'
 										: response.error_message || error_message
 									);
 									store.common.reload();
@@ -327,18 +354,22 @@ var Snapshots = function(){
 				return false;				
 			}
 		}, {
-			text: 'Redeploy to new instance',
+			text: 'Redeploy to new server',
 			handler: function(){
-				var snap_id = snapshot_menu.relative_grid.getStore().getAt(snapshot_menu.selected_record_id).get('backup_id');
+				var record = snapshot_menu.selected_record
+					snap_id = record.get('snapshot_id'),
+					is_gogrid = record.get('provider') === 'GoGrid';
+				
 				snapshot_menu.hide();
-				redeployment_form.getForm().reset().setValues({backup_id: snap_id});
+				Ext.getCmp('backup_restore_gogrid_address').setDisabled(!is_gogrid).setVisible(is_gogrid);
+				redeployment_form.getForm().reset().setValues({snapshot_id: snap_id});
 				redeployment_dialogue.show();
 				return false;
 			}
 		}, {
-			text: 'View corresponding instance',
+			text: 'View corresponding server',
 			handler: function(){
-				var record = snapshot_menu.relative_grid.getStore().getAt(snapshot_menu.selected_record_id),
+				var record = snapshot_menu.selected_record,
 					backup_id = record.get('id'),
 					name = record.get('name');
 				
@@ -348,15 +379,15 @@ var Snapshots = function(){
 						backup_id: backup_id
 					}
 				});
-				snapshot_instance.setTitle('Instance for snapshot "' + name + '"');
+				snapshot_instance.setTitle('Server for backup "' + name + '"');
 				snapshot_instance.show();
 			}
 		}, {
-			text: 'Delete snapshot',
+			text: 'Delete backup',
 			handler: function(){
-				var backup_id = snapshot_menu.relative_grid.getStore().getAt(snapshot_menu.selected_record_id).get('id');
+				var backup_id = snapshot_menu.selected_record.get('id');
 				snapshot_menu.hide();
-				Ext.MessageBox.confirm('Snapshot Delete', 'Are you sure you want to delete this snapshot?', function(button){
+				Ext.MessageBox.confirm('Backup Removal', 'Are you sure you want to delete this backup?', function(button){
 					if(button === 'yes')
 					{
 						Ext.Ajax.request({
@@ -366,14 +397,14 @@ var Snapshots = function(){
 							},
 							success: function(response){
 								response = Ext.decode(response.responseText);
-								Ext.Msg.alert('Delete snapshot', response.success
-									? 'Snapshot has been deleted successfully'
-									: 'A problem has occurred when deleting a snapshot'
+								Ext.Msg.alert('Delete backup', response.success
+									? 'Backup has been deleted successfully'
+									: 'A problem has occurred when deleting backup'
 								);
 								store.common.reload();
 							},
 							failure: function(){
-								Ext.Msg.alert('Error', 'A problem has occurred when deleting a snapshot');
+								Ext.Msg.alert('Error', 'A problem has occurred when deleting backup');
 							}
 						});
 					}
@@ -382,41 +413,41 @@ var Snapshots = function(){
 			}
 		}],
 		relative_grid: null,
-		selected_record_id: null
+		selected_record: null
 	});
 
 	var sm = new Ext.grid.CheckboxSelectionModel();
 	var snapshots = new Ext.grid.GridPanel({
 		id: 'snapshots-panel',
-		title: 'Created snapshots',
+		title: 'Created backups',
 		layout: 'fit',
 		store: store.common,
 		tbar: {
 			xtype: 'toolbar',
 			items: [{
 				xtype: 'button',
-				text: 'Delete Snapshots',
+				text: 'Delete Backups',
 				cls: 'x-btn-text-icon',
 				iconCls: 'terminate',
 				handler: function(){
 					var selected = sm.getSelections(), snaps = [],
-						title = 'Delete Snapshots',
-						success = 'Snapshots have been deleted successfully',
-						error = 'A problem has occurred while deleting snapshots';						
+						title = 'Backup removal',
+						success = 'Backups have been deleted successfully',
+						error = 'A problem has occurred while deleting backups';						
 					if(!sm.getCount())
 					{
-						Ext.Msg.alert('Warning', 'Please select some snapshots to perform the action');
+						Ext.Msg.alert('Warning', 'Please select some backups to perform the action');
 						return false;
 					}
 					
-					Ext.MessageBox.confirm(title, 'Are you sure you want to delete these snapshots?', function(button){
+					Ext.MessageBox.confirm(title, 'Are you sure you want to delete these backups?', function(button){
 						if(button !== 'yes') return false;
 					
 						for(var i = selected.length; i--;)
 						{
-							snaps.push(selected[i].data.backup_id);
+							snaps.push(selected[i].data.snapshot_id);
 						}
-						Ext.Msg.wait('The snapshots are being deleted', 'Deleting snapshots');
+						Ext.Msg.wait('Backups are being deleted', 'Backup removal');
 						Ext.Ajax.request({
 							url: 'common/delete_backup',
 							params: {
@@ -450,7 +481,7 @@ var Snapshots = function(){
 		},
 		view: new Ext.grid.GridView({
 			forceFit: true,
-			emptyText: '<p style="text-align: center">You have not created any snapshot so far</p>'
+			emptyText: '<p style="text-align: center">You have not created any backup so far</p>'
 		}),
 		cm: new Ext.grid.ColumnModel({
 			defaultSortable: false,
@@ -461,7 +492,6 @@ var Snapshots = function(){
 					return value;
 				}},
 				{header: "Status", dataIndex: 'status', width: 60},
-				{header: "ID", dataIndex: 'id', width: 60},
 				{header: "Provider", dataIndex: 'provider', width: 60},
 				{header: "Description", dataIndex: 'description', id: 'description', width: 150},
 				{header: "Start Time", dataIndex: 'created_on', width: 100}
@@ -471,8 +501,8 @@ var Snapshots = function(){
 		listeners: {
 			rowcontextmenu: function (grid, id, e) {
 				e.preventDefault();
-				snapshot_menu.relative_grid = grid;
-				snapshot_menu.selected_record_id = id;
+				snapshot_menu.relative_grid = this;
+				snapshot_menu.selected_record = this.getStore().getAt(id);
 				snapshot_menu.showAt(e.getXY());
 			}
 		}
@@ -491,8 +521,8 @@ var Snapshots = function(){
 		show_instance_snapshots: function(instance_id, instance_name){
 			instance_name = instance_name || '';
 			instance_snapshots.setTitle(instance_name.length
-				? 'Snapshots for instace "' + instance_name + '"'
-				: 'Instance snapshots'
+				? 'Backups for server "' + instance_name + '"'
+				: 'Server backups'
 			);			
 			store.specific.reload({
 				params: {

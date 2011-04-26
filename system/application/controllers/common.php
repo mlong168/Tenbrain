@@ -84,24 +84,6 @@ class Common extends Controller {
 		));
 	}
 	
-	function backup_instance()
-	{
-		$backup_id = $this->input->post('backup_id');
-		$this->load->model('Backup_model', 'backup');
-		
-		$backup = $this->backup->get_backup_details($backup_id, array('provider', 'provider_instance_id'));
-		//print_r($backup_id);
-		$backup = $backup[0];
-
-		$instances = $this->providers[$backup->provider]->get_backuped_instance($backup_id);
-		
-		//print_r($instances);
-		echo json_encode(array(
-			'success'	=> true,
-			'instances'	=> $instances
-		));
-	}
-	
 	function create_backup()
 	{
 		$instance_id = $this->input->post('instance_id');
@@ -123,23 +105,15 @@ class Common extends Controller {
 	{
 		$backup_id = $this->input->post('backup_id');
 		$this->load->model('Backup_model', 'backup');
-		//print_r($backup_id);
+		
 		$_backup = $this->backup->get_backup_by_id($backup_id);
 		if(!$_backup)
-			return $this->failure_response('Problem1'); 
+			return $this->failure_response('Problem'); 
 			
 		$backup = $this->providers[$_backup->provider]->restore_backup_to_corresponding_instance($backup_id);
-		//print_r($backup);
-		return $backup ? $this->successfull_response('Snapshot has been deleted successfully') : $this->failure_response('Problem2'); 
+		print_r($backup);
+		return $backup ? $this->successfull_response('Snapshot has been deleted successfully') : $this->failure_response('Problem'); 
 		
-	}
-	
-	function restore_backup_to_new_instance()
-	{
-		$backup_id = $this->input->post('backup_id');
-		$settings = $this->input->post('settings');
-		
-		//Func
 	}
 	
 	function get_available_server_types()
@@ -160,11 +134,11 @@ class Common extends Controller {
 		
 		$_backup = $this->backup->get_backup_by_id($backup_id);
 		if(!$_backup)
-			return $this->failure_response('Problem1'); 
+			return $this->failure_response('Problem'); 
 		
 		$backup = $this->providers[$_backup->provider]->delete_backup($backup_id);
 		
-		return $backup ? $this->successfull_response('Snapshot has been deleted successfully') : $this->failure_response('Problem2'); 
+		return $backup ? $this->successfull_response('Snapshot has been deleted successfully') : $this->failure_response('Problem'); 
 	}
 	function list_backups()
 	{

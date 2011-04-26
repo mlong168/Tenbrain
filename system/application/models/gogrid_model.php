@@ -656,7 +656,7 @@ class Gogrid_model extends Provider_model {
 		$response = json_decode($response);
 		$this->test_response($response);
 		
-		$this->backup->remove_backup($backup->provider_backup_id);
+		$this->backup->remove_backup($backup_id);
 		return true;
 	}
 	
@@ -778,7 +778,7 @@ class Gogrid_model extends Provider_model {
 		);
 	}
 	
-	public function get_backuped_instance($backup_id)
+	private function get_backuped_instance($backup_id)
 	{
 		$this->load->model("Backup_model","backup");
 		$backup = $this->backup->get_backup_by_id($backup_id);
@@ -787,17 +787,18 @@ class Gogrid_model extends Provider_model {
 			'id' => $backup->instance_id
 		));
 		$instance = json_decode($response);
-		
-		if(!isset($instance->list[0]->id))
-			return array();
-			
 		$instance = $instance->list[0];
-
+		//print_r($instance);
 		$instance_desrc = array(
-			'id'			=> $instance->id,
-			'name'			=> (string) $instance->name,
-			'ip'			=> (string) $instance->ip->ip,
-			'state'			=> (string) $instance->state->name
+			'id'				=> $instance->id,
+			'name'				=> (string) $instance->name,
+			'snapshot_id'		=> (string) $backup_id,
+			'capacity'			=> (string) ($instance->diskSize/1024) . 'GB',
+			//'description'		=> (string) $instance->description,
+			'status'			=> (string) $instance->state->name,
+			//'progress'			=> (string) $instance->progress,
+			//'started'			=> $instance->started
+			// ''				=> (string) $instance->,
 		);
 
 		return $instance_desrc;
