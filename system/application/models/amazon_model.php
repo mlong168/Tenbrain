@@ -857,33 +857,6 @@ class Amazon_model extends Provider_model {
 		return $balancers;
 	}
 
-	public function created_load_balancers()
-	{
-		$elb = $this->get_elb_handle();
-
-		$response = $elb->describe_load_balancers();
-
-		$balancers = array();
-		$list = $response->body->query("descendant-or-self::LoadBalancerName");
-		$results = $list->map(function($node){
-			return $node->parent();
-		});
-
-		$results->each(function($node, $i, &$balancers){
-			$balancers[] = array(
-				'id'				=> $i,
-				'name'				=> (string) $node->LoadBalancerName,
-				'dns_name'			=> (string) $node->DNSName,
-				// ''				=> (string) $node->,
-			);
-		}, $balancers);
-
-		return array(
-			'success'			=> $response->isOK(),
-			'load_balancers'	=> $balancers
-		);
-	}
-
 	public function create_load_balancer($name, array $instances, $gogrid_lb_address = false)
 	{
 		$elb = $this->get_elb_handle();
@@ -894,7 +867,7 @@ class Amazon_model extends Provider_model {
 				'InstancePort' => 80,
 				'LoadBalancerPort' => 80
 			)
-		), 'us-east-1c');
+		), 'us-east-1d');
 		$this->test_response($response);
 		
 		$this->load->model('Balancer_model', 'balancer');
@@ -910,8 +883,36 @@ class Amazon_model extends Provider_model {
 
 		return true;
 	}
+	
+	public function get_instances_for_lb()
+	{
+		$account_id = $this->session->userdata('account_id');
+		$this->load->model('Balancer_model', 'balancer');
+		
+		return $this->balancer->get_instances_for_lb($account_id,$this->name);
+	}
+	
+	public function register_instances_within_load_balancer($lb, $instances)
+	{
+		$this->load->model('Instance_model', 'instances');
+		$instance_ids = $this->instances->get_instances_details($instances, array('instance_id', 'provider_instance_id'));
+		$instances = array();
+		foreach($instance_ids as $inst)
+		{
+			$instances[$inst->provider_instance_id] = $inst->instance_id;
+		}
+		
+		if($this->register_instances_with_load_balancer($lb->pid, array_keys($instances)))
+		{
+			foreach(array_values($instances) as $id)
+			{
+				$this->balancer->add_load_balancer_instances($lb->id, $id);
+			}
+		}
+		return true;
+	}
 
-	public function register_instances_with_load_balancer($lb_name, $instances)
+	private function register_instances_with_load_balancer($lb_name, $instances)
 	{
 		$enabled_zones = $this->get_lb_availability_zones($lb_name);		
 		$instances_to_register = array();
@@ -1004,7 +1005,27 @@ class Amazon_model extends Provider_model {
 		return $zones;
 	}
 
-	public function deregister_instances_from_load_balancer($lb_name, $instances)
+	public function deregister_instances_from_lb($lb, $instances)
+	{
+		$this->load->model('Instance_model', 'instances');
+		$instance_ids = $this->instances->get_instances_details($instances, array('provider_instance_id', 'instance_id'));
+		$instances = array();
+		foreach($instance_ids as $inst)
+		{
+			$instances[$inst->provider_instance_id] = $inst->instance_id;
+		}
+		
+		if($this->deregister_instances_from_load_balancer($lb->pid, array_keys($instances)))
+		{
+			foreach(array_values($instances) as $id)
+			{
+				$this->balancer->deregister_instance_from_lb($id, $lb->id);
+			}
+		}
+		return true;
+	}
+
+	private function deregister_instances_from_load_balancer($lb_name, $instances)
 	{
 		$instances_to_deregister = array();
 		foreach($instances as $instance)
@@ -1012,7 +1033,7 @@ class Amazon_model extends Provider_model {
 			$instances_to_deregister []= array('InstanceId' => $instance);
 		}
 		$elb = $this->get_elb_handle();
-		$response = $elb->deregister_instances_from_load_balancer($lb_name, $instances_to_register);
+		$response = $elb->deregister_instances_from_load_balancer($lb_name, $instances_to_deregister);
 		$this->test_response($response);
 		return true;
 	}

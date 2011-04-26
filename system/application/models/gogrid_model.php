@@ -351,13 +351,10 @@ class Gogrid_model extends Provider_model {
 	
 	public function get_instances_for_lb()
 	{
+		$account_id = $this->session->userdata('account_id');
 		$this->load->model('Balancer_model', 'balancer');
 		
-		$account_id = $this->session->userdata('account_id');
-		
-		$instances = $this->balancer->get_instances_for_lb($account_id,$this->name);
-		
-		return $instances;
+		return $this->balancer->get_instances_for_lb($account_id,$this->name);
 	}
 	
 	public function create_load_balancer($name, array $instances, $ip)
@@ -499,25 +496,28 @@ class Gogrid_model extends Provider_model {
 		return $instances;
 	}
 	
-	function register_instances_within_lb($lb, $instance_ids)
+	function register_instances_within_load_balancer($lb, $instance_ids)
 	{
 		$this->load->model('Instance_model', 'instance');
 		$this->load->model('Balancer_model', 'balancer');
 		
-		$lb = $this->db->escape($lb->id);
-		
-		$instances = $this->instance->get_register_instances_within_lb($lb,$instance_ids);
+		$to_register = array();
+		$instances = $this->instance->get_instances_details($instance_ids, array('public_ip', 'instance_id'));
+		foreach($instances as $inst)
+		{
+			$to_register[$inst->public_ip] = $inst->instance_id;
+		}
 		
 		$response = $this->gogrid->call('grid.loadbalancer.edit', array_merge(array(
 			'id' => $lb->pid
-		), $this->form_realip_array(array_values($instances))));
+		), $this->form_realip_array(array_keys($to_register))));
 		$response = json_decode($response);
 		$this->test_response($response);
 		
 		// rewrite it to relay more on an realiplist from response, when will have free time
-		foreach($instances as $id => $ip)
+		foreach(array_values($to_register) as $id)
 		{
-			$this->balancer->add_load_balancer_instances($id,$lb->id);
+			$this->balancer->add_load_balancer_instances($lb->id, $id);
 		}
 		
 		return true;
@@ -540,31 +540,36 @@ class Gogrid_model extends Provider_model {
 		$this->load->model('Instance_model', 'instance');
 		$this->load->model('Balancer_model', 'balancer');
 		
-		$rows = $this->balancer->get_instances_for_lb_deregistering($lb_id);
-		
-		foreach($query->result() as $row)
+		$left = array();
+		$registered = $this->balancer->get_load_balanced_instances($lb->id);
+		foreach($registered as $inst)
 		{
-			if(in_array($row->id, $instance_ids))
-			{
-				$deregister[$row->id] = $row->ip;
-			}
-			else
-			{
-				$left[$row->id] = $row->ip;
-			}
+			$left[$inst['ip_address']] = $inst['id'];
 		}
-		if(count($left) === 0) $this->die_with_error('Please leave at least one');
+		
+		$to_deregister = array();
+		$instances = $this->instance->get_instances_details($instance_ids, array('public_ip', 'instance_id'));
+		foreach($instances as $inst)
+		{
+			$to_deregister[$inst->public_ip] = $inst->instance_id;
+		}
+		$left = array_diff($left, $to_deregister);
+
+		if(!count($left))
+		{
+			$this->die_with_error('Please leave at least one');
+		}
 		
 		$response = $this->gogrid->call('grid.loadbalancer.edit', array_merge(array(
 			'id' => $lb->pid
-		), $this->form_realip_array(array_values($left))));
+		), $this->form_realip_array(array_keys($left))));
 		$response = json_decode($response);
 		$this->test_response($response);
 		
 		// rewrite it to relay more on an realiplist from response, when will have free time
-		foreach($deregister as $id => $ip)
+		foreach(array_values($to_deregister) as $id)
 		{
-			$this->instance->deregister_instances_in_lb($lb->id,$id);
+			$this->balancer->deregister_instance_from_lb($id, $lb->id);
 		}
 		
 		return true;
