@@ -74,8 +74,11 @@ class Gogrid extends Controller {
 	
 	function modify_instance()
 	{
+		$instance_id = $this->input->post('instance_id');
+		$ram_size = $this->input->post('ram_size');
+		
 		echo json_encode(array(
-			'success' => $this->gg->modify_instance()
+			'success' => $this->gg->modify_instance($instance_id, $ram_size)
 		));
 	}
 	
