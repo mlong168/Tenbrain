@@ -169,6 +169,28 @@ class Rackspace_model extends Provider_model {
 		return true;
 	}
 	
+	public function modify_instance($id)
+	{
+		$resize = array(
+			'resize' => array(
+				'flavorId'	=> (int) $flavor_id
+			)
+		);
+		
+		$instance = $this->POST_request('server/'.$id.'/action' , $resize);
+		if(!$instance) return false;
+		
+		$cofirm = array(
+			'confirmResize' => NULL
+		);
+		
+		$sucess_response = array(204);
+		$instance = $this->POST_request('server/'.$id.'/action' , $cofirm, $sucess_response);
+		if(!$instance) return false;
+		
+		return true;
+	}
+	
 	public function list_instances($instances = null)
 	{
 		$out = array();
