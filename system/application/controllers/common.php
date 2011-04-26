@@ -301,7 +301,7 @@ class Common extends Controller {
 		
 		$balancers = $this->balancer->get_user_load_balancers();
 		$lbs = $load_balancers = array();
-
+		
 		if(count($balancers) > 0)
 		{
 			foreach($balancers as $row)
