@@ -370,6 +370,7 @@ class Rackspace_model extends Provider_model {
 		$user_id = $this->session->userdata('account_id');
 		$this->load->model('Balancer_model', 'balancer');
 		$lb_id = $this->balancer->get_delete_load_balancer_id($id, $user_id); // should be only one
+		if(!$lb_id) $this->die_with_error('The load balancer you have requested was not found');
 		
 		$this->server_url = str_replace('servers', 'ord.loadbalancers', $this->server_url);
 		$this->DELETE_request('loadbalancers/' . $lb_id);		
@@ -587,7 +588,7 @@ class Rackspace_model extends Provider_model {
 		foreach(array_keys($db_instances) as $id)
 		{
 			$instance = $this->GET_request('servers/' . $id);
-			$instances[$instance->server->addresses->private[0]]= $db_instances[$instance->server->id];
+			$instances[$instance->server->addresses->private[0]] = $db_instances[$instance->server->id];
 		}
 		
 		$this->server_url = str_replace('servers', 'ord.loadbalancers', $this->server_url);

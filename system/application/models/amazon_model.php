@@ -9,6 +9,17 @@ class Amazon_model extends Provider_model {
 	private $premium;
 	
 	public $name = 'Amazon';
+	public $available_types = array('t1.micro', 
+									'm1.small', 
+									'm1.large', 
+									'm1.xlarge', 
+									'm2.2xlarge', 
+									'm2.4xlarge', 
+									'c1.medium', 
+									'c1.xlarge', 
+									'cc1.4xlarge', 
+									'cg1.4xlarge');
+	public $default_type = 't1.micro';
 	
 	function __construct()
 	{
@@ -75,16 +86,6 @@ class Amazon_model extends Provider_model {
 		$credentials = $this->get_user_aws_credentials();
 		if(!$credentials) return 'basic';
 		return 'premium';
-	}
-
-	private function die_with_error($error_message)
-	{
-		header('Content-type: application/json');
-		echo json_encode(array(
-			'success'		=> false,
-			'error_message'	=> $error_message
-		));
-		die;
 	}
 
 	private function test_response($response)
@@ -362,14 +363,14 @@ class Amazon_model extends Provider_model {
 	public function get_available_instance_types()
 	{
 		$reason = $this->premium ? '' : 'Not available in a free version';
-		$types = array('t1.micro', 'm1.small', 'm1.large', 'm1.xlarge', 'm2.2xlarge', 'm2.4xlarge', 'c1.medium', 'c1.xlarge', 'cc1.4xlarge', 'cg1.4xlarge');
+		$types = $this->available_types;
 		$output = array();
 		
 		foreach($types as $type)
 		{
 			$output []= array(
 				'name'		=> $type,
-				'available'	=> $this->premium || $type === 't1.micro',
+				'available'	=> $this->premium || $type === $this->default_type,
 				'reason'	=> $reason
 			);
 		}
@@ -412,6 +413,16 @@ class Amazon_model extends Provider_model {
 			'instance_name' => $name,
 			'provider' => 'Amazon'
 		));
+		return true;
+	}
+	
+	function modify_instance($instance_id, $type)
+	{
+		$response = $this->ec2->modify_instance_attribute($instance_id, 
+															'instanceType', 
+															array('Value' => $type)
+		);
+		$this->test_response($response);
 		return true;
 	}
 
@@ -628,8 +639,13 @@ class Amazon_model extends Provider_model {
 	/*
 	 * restores backup to new instance
 	 */
-	private function restore_backup($backup_id, $name = '', $type = 't1.micro')
+	private function restore_backup($backup_id, $name = '', $type = NULL)
 	{
+		if($type == NULL)
+		{
+			$type = $this->default_type;
+		}
+		
 		$this->load->model('Instance_model', 'instance');
 		
 		$response = $this->ec2->describe_snapshots(array('SnapshotId' => $backup_id));
@@ -712,8 +728,12 @@ class Amazon_model extends Provider_model {
 		return true;
 	}
 
-	public function restore_backup_to_new_instance($backup_id, $name, $type = 't1.micro')
+	public function restore_backup_to_new_instance($backup_id, $name, $type = NULL)
 	{
+		if($type == NULL)
+		{
+			$type = $this->default_type;
+		}
 		$this->restore_backup($backup_id, $name, $type);
 		return true;
 	}
@@ -948,7 +968,8 @@ class Amazon_model extends Provider_model {
 		
 		$user_id = $this->session->userdata('account_id');
 		
-		$name = $this->balancer->get_delete_load_balancer_id($id,$user_id); // should be only one, for amazon unique id is name
+		$name = $this->balancer->get_delete_load_balancer_id($id, $user_id); // should be only one, for amazon unique id is name
+		if(!$name) $this->die_with_error('The load balancer you have requested was not found');
 		
 		$elb = $this->get_elb_handle();
 		$response = $elb->delete_load_balancer($name);
