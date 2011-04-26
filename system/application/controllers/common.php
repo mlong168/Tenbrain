@@ -317,7 +317,7 @@ class Common extends Controller {
 					if(!$lb_pid)
 					{
 						$load_balancers []= array(
-							'id'		=> 0,
+							'id'		=> $id,
 							'name'		=> $row->name,
 							'provider'	=> 'GoGrid',
 							'state'		=> 'pending',

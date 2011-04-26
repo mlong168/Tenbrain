@@ -17,6 +17,16 @@ abstract class Provider_model extends Model {
 		return $query->num_rows === 1 ? $query->row()->provider_instance_id : false;
 	}
 	
+	protected function die_with_error($error_message)
+	{
+		header('Content-type: application/json');
+		echo json_encode(array(
+			'error'			=> true,
+			'error_message'	=> $error_message
+		));
+		die; // how can you proceed if things failed? ;)
+	}
+	
 	abstract public function list_images();
 	abstract public function list_instances($ids);
 	

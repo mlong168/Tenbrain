@@ -103,12 +103,11 @@ var Images = function(){
 			vtype: 'IPAddress',
 			store: new Ext.data.JsonStore({
 				url: '/gogrid/get_free_addresses',
-				autoLoad: true,
 				successProperty: 'success',
 				root: 'addresses',
 				fields: ['address']
 			}),
-			mode: 'local',
+			mode: 'remote',
 			name: 'address',
 			displayField: 'address',
 			hiddenName: 'address', // POST-var name
@@ -116,11 +115,7 @@ var Images = function(){
 			autoSelect: true,
 			forceSelection: true,
 			typeAhead: true,
-			listeners: {
-				beforeselect: function(combo, record){
-					return record.data.available; // false if not selectable
-				}
-			}
+			triggerAction: 'all'
 		}, {
 			xtype: 'combo',
 			width: 150,
@@ -128,12 +123,11 @@ var Images = function(){
 			allowBlank: false,
 			store: new Ext.data.JsonStore({
 				url: '/gogrid/get_available_ram_sizes',
-				autoLoad: true,
 				successProperty: 'success',
 				root: 'sizes',
 				fields: ['size']
 			}),
-			mode: 'local',
+			mode: 'remote',
 			name: 'ram',
 			displayField: 'size',
 			hiddenName: 'ram', // POST-var name
@@ -141,6 +135,7 @@ var Images = function(){
 			autoSelect: true,
 			forceSelection: true,
 			typeAhead: true,
+			triggerAction: 'all',
 			listeners: {
 				beforeselect: function(combo, record){
 					return record.data.available; // false if not selectable

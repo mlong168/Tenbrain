@@ -30,16 +30,6 @@ class Gogrid_model extends Provider_model {
 		return $response->status === 'success';
 	}
 	
-	private function die_with_error($error_message)
-	{
-		header('Content-type: application/json');
-		echo json_encode(array(
-			'error'			=> true,
-			'error_message'	=> $error_message
-		));
-		die; // how can you proceed if things failed? ;)
-	}
-	
 	public function lookup($lookup)
 	{
 		$response = $this->gogrid->call('common.lookup.list', array(
@@ -354,7 +344,7 @@ class Gogrid_model extends Provider_model {
 		$account_id = $this->session->userdata('account_id');
 		$this->load->model('Balancer_model', 'balancer');
 		
-		return $this->balancer->get_instances_for_lb($account_id,$this->name);
+		return $this->balancer->get_instances_for_lb($account_id, $this->name);
 	}
 	
 	public function create_load_balancer($name, array $instances, $ip)
@@ -414,13 +404,14 @@ class Gogrid_model extends Provider_model {
 		
 		$user_id = $this->session->userdata('account_id');
 
-		$lb_id = $this->balancer->get_delete_load_balancer_id($id,$user_id); // should be only one
+		$lb_id = $this->balancer->get_delete_load_balancer_id($id, $user_id); // should be only one
+		if(!$lb_id) $this->die_with_error('The load balancer you have requested was not found or is not available to operate yet');
 		
 		$response = $this->gogrid->call('grid.loadbalancer.delete', array('id' => $lb_id));
-		$response = json_decode($response);		
+		$response = json_decode($response);
 		$this->test_response($response);
 		
-		$this->balancer->delete_load_balancer($id,$user_id);
+		$this->balancer->delete_load_balancer($id, $user_id);
 		
 		return true;
 	}
@@ -470,14 +461,17 @@ class Gogrid_model extends Provider_model {
 		foreach($response->list[0]->realiplist as $instance)
 		{
 			$ip = $instance->ip->ip;
-			$instances []= array(
-				'id'				=> $names[$ip]['id'],
-				'name'				=> $names[$ip]['name'],
-				'ip_address'		=> $ip,
-				'healthy'			=> (int) $instance->ip->state->id === 2,
-				'health_message'	=> $instance->ip->state->description
-				// ''	=> $lb->,
-			);
+			if(array_key_exists($ip, $names))
+			{	
+				$instances []= array(
+					'id'				=> $names[$ip]['id'],
+					'name'				=> $names[$ip]['name'],
+					'ip_address'		=> $ip,
+					'healthy'			=> (int) $instance->ip->state->id === 2,
+					'health_message'	=> $instance->ip->state->description
+					// ''	=> $lb->,
+				);
+			}
 		}
 		
 		return $instances;
@@ -496,6 +490,18 @@ class Gogrid_model extends Provider_model {
 		return $instances;
 	}
 	
+	private function form_realip_array($ips, $port = 80)
+	{
+		$real_ips = array();$i = 0;
+		foreach($ips as $ip)
+		{
+			$real_ips['realiplist.' . $i . '.ip'] = $ip;
+			$real_ips['realiplist.' . $i . '.port'] = $port;
+			++$i;
+		}
+		return $real_ips;
+	}
+	
 	function register_instances_within_load_balancer($lb, $instance_ids)
 	{
 		$this->load->model('Instance_model', 'instance');
@@ -508,6 +514,14 @@ class Gogrid_model extends Provider_model {
 			$to_register[$inst->public_ip] = $inst->instance_id;
 		}
 		
+		$already_registered = $this->balancer->get_load_balanced_instances($lb->id);
+		$left = array();
+		foreach($already_registered as $inst)
+		{
+			$ip = $inst['ip_address'];
+			$to_register[$ip] = $left[$ip] = $inst['id'];
+		}
+		
 		$response = $this->gogrid->call('grid.loadbalancer.edit', array_merge(array(
 			'id' => $lb->pid
 		), $this->form_realip_array(array_keys($to_register))));
@@ -515,24 +529,13 @@ class Gogrid_model extends Provider_model {
 		$this->test_response($response);
 		
 		// rewrite it to relay more on an realiplist from response, when will have free time
-		foreach(array_values($to_register) as $id)
+		$registered = array_diff($to_register, $left);
+		foreach(array_values($registered) as $id)
 		{
 			$this->balancer->add_load_balancer_instances($lb->id, $id);
 		}
 		
 		return true;
-	}
-	
-	private function form_realip_array($ips, $port = 80)
-	{
-		$real_ips = array();$i = 0;
-		foreach($ips as $ip)
-		{
-			$real_ips['realiplist.' . $i . '.ip'] = $ip;
-			$real_ips['realiplist.' . $i . '.port'] = $port;
-			++$i;
-		}
-		return $real_ips;
 	}
 	
 	function deregister_instances_from_lb($lb, $instance_ids)
