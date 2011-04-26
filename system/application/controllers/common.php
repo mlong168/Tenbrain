@@ -228,11 +228,31 @@ class Common extends Controller {
 		$account_id = $this->session->userdata('account_id');
 		
 		$instances = $this->instance->get_instances($account_id,$ids);
-		
 		foreach($this->providers as $provider)
 		{
-			if(!array_key_exists($provider->name, $instances)) continue;
-			$provider->reboot_instances($instances[$provider->name]);
+			if(array_key_exists($provider->name, $instances))
+			{
+				$provider->reboot_instances($instances[$provider->name]);
+			}
+		}
+		
+		echo json_encode(array('success' => true));
+	}
+
+	function modify_instance()
+	{
+		$this->load->model('Instance_model', 'instance');
+		
+		$ids = json_decode($this->input->post('instances'));
+		$account_id = $this->session->userdata('account_id');
+		
+		$instances = $this->instance->get_instances($account_id, $ids);
+		foreach($this->providers as $provider)
+		{
+			if(array_key_exists($provider->name, $instances))
+			{
+				$provider->modify_instance($instances[$provider->name]);
+			}
 		}
 		
 		echo json_encode(array('success' => true));
