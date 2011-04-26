@@ -377,6 +377,24 @@ class Amazon_model extends Provider_model {
 		
 		return $output;
 	}
+	
+	public function get_available_server_types()
+	{
+		$types = array(); $i = 0; $premium = $this->premium;
+		foreach($this->available_types as $type)
+		{
+			$available = $this->premium ? true : $type === $this->default_type;
+			$types []= array(
+				'id'		=> $i,
+				'value'		=> $type,
+				'name'		=> $type,
+				'available'	=> $available
+			);
+			++$i;
+		}
+		
+		return $types;
+	}
 
 	public function launch_instance($image_id, $type, $name)
 	{
@@ -1210,7 +1228,7 @@ class Amazon_model extends Provider_model {
 
 	public function test()
 	{
-		$output = $this->get_elastic_ips();
+		$output = $this->get_available_server_types();
 		print_r($output);
 		echo PHP_EOL;die;
 	}

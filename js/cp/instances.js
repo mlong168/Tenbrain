@@ -64,10 +64,10 @@ var Instances = function(){
 			record = parent_menu.ref_grid.getStore().getAt(parent_menu.selected_record_id),
 			instance_id = record.get('id'),
 			titles = {
-				reboot: 'Reboot Instance',
-				stop: 'Stop Instance',
-				terminate: 'Terminate Instance',
-				start: 'Start Instance'
+				reboot: 'Reboot Server',
+				stop: 'Stop Server',
+				terminate: 'Terminate Server',
+				start: 'Start Server'
 			}, title = titles[action],
 			success = 'Operation Successfull',
 			error = 'A problem has occurred while processing your request';
@@ -166,7 +166,7 @@ var Instances = function(){
 			text: 'Management',
 			menu: {
 				items: [{
-					text: 'Create Snapshot',
+					text: 'Create Backup',
 					handler: function(){
 						var record = instances_menu.ref_grid.getStore().getAt(instances_menu.selected_record_id),
 							id = record.get('id');
@@ -174,7 +174,7 @@ var Instances = function(){
 						Snapshots.create(id);
 					}
 				}, {
-					text: 'View Snapshots',
+					text: 'View Backups',
 					handler: function(){
 						var record = instances_menu.ref_grid.getStore().getAt(instances_menu.selected_record_id),
 							id = record.get('id'),
@@ -223,12 +223,12 @@ var Instances = function(){
 	var xg = Ext.grid, sm_running = new xg.CheckboxSelectionModel(), grids = { };
 	grids.running = new xg.GridPanel({
 		id: 'running_instances-panel',
-		title: 'Your currently running instances',
+		title: 'Your currently running servers',
 		layout: 'fit',
 		store: store.running,
 		view: new xg.GridView({
 			forceFit: true,
-			emptyText: '<p style="text-align: center">You have not launched any instance so far</p>'
+			emptyText: '<p style="text-align: center">You have not launched any server so far</p>'
 		}),
 		listeners: {
 			rowcontextmenu: function (grid, id, e) {
@@ -248,7 +248,7 @@ var Instances = function(){
 					if(record.data.state !== 'running') metadata.css = 'grid-loader';
 					return value;
 				}},
-				{header: "Link to instance root", dataIndex: 'dns_name', width: 250, renderer: link_wrapper},
+				{header: "Link to server root", dataIndex: 'dns_name', width: 250, renderer: link_wrapper},
 				{header: "IP Address", dataIndex: 'ip_address', width: 120},
 				{header: "State", dataIndex: 'state', width: 100},
 				{header: "Type", dataIndex: 'type', width: 100}
@@ -263,13 +263,13 @@ var Instances = function(){
 				iconCls: 'restart',
 				handler: function(){
 					var selected = sm_running.getSelections(), instances = [],
-						title = 'Reboot Instances',
-						success = 'Selected instances have been rebooted successfully',
-						error = 'A problem has occurred while rebooting the instances';
+						title = 'Reboot Servers',
+						success = 'Selected servers have been rebooted successfully',
+						error = 'A problem has occurred while rebooting servers';
 						
 					if(!sm_running.getCount())
 					{
-						Ext.Msg.alert('Warning', 'Please select some instances to perform the action');
+						Ext.Msg.alert('Warning', 'Please select some servers to perform the action');
 						return false;
 					}
 					
@@ -278,10 +278,10 @@ var Instances = function(){
 						instances.push(selected[i].data.id);
 					}
 					
-					Ext.MessageBox.confirm(title, 'Are you sure you want to reboot these instances?', function(button){
+					Ext.MessageBox.confirm(title, 'Are you sure you want to reboot these servers?', function(button){
 						if(button !== 'yes') return false;
 					
-						Ext.Msg.wait('Rebooting selected instances', title);
+						Ext.Msg.wait('Rebooting selected servers', title);
 						Ext.Ajax.request({
 							url: 'common/reboot_instances',
 							params: {
@@ -307,12 +307,12 @@ var Instances = function(){
 				handler: function(){
 					var selected = sm_running.getSelections(), instances = [],
 						title = 'Stop Instances',
-						success = 'Selected instances have been stopped successfully',
-						error = 'A problem has occurred while stopping the instances';
+						success = 'Selected servers have been stopped successfully',
+						error = 'A problem has occurred while stopping the servers';
 						
 					if(!sm_running.getCount())
 					{
-						Ext.Msg.alert('Warning', 'Please select some instances to perform the action');
+						Ext.Msg.alert('Warning', 'Please select some servers to perform the action');
 						return false;
 					}
 					
@@ -321,10 +321,10 @@ var Instances = function(){
 						instances.push(selected[i].data.id);
 					}
 					
-					Ext.MessageBox.confirm(title, 'Are you sure you want to stop these instances?', function(button){
+					Ext.MessageBox.confirm(title, 'Are you sure you want to stop these servers?', function(button){
 						if(button !== 'yes') return false;
 					
-						Ext.Msg.wait('Stopping selected instances', title);
+						Ext.Msg.wait('Stopping selected servers', title);
 						Ext.Ajax.request({
 							url: 'common/stop_instances',
 							params: {
@@ -352,12 +352,12 @@ var Instances = function(){
 				handler: function(){
 					var selected = sm_running.getSelections(), instances = [],
 						title = 'Terminate Instances',
-						success = 'Selected instances have been terminated successfully',
-						error = 'A problem has occurred while terminating the instances';
+						success = 'Selected servers have been terminated successfully',
+						error = 'A problem has occurred while terminating servers';
 						
 					if(!sm_running.getCount())
 					{
-						Ext.Msg.alert('Warning', 'Please select some instances to perform the action');
+						Ext.Msg.alert('Warning', 'Please select some servers to perform the action');
 						return false;
 					}
 					
@@ -366,10 +366,10 @@ var Instances = function(){
 						instances.push(selected[i].data.id);
 					}
 					
-					Ext.MessageBox.confirm(title, 'Are you sure you want to terminate these instances?', function(button){
+					Ext.MessageBox.confirm(title, 'Are you sure you want to terminate these servers?', function(button){
 						if(button !== 'yes') return false;
 						
-						Ext.Msg.wait('Terminating selected instances', title);
+						Ext.Msg.wait('Terminating selected servers', title);
 						Ext.Ajax.request({
 							url: 'common/terminate_instances',
 							params: {
@@ -451,12 +451,12 @@ var Instances = function(){
 	var sm_stopped = new xg.CheckboxSelectionModel();
 	grids.stopped = new xg.GridPanel({
 		id: 'stopped_instances-panel',
-		title: 'Instances that have been stopped',
+		title: 'Servers that have been stopped',
 		layout: 'fit',
 		store: store.stopped,
 		view: new xg.GridView({
 			forceFit: true,
-			emptyText: '<p style="text-align: center">You do not currently have any stopped instance</p>'
+			emptyText: '<p style="text-align: center">You do not currently have any stopped server</p>'
 		}),
 		sm: sm_stopped,
 		cm: new xg.ColumnModel({
@@ -467,7 +467,7 @@ var Instances = function(){
 					if(record.data.state !== 'stopped') metadata.css = 'grid-loader';
 					return value;
 				}},
-				{header: "Link to instance root", dataIndex: 'dns_name', width: 250, renderer: link_wrapper},
+				{header: "Link to server root", dataIndex: 'dns_name', width: 250, renderer: link_wrapper},
 				{header: "IP Address", dataIndex: 'ip_address', width: 120},
 				{header: "State", dataIndex: 'state', width: 100},
 				{header: "Virtualization", dataIndex: 'virtualization', width: 100},
@@ -494,13 +494,13 @@ var Instances = function(){
 				iconCls: 'start',
 				handler: function(){
 					var selected = sm_stopped.getSelections(), instances = [],
-						title = 'Start Instances',
-						success = 'Selected instances have been started successfully',
-						error = 'A problem has occurred while starting selected instances';
+						title = 'Start Servers',
+						success = 'Selected servers have been started successfully',
+						error = 'A problem has occurred while starting selected servers';
 						
 					if(!sm_stopped.getCount())
 					{
-						Ext.Msg.alert('Warning', 'Please select some instances to perform the action');
+						Ext.Msg.alert('Warning', 'Please select some servers to perform the action');
 						return false;
 					}
 					
@@ -509,7 +509,7 @@ var Instances = function(){
 						instances.push(selected[i].data.id);
 					}
 					
-					Ext.MessageBox.confirm(title, 'Are you sure you want to start these instances?', function(button){
+					Ext.MessageBox.confirm(title, 'Are you sure you want to start these servers?', function(button){
 						if(button !== 'yes') return false;
 					
 						Ext.Msg.wait('Starting selected instances', title);
@@ -550,7 +550,7 @@ var Instances = function(){
 
 	grids.terminated = new xg.GridPanel({
 		id: 'terminated_instances-panel',
-		title: 'Instances that have previously been terminated',
+		title: 'Servers that have previously been terminated',
 		layout: 'fit',
 		store: store.terminated,
 		bbar: {
@@ -567,7 +567,7 @@ var Instances = function(){
 		},
 		view: new xg.GridView({
 			forceFit: true,
-			emptyText: '<p style="text-align: center">You do not have any terminated instance so far</p>'
+			emptyText: '<p style="text-align: center">You do not have any terminated server so far</p>'
 		}),
 		listeners: {
 			activate: first_time_loader
@@ -576,8 +576,7 @@ var Instances = function(){
 			defaultSortable: false,
 			columns: [
 				{header: "Name", dataIndex: 'name', width: 150},
-				{header: "Link to instance root", dataIndex: 'dns_name', width: 250, renderer: link_wrapper},
-				{header: "IP Address", dataIndex: 'ip_address', width: 120},
+				{header: "Provider", dataIndex: 'provider', width: 80},
 				{header: "State", dataIndex: 'state', width: 100},
 				{header: "Virtualization", dataIndex: 'virtualization', width: 100},
 				{header: "Type", dataIndex: 'type', width: 100},
