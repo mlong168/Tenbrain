@@ -437,12 +437,16 @@ class Amazon_model extends Provider_model {
 	
 	function modify_instance($instance_id, $type)
 	{
-		$response = $this->ec2->modify_instance_attribute($instance_id, 
+		if(in_array($type, $this->available_types))
+		{
+			$response = $this->ec2->modify_instance_attribute($instance_id, 
 															'instanceType', 
 															array('Value' => $type)
-		);
-		$this->test_response($response);
-		return true;
+			);
+			$this->test_response($response);
+			return true;
+		}
+		return false;
 	}
 
 	public function start_instances(array $ids)
