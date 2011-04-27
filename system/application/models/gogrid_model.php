@@ -6,7 +6,7 @@ class Gogrid_model extends Provider_model {
 
 	public $gogrid;
 	
-	private $premium = false;
+	private $premium = true;
 	private $default_type = "512MB";
 	
 	public $name = 'GoGrid';
@@ -711,7 +711,7 @@ class Gogrid_model extends Provider_model {
 		
 		if(!count($ips)>0)
 			return false;
-		$ip = $ips[0]['address'];
+		$ip = isset($backup['ip']) ? $backup['ip'] : $ips[0]['address'];
 		
 		$response= $this->gogrid->call('grid.server.add', array(
 			'name' => $name,
@@ -776,16 +776,21 @@ class Gogrid_model extends Provider_model {
 		return $this->start_backup_image($backup_image);
 	}
 	
-	public function restore_backup_to_new_instance(array $_instance)
+	public function restore_backup_to_new_instance($backup_id, array $settings)
 	{
 		$this->load->model("Backup_model","backup");
-		$backup = $this->backup->get_backup_by_id($_instance['backup_id']);
+		$backup = $this->backup->get_backup_by_id($backup_id);
 		if(!$backup)
 			return false;
 			
+		$name = $settings['name'];
+		$ip = $settings['ip'];
+		$ram = $settings['type'];
+		
 		$backup_image = array(
-			'backup_name'=> $_instance['name'],
-			'ram'	=> $_instance['ram'],
+			'backup_name'=> $name,
+			'ram'	=> $ram,
+			'ip'	=>	$ip,
 			'provider_backup_id' => $backup->provider_backup_id
 		);
 		
