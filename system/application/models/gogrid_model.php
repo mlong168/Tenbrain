@@ -656,7 +656,7 @@ class Gogrid_model extends Provider_model {
 		$response = json_decode($response);
 		$this->test_response($response);
 		
-		$this->backup->remove_backup($backup_id);
+		$this->backup->remove_backup($backup->provider_backup_id);
 		return true;
 	}
 	
