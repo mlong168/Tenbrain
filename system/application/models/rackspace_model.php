@@ -149,12 +149,18 @@ class Rackspace_model extends Provider_model {
 
 	public function get_available_server_types()
 	{
-		$_types = $this->list_flavors();
+		$types = $this->list_flavors();
 
-		foreach($_types as $i => $_type)
+		foreach($types as $i => &$type)
 		{
-			$available = $this->premium ? true : $_type->id === $this->default_type;
-			$types[$i] = array('id' => $i, 'value' => $_type->id, 'name' => $_type->ram, 'available' => $available);
+			$available = $this->premium ? true : $type->id === $this->default_type;
+			$type = array(
+				'id'		=> $i,
+				'value'		=> $type->id,
+				'name'		=> 'Server with ' . $type->ram . 'MB RAM',
+				'available' => $available,
+				'reason'	=> $available ? '' : 'Not available for basic account'
+			);
 		}
 
 		return $types;

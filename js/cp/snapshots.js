@@ -145,7 +145,6 @@ var Snapshots = function(){
 			allowBlank: false,
 			vtype: 'alphanum'
 		}, {
-			id: 'backup_restore_gogrid_address',
 			xtype: 'combo',
 			anchor: '100%',
 			disabled: true,
@@ -166,9 +165,8 @@ var Snapshots = function(){
 			autoSelect: true,
 			forceSelection: true,
 			typeAhead: true,
-			triggerAction: 'all',
+			triggerAction: 'all'
 		}, {
-			id: 'backup_restore_server_type',
 			xtype: 'combo',
 			anchor: '100%',
 			fieldLabel: 'Server Type',
@@ -177,8 +175,8 @@ var Snapshots = function(){
 			store: new Ext.data.JsonStore({
 				url: '/common/get_available_server_types',
 				root: 'types',
-				fields: ['value', 'name', 'available'],
-				baseParams: {provider: 'Amazon'}
+				fields: ['value', 'name', 'available', 'reason'],
+				baseParams: {provider: ''}
 			}),
 			mode: 'remote',
 			name: 'server_type',
@@ -186,11 +184,14 @@ var Snapshots = function(){
 			hiddenName: 'server_type', // POST-var name
 			valueField: 'value', // POST-var value
 			emptyText: 'Select type',
-			tpl: '<tpl for="."><div ext:qtip="Not available for a free account" class="x-combo-list-item">{name}</div></tpl>',
+			tpl: '<tpl for="."><div ext:qtip="{reason}" class="x-combo-list-item">{name}</div></tpl>',
 			forceSelection: true,
 			typeAhead: true,
 			triggerAction: 'all',
 			listeners: {
+				beforequery: function(q){
+					delete q.combo.lastQuery;
+				},
 				beforeselect: function(combo, record){
 					return record.data.available; // false if not selectable
 				}
@@ -359,18 +360,19 @@ var Snapshots = function(){
 			text: 'Redeploy to new server',
 			handler: function(){
 				var record = snapshot_menu.selected_record
-					snap_id = record.get('snapshot_id'),
+					snap_id = record.get('id'),
 					provider = record.get('provider'),
 					is_gogrid = provider === 'GoGrid',
 					form = redeployment_form.getForm(),
-					types = form.findField('backup_restore_server_type');
-				
+					types = form.findField('server_type');
+
 				snapshot_menu.hide();
-				form.findField('backup_restore_gogrid_address').setDisabled(!is_gogrid).setVisible(is_gogrid);
-				types.reset();
+				
+				form.reset().setValues({backup_id: snap_id});
+				form.findField('address').setDisabled(!is_gogrid).setVisible(is_gogrid);
+
 				types.getStore().baseParams.provider = provider;
-				form.reset().setValues({snapshot_id: snap_id});
-				redeployment_dialogue.show();
+				redeployment_dialogue.show().center();
 				return false;
 			}
 		}, {
