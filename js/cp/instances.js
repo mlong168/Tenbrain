@@ -548,7 +548,7 @@ var Instances = function(){
 				}, {
 					text: 'Modify server',
 					handler: function(){
-						var record = stopped_menu.ref_grid.getStore().getAt(instances_menu.selected_record_id),
+						var record = stopped_menu.ref_grid.getStore().getAt(stopped_menu.selected_record_id),
 							form = modify_form.getForm();
 
 						stopped_menu.hide();		
