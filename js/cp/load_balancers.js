@@ -247,6 +247,7 @@ var Load_balancers = function(){
 					success: function(form, action){
 						var s = action.result.success;
 						Ext.Msg.alert(title, s ? success : action.result.error_message || error);
+						reload_until_stable();
 					},
 					failure: function(form, action){
 						Ext.Msg.alert(title, action.result.error_message || error);

@@ -47,10 +47,8 @@ class Balancer_model extends Model {
 		$sql .= ' AND lb.load_balancer_id = ' . $this->db->escape($id);
 		
 		$query = $this->db->query($sql);
-		if($query->num_rows === 0) $this->die_with_error('The load balancer you have requested was not found');
-		$id = $query->row()->id; 
-		
-		return $id;
+				
+		return $query->num_rows !== 0 ? $query->row()->id : false;
 	}
 	
 	function delete_load_balancer($id,$user_id){

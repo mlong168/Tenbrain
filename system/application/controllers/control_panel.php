@@ -37,23 +37,23 @@ class Control_panel extends Controller {
 		$this->session->unset_userdata('active_menu_item');
 		
 		$menu = array();
-		// instances: 
+		// Servers: 
 		$menu []= array(
-			'text'		=> 'Instances Management',
+			'text'		=> 'Server Management',
 			'expanded'	=> !$profile_active,
 			'children'	=> array(
 				array(
-					'text'	=> 'Running Instances',
+					'text'	=> 'Running Servers',
 					'id'	=> 'running_instances',
 					'leaf'	=> true
 				),
 				array(
-					'text'	=> 'Stopped instances',
+					'text'	=> 'Stopped Servers',
 					'id'	=> 'stopped_instances',
 					'leaf'	=> true
 				),
 				array(
-					'text'	=> 'Terminated instances',
+					'text'	=> 'Terminated Servers',
 					'id'	=> 'terminated_instances',
 					'leaf'	=> true
 				)
@@ -74,10 +74,10 @@ class Control_panel extends Controller {
 		
 		// snapshots:
 		$menu []= array(
-			'text'		=> 'Snapshots',
+			'text'		=> 'Backups',
 			'children'	=> array(
 				array(
-					'text'	=> 'Created Snapshots',
+					'text'	=> 'Created Backups',
 					'id'	=> 'snapshots',
 					'leaf'	=> true
 				)

@@ -2,6 +2,7 @@
 
 class Common extends Controller {
 
+	private $supported_providers = array('Amazon', 'GoGrid', 'Rackspace'); // possibly to be added to config
 	private $providers;
 
 	function __construct()
@@ -50,11 +51,10 @@ class Common extends Controller {
 	private function failure_response($message, $additional_params = array())
 	{
 		echo json_encode(array_merge(array(
-			'success'	=> true,
+			'success'	=> false,
 			'message'	=> $message
 		), $additional_params));
-		
-		return true;
+		die;
 	}
 
 	function index()
@@ -84,6 +84,24 @@ class Common extends Controller {
 		));
 	}
 	
+	function backup_instance()
+	{
+		$backup_id = $this->input->post('backup_id');
+		$this->load->model('Backup_model', 'backup');
+		
+		$backup = $this->backup->get_backup_details($backup_id, array('provider', 'provider_instance_id'));
+		//print_r($backup_id);
+		$backup = $backup[0];
+
+		$instances = $this->providers[$backup->provider]->get_backuped_instance($backup_id);
+		
+		//print_r($instances);
+		echo json_encode(array(
+			'success'	=> true,
+			'instances'	=> $instances
+		));
+	}
+	
 	function create_backup()
 	{
 		$instance_id = $this->input->post('instance_id');
@@ -105,15 +123,35 @@ class Common extends Controller {
 	{
 		$backup_id = $this->input->post('backup_id');
 		$this->load->model('Backup_model', 'backup');
-		
+		//print_r($backup_id);
 		$_backup = $this->backup->get_backup_by_id($backup_id);
 		if(!$_backup)
-			return $this->failure_response('Problem'); 
+			return $this->failure_response('Problem1'); 
 			
 		$backup = $this->providers[$_backup->provider]->restore_backup_to_corresponding_instance($backup_id);
-		print_r($backup);
-		return $backup ? $this->successfull_response('Snapshot has been deleted successfully') : $this->failure_response('Problem'); 
+		//print_r($backup);
+		return $backup ? $this->successfull_response('Snapshot has been deleted successfully') : $this->failure_response('Problem2'); 
 		
+	}
+	
+	function restore_backup_to_new_instance()
+	{
+		$backup_id = $this->input->post('backup_id');
+		$settings = $this->input->post('settings');
+		
+		//Func
+	}
+	
+	function get_available_server_types()
+	{
+		$provider = $this->input->post('provider');
+		if(!in_array($provider, $this->supported_providers)) return $this->failure_response('Provider not found');
+		$types = $this->providers[$provider]->get_available_server_types();
+		
+		echo json_encode(array(
+			'success'	=> true,
+			'types'		=> $types
+		));
 	}
 	
 	function delete_backup()
@@ -123,11 +161,11 @@ class Common extends Controller {
 		
 		$_backup = $this->backup->get_backup_by_id($backup_id);
 		if(!$_backup)
-			return $this->failure_response('Problem'); 
+			return $this->failure_response('Problem1'); 
 		
 		$backup = $this->providers[$_backup->provider]->delete_backup($backup_id);
 		
-		return $backup ? $this->successfull_response('Snapshot has been deleted successfully') : $this->failure_response('Problem'); 
+		return $backup ? $this->successfull_response('Snapshot has been deleted successfully') : $this->failure_response('Problem2'); 
 	}
 	function list_backups()
 	{
@@ -334,7 +372,7 @@ class Common extends Controller {
 					if(!$lb_pid)
 					{
 						$load_balancers []= array(
-							'id'		=> 0,
+							'id'		=> $id,
 							'name'		=> $row->name,
 							'provider'	=> 'GoGrid',
 							'state'		=> 'pending',
@@ -390,10 +428,9 @@ class Common extends Controller {
 	
 	function instances_for_load_balancing()
 	{
-		$supported_providers = array('Amazon', 'GoGrid', 'Rackspace'); // possibly to be added to config
 		$provider = $this->input->post('provider');
 		
-		if(!in_array($provider, $supported_providers)) return false;
+		if(!in_array($provider, $this->supported_providers)) return false;
 		
 		$this->load->model('Balancer_model', 'balancer');
 		$instances = $this->balancer->get_instances_for_lb($this->session->userdata('account_id'), $provider);
@@ -411,7 +448,7 @@ class Common extends Controller {
 		$provider = $this->input->post('provider');
 		$gogrid_lb_address = $this->input->post('address');
 
-		if(!in_array($provider, array('Amazon', 'GoGrid', 'Rackspace'))) return $this->failure_response('sometheing bad happened...');
+		if(!in_array($provider, $this->supported_providers)) return $this->failure_response('sometheing bad happened...');
 	
 		$this->load->model('Instance_model', 'instances');
 		$instances = $this->instances->get_instances_details($instances, array('instance_id', 'provider_instance_id', 'provider', 'public_ip'));

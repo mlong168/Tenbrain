@@ -88,16 +88,6 @@ class Amazon_model extends Provider_model {
 		return 'premium';
 	}
 
-	private function die_with_error($error_message)
-	{
-		header('Content-type: application/json');
-		echo json_encode(array(
-			'success'		=> false,
-			'error_message'	=> $error_message
-		));
-		die;
-	}
-
 	private function test_response($response)
 	{
 		if(!$response->isOK())
@@ -386,6 +376,24 @@ class Amazon_model extends Provider_model {
 		}
 		
 		return $output;
+	}
+	
+	public function get_available_server_types()
+	{
+		$types = array(); $i = 0; $premium = $this->premium;
+		foreach($this->available_types as $type)
+		{
+			$available = $this->premium ? true : $type === $this->default_type;
+			$types []= array(
+				'id'		=> $i,
+				'value'		=> $type,
+				'name'		=> $type,
+				'available'	=> $available
+			);
+			++$i;
+		}
+		
+		return $types;
 	}
 
 	public function launch_instance($image_id, $type, $name)
@@ -975,7 +983,8 @@ class Amazon_model extends Provider_model {
 		
 		$user_id = $this->session->userdata('account_id');
 		
-		$name = $this->balancer->get_delete_load_balancer_id($id,$user_id); // should be only one, for amazon unique id is name
+		$name = $this->balancer->get_delete_load_balancer_id($id, $user_id); // should be only one, for amazon unique id is name
+		if(!$name) $this->die_with_error('The load balancer you have requested was not found');
 		
 		$elb = $this->get_elb_handle();
 		$response = $elb->delete_load_balancer($name);
@@ -1219,7 +1228,7 @@ class Amazon_model extends Provider_model {
 
 	public function test()
 	{
-		$output = $this->get_elastic_ips();
+		$output = $this->get_available_server_types();
 		print_r($output);
 		echo PHP_EOL;die;
 	}

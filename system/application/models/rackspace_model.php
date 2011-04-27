@@ -6,6 +6,9 @@ class Rackspace_model extends Provider_model {
 	
 	private $server_url = '';
 	private $auth_token = '';
+	
+	private $premium = false;
+	private $default_type = 1;	
 
 	public $name = 'Rackspace';
 	
@@ -144,6 +147,19 @@ class Rackspace_model extends Provider_model {
 		return empty($flavors) ? false : $flavors->flavors;
 	}
 
+	public function get_available_server_types()
+	{
+		$_types = $this->list_flavors();
+
+		foreach($_types as $i => $_type)
+		{
+			$available = $this->premium ? true : $_type->id === $this->default_type;
+			$types[$i] = array('id' => $i, 'value' => $_type->id, 'name' => $_type->ram, 'available' => $available);
+		}
+
+		return $types;
+	}
+	
 	public function launch_instance($name, $image_id, $flavor_id)
 	{
 		$setup = array(
@@ -392,6 +408,7 @@ class Rackspace_model extends Provider_model {
 		$user_id = $this->session->userdata('account_id');
 		$this->load->model('Balancer_model', 'balancer');
 		$lb_id = $this->balancer->get_delete_load_balancer_id($id, $user_id); // should be only one
+		if(!$lb_id) $this->die_with_error('The load balancer you have requested was not found');
 		
 		$this->server_url = str_replace('servers', 'ord.loadbalancers', $this->server_url);
 		$this->DELETE_request('loadbalancers/' . $lb_id);		
@@ -600,7 +617,7 @@ class Rackspace_model extends Provider_model {
 		foreach(array_keys($db_instances) as $id)
 		{
 			$instance = $this->GET_request('servers/' . $id);
-			$instances[$instance->server->addresses->private[0]]= $db_instances[$instance->server->id];
+			$instances[$instance->server->addresses->private[0]] = $db_instances[$instance->server->id];
 		}
 		
 		$this->server_url = str_replace('servers', 'ord.loadbalancers', $this->server_url);
