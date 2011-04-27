@@ -21,6 +21,7 @@ class Backup_model extends Model {
 	
 	function remove_backup($provider_backup_id)
 	{
+		$provider_backup_id = $this->db->escape($provider_backup_id);
 		$this->db->set('backup_id', "(SELECT backup_id FROM user_backups WHERE provider_backup_id = ".$provider_backup_id.")", false);
 		$this->db->insert('user_deleted_backups', array(
 				'account_id'	=> $this->session->userdata('account_id')

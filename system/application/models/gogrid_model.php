@@ -809,7 +809,7 @@ class Gogrid_model extends Provider_model {
 		);
 	}
 	
-	private function get_backuped_instance($backup_id)
+	public function get_backuped_instance($backup_id)
 	{
 		$this->load->model("Backup_model","backup");
 		$backup = $this->backup->get_backup_by_id($backup_id);
@@ -823,12 +823,8 @@ class Gogrid_model extends Provider_model {
 		$instance_desrc = array(
 			'id'				=> $instance->id,
 			'name'				=> (string) $instance->name,
-			'snapshot_id'		=> (string) $backup_id,
-			'capacity'			=> (string) ($instance->diskSize/1024) . 'GB',
-			//'description'		=> (string) $instance->description,
-			'status'			=> (string) $instance->state->name,
-			//'progress'			=> (string) $instance->progress,
-			//'started'			=> $instance->started
+			'state'			=> (string) $instance->state->name,
+			'ip'				=> $instance->ip->ip
 			// ''				=> (string) $instance->,
 		);
 

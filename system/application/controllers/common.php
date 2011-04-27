@@ -163,9 +163,23 @@ class Common extends Controller {
 		));
 	}
 	
-	function delete_backup()
+	function delete_backups()
 	{
-		$backup_id = $this->input->post('backup_id');
+		$backup_ids = $this->input->post('backup_ids');
+		$backup_ids = json_decode($backup_ids);
+		
+		foreach($backup_ids as $id)
+		{
+			$this->delete_backup($id);
+		}
+		
+		echo json_encode(array(
+			'success'	=> true
+		));
+	}
+	
+	function delete_backup($backup_id)
+	{
 		$this->load->model('Backup_model', 'backup');
 		
 		$_backup = $this->backup->get_backup_by_id($backup_id);
@@ -174,7 +188,7 @@ class Common extends Controller {
 		
 		$backup = $this->providers[$_backup->provider]->delete_backup($backup_id);
 		
-		return $backup ? $this->successfull_response('Snapshot has been deleted successfully') : $this->failure_response('Problem2'); 
+		return $backup ? true : false; 
 	}
 	function list_backups()
 	{
