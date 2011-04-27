@@ -100,6 +100,88 @@ var Instances = function(){
 			});
 		});
 	};
+	
+	var modify_form = new Ext.form.FormPanel({
+		labelWidth: 80,
+		url: '/common/modify_instance',
+		baseCls: 'x-plain',
+		autoHeight: true,
+		buttonAlign: 'center',
+		monitorValid: true,
+
+		items: [{
+			xtype: 'hidden',
+			name: 'instance_id'	
+		}, {
+			xtype: 'combo',
+			anchor: '100%',
+			fieldLabel: 'Server Type',
+			allowBlank: false,
+			editable: false,
+			store: new Ext.data.JsonStore({
+				url: '/common/get_available_server_types',
+				root: 'types',
+				fields: ['value', 'name', 'available', 'reason'],
+				baseParams: {provider: ''}
+			}),
+			mode: 'remote',
+			displayField: 'name',
+			hiddenName: 'instance_type', // POST-var name
+			valueField: 'value', // POST-var value
+			emptyText: 'Select type',
+			tpl: '<tpl for="."><div ext:qtip="{reason}" class="x-combo-list-item">{name}</div></tpl>',
+			forceSelection: true,
+			typeAhead: true,
+			triggerAction: 'all',
+			listeners: {
+				beforequery: function(qe){
+					delete qe.combo.lastQuery;
+				},
+				beforeselect: function(combo, record){
+					return record.data.available; // false if not selectable
+				}
+			}
+		}],
+
+		buttons: [{
+			text: 'Proceed',
+			formBind: true,
+			handler: function(){
+				var title = 'Modify server',
+					success = 'Server has been modified successfully',
+					error = 'A problem has occurred while modifying the server';
+				modify_dialogue.hide();
+				Ext.Msg.wait('Modifying server', title);
+				modify_form.getForm().submit({
+					success: function(form, action){
+						Ext.Msg.alert(title, action.result.success ? success : response.error_message || error);
+						Instances.reload_until_stable('running');
+					},
+					failure: function(form, action){
+						Ext.Msg.alert(title, error);
+					}
+				});
+			}
+		}, {
+			text: 'Cancel',
+			handler: function(){
+				modify_dialogue.hide();
+			}
+		}]
+	});
+	
+	var modify_dialogue = new Ext.Window({
+		title: 'Modify server',
+		width: 300,
+		closeAction: 'hide',
+		items: modify_form,
+		modal : true,
+		layout: 'fit',
+		minWidth: 300,
+		plain: 'true',
+		bodyStyle: 'padding:5px;'
+	});
+	
 	var instances_menu = new Ext.menu.Menu({
 		id: 'running_instances_menu',
 		items: [{
@@ -181,6 +263,17 @@ var Instances = function(){
 							name = record.get('name');
 						instances_menu.hide();
 						Snapshots.show_instance_snapshots(id, name);
+					}
+				}, {
+					text: 'Modify server',
+					handler: function(){
+						var record = instances_menu.ref_grid.getStore().getAt(instances_menu.selected_record_id),
+							form = modify_form.getForm();
+		console.log(form.findField('server_type'))
+						instances_menu.hide();				
+						form.reset().setValues({instance_id: record.get('id')});
+						form.findField('instance_type').getStore().baseParams.provider = record.get('provider');
+						modify_dialogue.show().center();
 					}
 				}]
 			}

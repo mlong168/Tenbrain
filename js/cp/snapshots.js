@@ -359,7 +359,7 @@ var Snapshots = function(){
 		}, {
 			text: 'Redeploy to new server',
 			handler: function(){
-				var record = snapshot_menu.selected_record
+				var record = snapshot_menu.selected_record,
 					snap_id = record.get('id'),
 					provider = record.get('provider'),
 					is_gogrid = provider === 'GoGrid',
