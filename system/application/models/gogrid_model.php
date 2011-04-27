@@ -59,7 +59,7 @@ class Gogrid_model extends Provider_model {
 					'provider'		=> 'GoGrid',
 					'name'			=> $image->friendlyName,
 					'location'		=> $image->location,
-					'description'	=> $image->description,
+					'description'	=> isset($image->description) ? $image->description : "Image",
 					'state'			=> $image->state->name
 					// ''	=> $image->,
 				);
