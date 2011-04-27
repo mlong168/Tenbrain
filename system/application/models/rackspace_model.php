@@ -150,7 +150,7 @@ class Rackspace_model extends Provider_model {
 	public function get_available_server_types()
 	{
 		$types = $this->list_flavors();
-
+		
 		foreach($types as $i => &$type)
 		{
 			$available = $this->premium ? true : $type->id === $this->default_type;
@@ -581,15 +581,18 @@ class Rackspace_model extends Provider_model {
 		return $this->start_backup_image($backup_image);
 	}
 	
-	public function restore_backup_to_new_instance($instance)
+	public function restore_backup_to_new_instance($backup_id, array $settings)
 	{
 		$this->load->model("Backup_model","backup");
-		$backup = $this->backup->get_backup_by_id($instance['backup_id']);
+		$backup = $this->backup->get_backup_by_id($backup_id);
 		if(!$backup)
 			return false;
 		
+		$flavorId = $settings['type'];
+		$name = $settings['name'];
+		
 		$backup_image = array(
-			'flavorId' => $instance['flavorId'],
+			'flavorId' => $flavorId,
 			'imageId'	=> $backup->provider_backup_id,
 			'name'	=> $instance['name']
 		);

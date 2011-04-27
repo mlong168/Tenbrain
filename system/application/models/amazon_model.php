@@ -592,7 +592,7 @@ class Amazon_model extends Provider_model {
 	{
 		if(!$backup_id) $this->die_with_error('No backup specified');
 
-		$instances = $this->get_backup_instance($backup_id, true);
+		$instances = $this->get_backuped_instance($backup_id, true);
 		return array(
 			'success'	=> true,
 			'instances'	=> $instances
@@ -669,9 +669,12 @@ class Amazon_model extends Provider_model {
 			$type = $this->default_type;
 		}
 		
+		$this->load->model('Backup_model', 'backup');
+		$backup = $this->backup->get_backup_by_id($backup_id);
+		
 		$this->load->model('Instance_model', 'instance');
 		
-		$response = $this->ec2->describe_snapshots(array('SnapshotId' => $backup_id));
+		$response = $this->ec2->describe_snapshots(array('SnapshotId' => $backup->provider_backup_id));
 		$this->test_response($response);
 
 		$tags = $response->body->tagSet()->first();
@@ -684,7 +687,7 @@ class Amazon_model extends Provider_model {
 			'BlockDeviceMapping' => array(
 				'DeviceName'				=> '/dev/sda',
 				'Ebs.DeleteOnTermination'	=> true,
-				'Ebs.SnapshotId'			=> $backup_id
+				'Ebs.SnapshotId'			=> $backup->provider_backup_id
 			)
 		));
 		$this->test_response($response);
@@ -746,17 +749,22 @@ class Amazon_model extends Provider_model {
 		$this->test_response($response);
 		
 		$id = $this->instance->get_instance_ids($old_instance['id']);
-		$this->instance->terminate_instance($id[0]);
+		$this->instance->terminate_instance($id[0]['instance_id']);
 
 		return true;
 	}
 
-	public function restore_backup_to_new_instance($backup_id, $name, $type = NULL)
+	//public function restore_backup_to_new_instance($backup_id, $name, $type = NULL)
+	public function restore_backup_to_new_instance($backup_id, array $settings)
 	{
+		$name = $settings['name'];
+		$type = $settings['type'];
+		
 		if($type == NULL)
 		{
 			$type = $this->default_type;
 		}
+		
 		$this->restore_backup($backup_id, $name, $type);
 		return true;
 	}

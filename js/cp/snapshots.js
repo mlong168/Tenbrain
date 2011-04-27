@@ -137,7 +137,7 @@ var Snapshots = function(){
 
 		items: [{
 			xtype: 'hidden',
-			name: 'backup_id'	
+			name: 'backup_id'
 		}, {
 			anchor: '100%',
 			fieldLabel: 'Name',
@@ -160,8 +160,8 @@ var Snapshots = function(){
 			mode: 'remote',
 			name: 'address',
 			displayField: 'address',
-			hiddenName: 'address', // POST-var name
-			valueField: 'ip_address', // POST-var value
+			hiddenName: 'ip_address', // POST-var name
+			valueField: 'address', // POST-var value
 			autoSelect: true,
 			forceSelection: true,
 			typeAhead: true,
@@ -270,7 +270,7 @@ var Snapshots = function(){
 	var snapshot_instance_grid = new Ext.grid.GridPanel({
 		border: false,
 		store: new Ext.data.Store({
-			url: '/amazon/snapshot_instance',
+			url: '/amazon/backup_instance',
 			reader: new Ext.data.JsonReader({
 				root: 'instances',
 				successProperty: 'success',
@@ -334,7 +334,7 @@ var Snapshots = function(){
 							Ext.Msg.wait('Restoring your backup', 'Backup Restore');
 							Ext.Ajax.request({
 								url: 'common/restore_backup_to_corresponding_instance',
-								params: { snapshot_id: snap_id },
+								params: { backup_id: snap_id },
 								success: function(response){
 									response = Ext.decode(response.responseText);
 									var s = response.success;
@@ -369,7 +369,7 @@ var Snapshots = function(){
 				snapshot_menu.hide();
 				
 				form.reset().setValues({backup_id: snap_id});
-				form.findField('address').setDisabled(!is_gogrid).setVisible(is_gogrid);
+				form.findField('ip_address').setDisabled(!is_gogrid).setVisible(is_gogrid);
 
 				types.getStore().baseParams.provider = provider;
 				redeployment_dialogue.show().center();
@@ -454,7 +454,7 @@ var Snapshots = function(){
 					
 						for(var i = selected.length; i--;)
 						{
-							snaps.push(selected[i].data.snapshot_id);
+							snaps.push(selected[i].data.backup_id);
 						}
 						Ext.Msg.wait('Backups are being deleted', 'Backup removal');
 						Ext.Ajax.request({

@@ -123,23 +123,32 @@ class Common extends Controller {
 	{
 		$backup_id = $this->input->post('backup_id');
 		$this->load->model('Backup_model', 'backup');
-		//print_r($backup_id);
+
 		$_backup = $this->backup->get_backup_by_id($backup_id);
 		if(!$_backup)
-			return $this->failure_response('Problem1'); 
+			return $this->failure_response('Problem I'); 
 			
 		$backup = $this->providers[$_backup->provider]->restore_backup_to_corresponding_instance($backup_id);
 		//print_r($backup);
-		return $backup ? $this->successfull_response('Snapshot has been deleted successfully') : $this->failure_response('Problem2'); 
-		
+		return $backup ? $this->successfull_response('Snapshot has been deleted successfully') : $this->failure_response('Problem'); 
 	}
 	
 	function restore_backup_to_new_instance()
 	{
 		$backup_id = $this->input->post('backup_id');
-		$settings = $this->input->post('settings');
 		
-		//Func
+		$this->load->model('Backup_model', 'backup');
+		$backup = $this->backup->get_backup_by_id($backup_id);
+		
+		$name = $this->input->post('name');
+		$server_type = $this->input->post('server_type');
+		$ip = $this->input->post('ip_address');
+		
+		$settings = array('name' => $name, 'type' =>  $server_type, 'ip' => $ip);
+		
+		$result = $this->providers[$backup->provider]->restore_backup_to_new_instance($backup_id, $settings);
+		
+		return $result ? $this->successfull_response('Snapshot has been deleted successfully') : $this->failure_response('Problem'); 
 	}
 	
 	function get_available_server_types()
