@@ -389,7 +389,7 @@ class Amazon_model extends Provider_model {
 				'value'		=> $type,
 				'name'		=> $type,
 				'available'	=> $available,
-				'reason'	=> $availavle ? '' : 'Not available in a free version'
+				'reason'	=> $available ? '' : 'Not available in a free version'
 			);
 			++$i;
 		}
