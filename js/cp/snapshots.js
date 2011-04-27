@@ -126,7 +126,7 @@ var Snapshots = function(){
 	
 	var redeployment_form = new Ext.form.FormPanel({
 		labelWidth: 100,
-		url: '/common/restore_snapshot_to_new_instance',
+		url: '/common/restore_backup_to_new_instance',
 		baseCls: 'x-plain',
 		autoHeight: true,
 		buttonAlign: 'center',
@@ -168,6 +168,7 @@ var Snapshots = function(){
 			typeAhead: true,
 			triggerAction: 'all',
 		}, {
+			id: 'backup_restore_server_type',
 			xtype: 'combo',
 			anchor: '100%',
 			fieldLabel: 'Server Type',
@@ -176,7 +177,8 @@ var Snapshots = function(){
 			store: new Ext.data.JsonStore({
 				url: '/common/get_available_server_types',
 				root: 'types',
-				fields: ['value', 'name', 'available']
+				fields: ['value', 'name', 'available'],
+				baseParams: {provider: 'Amazon'}
 			}),
 			mode: 'remote',
 			name: 'server_type',
@@ -358,11 +360,16 @@ var Snapshots = function(){
 			handler: function(){
 				var record = snapshot_menu.selected_record
 					snap_id = record.get('snapshot_id'),
-					is_gogrid = record.get('provider') === 'GoGrid';
+					provider = record.get('provider'),
+					is_gogrid = provider === 'GoGrid',
+					form = redeployment_form.getForm(),
+					types = form.findField('backup_restore_server_type');
 				
 				snapshot_menu.hide();
-				Ext.getCmp('backup_restore_gogrid_address').setDisabled(!is_gogrid).setVisible(is_gogrid);
-				redeployment_form.getForm().reset().setValues({snapshot_id: snap_id});
+				form.findField('backup_restore_gogrid_address').setDisabled(!is_gogrid).setVisible(is_gogrid);
+				types.reset();
+				types.getStore().baseParams.provider = provider;
+				form.reset().setValues({snapshot_id: snap_id});
 				redeployment_dialogue.show();
 				return false;
 			}
