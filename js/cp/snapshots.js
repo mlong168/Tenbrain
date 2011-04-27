@@ -137,7 +137,7 @@ var Snapshots = function(){
 
 		items: [{
 			xtype: 'hidden',
-			name: 'backup_id'	
+			name: 'backup_id'
 		}, {
 			anchor: '100%',
 			fieldLabel: 'Name',
@@ -160,8 +160,8 @@ var Snapshots = function(){
 			mode: 'remote',
 			name: 'address',
 			displayField: 'address',
-			hiddenName: 'address', // POST-var name
-			valueField: 'ip_address', // POST-var value
+			hiddenName: 'ip_address', // POST-var name
+			valueField: 'address', // POST-var value
 			autoSelect: true,
 			forceSelection: true,
 			typeAhead: true,
@@ -369,7 +369,7 @@ var Snapshots = function(){
 				snapshot_menu.hide();
 				
 				form.reset().setValues({backup_id: snap_id});
-				form.findField('address').setDisabled(!is_gogrid).setVisible(is_gogrid);
+				form.findField('ip_address').setDisabled(!is_gogrid).setVisible(is_gogrid);
 
 				types.getStore().baseParams.provider = provider;
 				redeployment_dialogue.show().center();
