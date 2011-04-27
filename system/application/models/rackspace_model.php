@@ -202,7 +202,7 @@ class Rackspace_model extends Provider_model {
 			)
 		);
 		
-		$instance = $this->POST_request('server/'.$id.'/action' , $resize);
+		$instance = $this->POST_request('server/'.$instance_id.'/action' , $resize);
 		if(!$instance) return false;
 		
 		$cofirm = array(
@@ -210,7 +210,7 @@ class Rackspace_model extends Provider_model {
 		);
 		
 		$sucess_response = array(204);
-		$instance = $this->POST_request('server/'.$id.'/action' , $cofirm, $sucess_response);
+		$instance = $this->POST_request('server/'.$instance_id.'/action' , $cofirm, $sucess_response);
 		if(!$instance) return false;
 		
 		return true;

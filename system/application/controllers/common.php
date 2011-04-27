@@ -284,9 +284,9 @@ class Common extends Controller {
 		$id = $this->input->post('instance_id');
 		$type = $this->input->post('instance_type');
 		
-		$instance = $this->instance->get_instance_details($id, array('provider_instance_id', 'provider'));
-		
-		if(!$instance)
+		$instances = $this->instance->get_instances_details($id, array('provider_instance_id', 'provider'));
+
+		foreach($instances as $instance)
 		{
 			$this->providers[$instance->provider]->modify_instance($instance->provider_instance_id, $type);
 			echo json_encode(array('success' => true));
