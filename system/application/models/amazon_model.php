@@ -746,7 +746,7 @@ class Amazon_model extends Provider_model {
 		$this->test_response($response);
 		
 		$id = $this->instance->get_instance_ids($old_instance['id']);
-		$this->instance->terminate_instance($id[0]);
+		$this->instance->terminate_instance($id[0]['instance_id']);
 
 		return true;
 	}
