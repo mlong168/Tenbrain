@@ -24,13 +24,15 @@ class Instance_model extends Model {
 	public function get_instance_ids($provider_instance_ids)
 	{
 		if(!is_array($provider_instance_ids)) $provider_instance_ids = array($provider_instance_ids);
+
 		$this->db->select('instance_id')->from('user_instances')->where_in('provider_instance_id', $provider_instance_ids);
 		
 		$query = $this->db->get();
+
 		$count = $query->num_rows();
 		if(!$count) return false;
-		
-		return array_values($query->row_array());
+
+		return array_values($query->result_array());
 	}
 	
 	public function get_instances_details($instance_ids, $fields = array('instance_name'))
@@ -116,7 +118,7 @@ class Instance_model extends Model {
 		foreach($ids as $id)
 		{	
 			$this->db->insert('user_deleted_instances', array(
-				'instance_id'	=> $id,
+				'instance_id'	=> $id['instance_id'],
 				'account_id'	=> $account_id
 			));
 		}
