@@ -270,7 +270,7 @@ var Snapshots = function(){
 	var snapshot_instance_grid = new Ext.grid.GridPanel({
 		border: false,
 		store: new Ext.data.Store({
-			url: '/amazon/snapshot_instance',
+			url: '/amazon/backup_instance',
 			reader: new Ext.data.JsonReader({
 				root: 'instances',
 				successProperty: 'success',
@@ -334,7 +334,7 @@ var Snapshots = function(){
 							Ext.Msg.wait('Restoring your backup', 'Backup Restore');
 							Ext.Ajax.request({
 								url: 'common/restore_backup_to_corresponding_instance',
-								params: { snapshot_id: snap_id },
+								params: { backup_id: snap_id },
 								success: function(response){
 									response = Ext.decode(response.responseText);
 									var s = response.success;
@@ -454,7 +454,7 @@ var Snapshots = function(){
 					
 						for(var i = selected.length; i--;)
 						{
-							snaps.push(selected[i].data.snapshot_id);
+							snaps.push(selected[i].data.backup_id);
 						}
 						Ext.Msg.wait('Backups are being deleted', 'Backup removal');
 						Ext.Ajax.request({

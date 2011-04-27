@@ -592,7 +592,7 @@ class Amazon_model extends Provider_model {
 	{
 		if(!$backup_id) $this->die_with_error('No backup specified');
 
-		$instances = $this->get_backup_instance($backup_id, true);
+		$instances = $this->get_backuped_instance($backup_id, true);
 		return array(
 			'success'	=> true,
 			'instances'	=> $instances
@@ -746,7 +746,7 @@ class Amazon_model extends Provider_model {
 		$this->test_response($response);
 		
 		$id = $this->instance->get_instance_ids($old_instance['id']);
-		$this->instance->terminate_instance($id[0]);
+		$this->instance->terminate_instance($id[0]['instance_id']);
 
 		return true;
 	}
