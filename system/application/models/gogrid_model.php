@@ -227,14 +227,19 @@ class Gogrid_model extends Provider_model {
 	
 	public function get_available_server_types()
 	{
-		$types = array();
-		$_types = $this->get_available_ram_sizes();
+		$types = $this->get_available_ram_sizes();
 
-		foreach($_types as $i => $_type)
+		foreach($types as $i => &$type)
 		{
 			//$available = $this->premium ? true : $_type['size'] === $this->default_type; 
 			$available = $this->premium;
-			$types[$i] = array('id' => $i, 'value' => $_type['size'], 'name' => $_type['description'], 'available' => $available);
+			$type = array(
+				'id'		=> $i,
+				'value'		=> $type['size'],
+				'name'		=> $type['description'],
+				'available'	=> $available,
+				'reason'	=> $available ? '' : 'Not available for basic account'
+			);
 		}
 		
 		return $types;
