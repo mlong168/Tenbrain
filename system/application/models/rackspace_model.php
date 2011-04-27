@@ -185,8 +185,11 @@ class Rackspace_model extends Provider_model {
 		return true;
 	}
 	
-	public function modify_instance($id)
+	public function modify_instance($instance_id, $instance_type)
 	{
+		if(!is_numeric($instance_type)) return false;
+			
+		$flavor_id = $instance_type;
 		$resize = array(
 			'resize' => array(
 				'flavorId'	=> (int) $flavor_id

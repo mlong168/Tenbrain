@@ -282,7 +282,7 @@ class Common extends Controller {
 		$this->load->model('Instance_model', 'instance');
 		
 		$id = $this->input->post('instance_id');
-		$type = $this->input->post('type');
+		$type = $this->input->post('instance_type');
 		
 		$instance = $this->instance->get_instance_details($id, array('provider_instance_id', 'provider'));
 		

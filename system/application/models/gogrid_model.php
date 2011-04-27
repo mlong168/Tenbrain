@@ -282,8 +282,9 @@ class Gogrid_model extends Provider_model {
 		return true;
 	}
 	
-	public function modify_instance($instance_id, $ram_size)
+	public function modify_instance($instance_id, $instance_type)
 	{
+		$ram_size = $instance_type;
 		$response = $this->gogrid->call('grid.server.edit', array(
 			'id'			=> $instance_id,
 			'server.ram'	=> $ram_size 

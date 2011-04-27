@@ -86,21 +86,6 @@ class Amazon extends Controller {
 		));
 	}
 	
-	function modify_instance()
-	{
-		$instance_id = $this->input->post('instance_id');
-		$type = $this->input->post('instance_type');
-		$available_types = $this->amazon->available_types;
-		if(!in_array($type, $available_types))
-		{
-			$type = $this->amazon->default_type;
-		}
-		
-		echo json_encode(array(
-			'success' => $this->amazon->modify_instance($instance_id, $type)
-		));
-	}
-
 	function terminate_instance()
 	{
 		$instances = $this->input->post('instances');
