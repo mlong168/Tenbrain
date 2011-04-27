@@ -33,7 +33,7 @@ class Backup_model extends Model {
 		$sql .= ' FROM user_backups ub';
 		$sql .= ' LEFT JOIN user_deleted_backups udb USING(backup_id)';
 		$sql .= ' WHERE ub.account_id = '.$this->session->userdata('account_id');
-		$sql .= ' AND ub.provider_backup_id = '.$provider_backup_id;
+		$sql .= ' AND ub.provider_backup_id = \''.$provider_backup_id.'\'';
 		
 		$result = array(); $query = $this->db->query($sql);
 
