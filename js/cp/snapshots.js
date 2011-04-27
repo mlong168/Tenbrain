@@ -270,7 +270,7 @@ var Snapshots = function(){
 	var snapshot_instance_grid = new Ext.grid.GridPanel({
 		border: false,
 		store: new Ext.data.Store({
-			url: '/amazon/snapshot_instance',
+			url: '/amazon/backup_instance',
 			reader: new Ext.data.JsonReader({
 				root: 'instances',
 				successProperty: 'success',
