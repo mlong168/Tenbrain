@@ -269,8 +269,19 @@ var Instances = function(){
 					handler: function(){
 						var record = instances_menu.ref_grid.getStore().getAt(instances_menu.selected_record_id),
 							form = modify_form.getForm();
-		console.log(form.findField('server_type'))
-						instances_menu.hide();				
+						instances_menu.hide();		
+							
+						if(record.get('provider') === 'Amazon')
+						{
+							Ext.Msg.show({
+							   title: 'Error',
+							   msg: 'For modifying Amazon servers they should be stopped. Please stop the server and try again',
+							   buttons: Ext.Msg.OK,
+							   icon: Ext.Msg.ERROR
+							});
+							return false;
+						}
+
 						form.reset().setValues({instance_id: record.get('id')});
 						form.findField('instance_type').getStore().baseParams.provider = record.get('provider');
 						modify_dialogue.show().center();
@@ -534,6 +545,17 @@ var Instances = function(){
 					id: 'terminate_instance',
 					text: 'Terminate',
 					handler: instances_menu_handler
+				}, {
+					text: 'Modify server',
+					handler: function(){
+						var record = stopped_menu.ref_grid.getStore().getAt(instances_menu.selected_record_id),
+							form = modify_form.getForm();
+
+						stopped_menu.hide();		
+						form.reset().setValues({instance_id: record.get('id')});
+						form.findField('instance_type').getStore().baseParams.provider = record.get('provider');
+						modify_dialogue.show().center();
+					}
 				}]
 			}
 		}],
