@@ -286,7 +286,7 @@ var Snapshots = function(){
 				'id',
 				'name',
 				'dns_name',
-				'ip_address',
+				'ip',
 				'instance_id',
 				'image_id',
 				'state',
@@ -303,7 +303,7 @@ var Snapshots = function(){
 				{header: "Link to instance root", dataIndex: 'dns_name', width: 250, renderer: function(link){
 					return '<a target="_blank" href="http://' + link + '/">' + link + '</a>';
 				}},
-				{header: "IP Address", dataIndex: 'ip_address', width: 120},
+				{header: "IP Address", dataIndex: 'ip', width: 120},
 				{header: "State", dataIndex: 'state', width: 100}
 			]
 		}),
@@ -494,13 +494,13 @@ var Snapshots = function(){
 					
 						for(var i = selected.length; i--;)
 						{
-							snaps.push(selected[i].data.backup_id);
+							snaps.push(selected[i].data.id);
 						}
 						Ext.Msg.wait('Backups are being deleted', 'Backup removal');
 						Ext.Ajax.request({
-							url: 'common/delete_backup',
+							url: 'common/delete_backups',
 							params: {
-								snapshots: Ext.encode(snaps)
+								backup_ids: Ext.encode(snaps)
 							},
 							success: function(response){
 								response = Ext.decode(response.responseText);

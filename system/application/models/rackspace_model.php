@@ -525,7 +525,7 @@ class Rackspace_model extends Provider_model {
 		);
 	}
 	
-	private function get_backuped_instance($backup_id)
+	public function get_backuped_instance($backup_id)
 	{
 		$this->load->model("Backup_model","backup");
 		$backup = $this->backup->get_backup_by_id($backup_id);
@@ -537,12 +537,8 @@ class Rackspace_model extends Provider_model {
 		$instance_desrc = array(
 			'id'				=> $instance->id,
 			'name'				=> (string) $instance->name,
-			'snapshot_id'		=> (string) $provaider_backup_id,
-			//'capacity'			=> (string) ($instance->diskSize/1024) . 'GB',
-			//'description'		=> (string) $instance->description,
-			'status'			=> (string) $instance->status,
-			'progress'			=> (string) $instance->progress,
-			//'started'			=> $instance->started
+			'state'			=> (string) $instance->status,
+			'ip'				=> $instance->addresses->public[0]
 			// ''				=> (string) $instance->,
 		);
 
@@ -619,7 +615,7 @@ class Rackspace_model extends Provider_model {
 		$backup_image = array(
 			'flavorId' => $flavorId,
 			'imageId'	=> $backup->provider_backup_id,
-			'name'	=> $instance['name']
+			'name'	=> $name
 		);
 		return $this->start_backup_image($backup_image);
 	}
