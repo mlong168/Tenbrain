@@ -768,7 +768,7 @@ class Gogrid_model extends Provider_model {
 		$ram = $_instance->list[0]->ram->id;
 		
 		$backup_image = array(
-			'backup_name'	=> $backup->backup_name,
+			'backup_name'	=> $name,
 			'ram'	=> isset($ram) ? $ram : 1,
 			'provider_backup_id' => $backup->provider_backup_id
 		);
