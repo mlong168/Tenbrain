@@ -170,7 +170,7 @@ class Common extends Controller {
 		
 		foreach($backup_ids as $id)
 		{
-			$this->delete_backup($id);
+			$this->remove_backup($id);
 		}
 		
 		echo json_encode(array(
@@ -178,10 +178,18 @@ class Common extends Controller {
 		));
 	}
 	
-	function delete_backup($backup_id)
+	function delete_backup()
+	{
+		$backup_id = $this->input->post('backup_id');
+		
+		echo json_encode(array(
+			'success'	=> $this->remove_backup($backup_id)
+		));
+	}
+	
+	function remove_backup($backup_id = null)
 	{
 		$this->load->model('Backup_model', 'backup');
-		
 		$_backup = $this->backup->get_backup_by_id($backup_id);
 		if(!$_backup)
 			return $this->failure_response('Problem1'); 
@@ -190,6 +198,7 @@ class Common extends Controller {
 		
 		return $backup ? true : false; 
 	}
+	
 	function list_backups()
 	{
 		$i = 0; $backups = array();
@@ -197,6 +206,7 @@ class Common extends Controller {
 		foreach($this->providers as $provider)
 		{
 			$_backups = $provider->created_backups();
+			
 			foreach($_backups as $_backup)
 			{
 				$backups[] = array_merge(array('id' => $i), (Array)$_backup);
@@ -216,6 +226,7 @@ class Common extends Controller {
 		
 		$instances = $this->instance->get_user_instances();
 		$out = $provider_instances = array();
+		//print_r($instances);
 		foreach($instances as &$row)
 		{
 			$id = $row->id;

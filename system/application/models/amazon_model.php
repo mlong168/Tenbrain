@@ -662,19 +662,17 @@ class Amazon_model extends Provider_model {
 	/*
 	 * restores backup to new instance
 	 */
-	private function restore_backup($backup_id, $name = '', $type = NULL)
+	private function restore_backup($provider_backup_id, $name = '', $type = NULL)
 	{
 		if($type == NULL)
 		{
 			$type = $this->default_type;
 		}
-		
-		$this->load->model('Backup_model', 'backup');
-		$backup = $this->backup->get_backup_by_id($backup_id);
-		
+
 		$this->load->model('Instance_model', 'instance');
 		
-		$response = $this->ec2->describe_snapshots(array('SnapshotId' => $backup->provider_backup_id));
+		$response = $this->ec2->describe_snapshots(array('SnapshotId' => $provider_backup_id));
+
 		$this->test_response($response);
 
 		$tags = $response->body->tagSet()->first();
@@ -687,7 +685,7 @@ class Amazon_model extends Provider_model {
 			'BlockDeviceMapping' => array(
 				'DeviceName'				=> '/dev/sda',
 				'Ebs.DeleteOnTermination'	=> true,
-				'Ebs.SnapshotId'			=> $backup->provider_backup_id
+				'Ebs.SnapshotId'			=> $provider_backup_id
 			)
 		));
 		$this->test_response($response);
@@ -721,19 +719,16 @@ class Amazon_model extends Provider_model {
 		$this->load->model('Instance_model', 'instance');
 		$this->load->model('Backup_model', 'backup');
 		$backup = $this->backup->get_backup_by_id($backup_id);
-		
 		$response = $this->ec2->describe_instances(array(
 			'Filter' => array(
 				array('Name' => 'block-device-mapping.volume-id', 'Value' => $this->get_backup_volume($backup->provider_backup_id))
 			)
 		));
 		$this->test_response($response);
-
 		$old_instance = $response->body->instancesSet();
 		if(!$old_instance) $this->die_with_error('The instance this backup was created off has been terminated');
 
 		$old_instance = $old_instance->first()->item;
-
 		$old_instance = array(
 			'id'		=> (string) $old_instance->instanceId,
 			'type'		=> (string) $old_instance->instanceType,
@@ -754,7 +749,6 @@ class Amazon_model extends Provider_model {
 		return true;
 	}
 
-	//public function restore_backup_to_new_instance($backup_id, $name, $type = NULL)
 	public function restore_backup_to_new_instance($backup_id, array $settings)
 	{
 		$name = $settings['name'];
@@ -764,8 +758,10 @@ class Amazon_model extends Provider_model {
 		{
 			$type = $this->default_type;
 		}
+		$this->load->model('Backup_model', 'backup');
+		$backup = $this->backup->get_backup_by_id($backup_id);
 		
-		$this->restore_backup($backup_id, $name, $type);
+		$this->restore_backup($backup->provider_backup_id, $name, $type);
 		return true;
 	}
 
