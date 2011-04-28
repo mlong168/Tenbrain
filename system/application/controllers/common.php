@@ -220,6 +220,21 @@ class Common extends Controller {
 		));
 	}
 	
+	function view_backups()
+	{
+		$instance_id = $this->input->post('server_id');
+		$this->load->model('Instance_model', 'instance');
+		$instance = $this->instance->get_instances_details($instance_id, array('provider', 'provider_instance_id'));		
+		$instance = $instance[0];
+
+		$backups = $this->providers[$instance->provider]->get_backups($instance->provider, $instance->provider_instance_id);
+		
+		echo json_encode(array(
+			'success'	=> true,
+			'backups'	=> $backups
+		));
+	}
+	
 	function list_instances($state = 'running')
 	{
 		$this->load->model('Instance_model', 'instance');

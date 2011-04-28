@@ -535,6 +535,11 @@ class Amazon_model extends Provider_model {
 		return $backups;
 	}
 
+	function get_backups($provider, $instance_id)
+	{
+		return $this->view_backups($provider, $instance_id);
+	}
+
 	private function get_backup_volume($backup_id = false)
 	{
 		if(!$backup_id) $this->die_with_error('No backup specified');

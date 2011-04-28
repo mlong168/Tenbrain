@@ -64,7 +64,7 @@ class Backup_model extends Model {
 		return $result;
 	}
 
-	function get_available_backups($provider = "ALL")
+	function get_available_backups($provider = "ALL", $instance_id = false)
 	{
 		$sql = 'SELECT ub.backup_id as id, ub.backup_name as name, ub.description, ub.provider, ub.account_id, ub.created_on, ub.provider_backup_id';
 		// , udb.backup_id as removed_backup_id';
@@ -73,8 +73,9 @@ class Backup_model extends Model {
 		$sql .= ' WHERE ub.account_id = '.$this->session->userdata('account_id');
 		if(isset($provider) && $provider != 'ALL')
 			$sql .= ' AND ub.provider = \''.$provider.'\'';
+		if($instance_id)
+			$sql .= ' AND ub.instance_id = \''.$instance_id.'\'';
 		$sql .= ' AND udb.backup_id IS NULL ';
-
 		$result = array(); $query = $this->db->query($sql);
 
 		if($query->num_rows())

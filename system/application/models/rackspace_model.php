@@ -452,6 +452,11 @@ class Rackspace_model extends Provider_model {
 		return true;
 	}
 	
+	function get_backups($provider, $instance_id)
+	{
+		return $this->view_backups($provider, $instance_id);
+	}
+	
 	function create_backup($id,$name,$description = 'sample description')
 	{
 		$this->load->model("Backup_model","backup");

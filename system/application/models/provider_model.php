@@ -17,6 +17,13 @@ abstract class Provider_model extends Model {
 		return $query->num_rows === 1 ? $query->row()->provider_instance_id : false;
 	}
 	
+	protected function view_backups($provider, $instance_id)
+	{
+		$this->load->model("Backup_model", "backup");
+		
+		return $this->backup->get_available_backups($provider, $instance_id);
+	}
+	
 	protected function die_with_error($error_message)
 	{
 		header('Content-type: application/json');

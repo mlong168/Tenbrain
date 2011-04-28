@@ -813,22 +813,30 @@ class Gogrid_model extends Provider_model {
 	{
 		$this->load->model("Backup_model","backup");
 		$backup = $this->backup->get_backup_by_id($backup_id);
-		
+
 		$response = $this->gogrid->call('grid.server.get', array(
 			'id' => $backup->instance_id
 		));
 		$instance = json_decode($response);
 		$instance = $instance->list[0];
-		//print_r($instance);
-		$instance_desrc = array(
-			'id'				=> $instance->id,
-			'name'				=> (string) $instance->name,
-			'state'			=> (string) $instance->state->name,
-			'ip'				=> $instance->ip->ip
-			// ''				=> (string) $instance->,
-		);
+		
+		if($instance->object == "error")
+			$instance_desrc = array();
+		else
+			$instance_desrc = array(
+				'id'				=> $instance->id,
+				'name'				=> (string) $instance->name,
+				'state'			=> (string) $instance->state->name,
+				'ip'				=> $instance->ip->ip
+				// ''				=> (string) $instance->,
+			);
 
 		return $instance_desrc;
+	}
+	
+	function get_backups($provider, $instance_id)
+	{
+		return $this->view_backups($provider, $instance_id);
 	}
 	
 	function get_backup_status($provider_backup_id)
