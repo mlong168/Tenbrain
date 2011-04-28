@@ -21,12 +21,11 @@ var Images = function(){
 			editable: false,
 			store: new Ext.data.JsonStore({
 				url: '/amazon/get_available_instance_types',
-				autoLoad: true,
 				successProperty: 'success',
 				root: 'types',
 				fields: ['name', 'available', 'reason']
 			}),
-			mode: 'local',
+			mode: 'remote',
 			name: 'instance_type',
 			displayField: 'name',
 			hiddenName: 'instance_type', // POST-var name
@@ -35,6 +34,7 @@ var Images = function(){
 			tpl: '<tpl for="."><div ext:qtip="{reason}" class="x-combo-list-item">{name}</div></tpl>',
 			forceSelection: true,
 			typeAhead: true,
+			triggerAction: 'all',
 			listeners: {
 				beforeselect: function(combo, record){
 					return record.data.available; // false if not selectable
@@ -195,12 +195,11 @@ var Images = function(){
 			allowBlank: false,
 			store: new Ext.data.JsonStore({
 				url: '/rackspace/get_flavors',
-				autoLoad: true,
 				successProperty: 'success',
 				root: 'flavors',
 				fields: ['id', 'name', 'disk', 'ram']
 			}),
-			mode: 'local',
+			mode: 'remote',
 			name: 'flavor',
 			displayField: 'name',
 			hiddenName: 'flavor_id', // POST-var name
@@ -209,6 +208,7 @@ var Images = function(){
 			autoSelect: true,
 			forceSelection: true,
 			typeAhead: true,
+			triggerAction: 'all',
 			listeners: {
 				beforeselect: function(combo, record){
 					return record.data.available; // false if not selectable

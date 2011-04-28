@@ -492,10 +492,7 @@ var Load_balancers = function(){
 				lb_menu.selected_record = this.getStore().getAt(id);
 				lb_menu.showAt(e.getXY());
 			},
-			activate: function(p){
-				var store = p.getStore();
-				if(store.lastOptions === null) store.load();
-			}
+			activate: Helpers.first_time_loader
 		},
 		tbar: {
 			xtype: 'toolbar',

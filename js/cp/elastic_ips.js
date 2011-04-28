@@ -107,19 +107,19 @@ var Elastic_IPs = function(){
 			editable: false,
 			store: new Ext.data.JsonStore({
 				url: '/amazon/get_short_instances_list',
-				autoLoad: true,
 				successProperty: 'success',
 				root: 'instances',
 				fields: ['instance_id', 'instance_name']
 			}),
-			mode: 'local', // !!! load the store once and for all )
+			mode: 'remote',
 			name: 'instance_name',
 			displayField: 'instance_name',
 			hiddenName: 'instance_id', // POST-var name
 			valueField: 'instance_id', // POST-var value
 			emptyText: 'Select an instance to associate',
 			forceSelection: true,
-			typeAhead: true
+			typeAhead: true,
+			triggerAction: 'all'
 		}, {
 			xtype: 'hidden',
 			name: 'address'
@@ -179,8 +179,7 @@ var Elastic_IPs = function(){
 				root: 'elastic_ips',
 				successProperty: 'success',
 				idProperty: 'id'
-			}, record),
-			autoLoad: true
+			}, record)
 		});
 	}();
 
@@ -190,6 +189,7 @@ var Elastic_IPs = function(){
 		layout: 'fit',
 		title: 'Elastic IPs',
 		store: ip_store,
+		loadMask: true,
 		sm: checkbox_sm,
 		colModel: new xg.ColumnModel({
 			columns: [
@@ -221,7 +221,8 @@ var Elastic_IPs = function(){
 				
 				e.preventDefault();				
 				menu.showAt(e.getXY());
-			}
+			},
+			activate: Helpers.first_time_loader
 		},
 		tbar: {
 			xtype: 'toolbar',
