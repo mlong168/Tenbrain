@@ -1,3 +1,26 @@
+var Helpers = function(){
+	return {
+		link_wrapper: function(link){
+			return '<a target="_blank" href="http://' + link + '/">' + link + '</a>';
+		},
+		first_time_loader: function(p){
+			var store = p.getStore(),
+				elem = p.bwrap;
+			
+			if(store.lastOptions === null)
+			{
+				elem.mask('Loading, please wait ...');
+				store.load({
+					callback: function(){
+						elem.unmask();
+					}
+				});
+			}
+			return false;
+		}
+	}
+}();
+
 var Instances = function(){
 	var states = ['running', 'terminated', 'stopped'];
 	var store = function(){
@@ -304,25 +327,6 @@ var Instances = function(){
 		selected_record_id: null
 	});
 
-	// renderers:
-	var link_wrapper = function(link){
-		return '<a target="_blank" href="http://' + link + '/">' + link + '</a>';
-	};
-	
-	var first_time_loader = function(p){
-		var store = p.getStore(),
-			mask = new Ext.LoadMask(p.getGridEl(), {
-				msg: 'Loading, please wait',
-				removeMask: true,
-				store: store
-			});
-		if(store.lastOptions === null)	// show the mask only for the first time store is loaded
-		{
-			store.load();
-			mask.disable();
-		}
-	};
-
 	// layouts:
 	var xg = Ext.grid, sm_running = new xg.CheckboxSelectionModel(), grids = { };
 	grids.running = new xg.GridPanel({
@@ -352,7 +356,7 @@ var Instances = function(){
 					if(record.data.state !== 'running') metadata.css = 'grid-loader';
 					return value;
 				}},
-				{header: "Link to server root", dataIndex: 'dns_name', width: 250, renderer: link_wrapper},
+				{header: "Link to server root", dataIndex: 'dns_name', width: 250, renderer: Helpers.link_wrapper},
 				{header: "IP Address", dataIndex: 'ip_address', width: 120},
 				{header: "State", dataIndex: 'state', width: 100},
 				{header: "Type", dataIndex: 'type', width: 100}
@@ -551,7 +555,7 @@ var Instances = function(){
 						var record = stopped_menu.ref_grid.getStore().getAt(stopped_menu.selected_record_id),
 							form = modify_form.getForm();
 
-						stopped_menu.hide();		
+						stopped_menu.hide();
 						form.reset().setValues({instance_id: record.get('id')});
 						form.findField('instance_type').getStore().baseParams.provider = record.get('provider');
 						modify_dialogue.show().center();
@@ -582,7 +586,7 @@ var Instances = function(){
 					if(record.data.state !== 'stopped') metadata.css = 'grid-loader';
 					return value;
 				}},
-				{header: "Link to server root", dataIndex: 'dns_name', width: 250, renderer: link_wrapper},
+				{header: "Link to server root", dataIndex: 'dns_name', width: 250, renderer: Helpers.link_wrapper},
 				{header: "IP Address", dataIndex: 'ip_address', width: 120},
 				{header: "State", dataIndex: 'state', width: 100},
 				{header: "Virtualization", dataIndex: 'virtualization', width: 100},
@@ -598,7 +602,7 @@ var Instances = function(){
 				menu.selected_record_id = id;
 				menu.showAt(e.getXY());
 			},
-			activate: first_time_loader
+			activate: Helpers.first_time_loader
 		},
 		tbar: {
 			xtype: 'toolbar',
@@ -685,7 +689,7 @@ var Instances = function(){
 			emptyText: '<p style="text-align: center">You do not have any terminated server so far</p>'
 		}),
 		listeners: {
-			activate: first_time_loader
+			activate: Helpers.first_time_loader
 		},
 		cm: new xg.ColumnModel({
 			defaultSortable: false,

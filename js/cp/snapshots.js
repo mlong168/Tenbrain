@@ -13,15 +13,13 @@ var Snapshots = function(){
 				url: '/common/list_backups',
 				reader: new Ext.data.JsonReader({
 					root: 'backups'
-				}, record),
-				autoLoad: true
+				}, record)
 			}),
 			specific: new Ext.data.Store({
 				url: '/common/available_images',
 				reader: new Ext.data.JsonReader({
 					root: 'snapshots'
-				}, record),
-				autoLoad: true
+				}, record)
 			})
 		};
 	}();
@@ -254,6 +252,15 @@ var Snapshots = function(){
 			// forceFit: true,
 			emptyText: '<p style="text-align: center">No backups were created for this instance</p>'
 		}),
+		listeners: {
+			activate: function(p){
+				var store = p.getStore();
+				if(store.lastOptions === null)
+				{
+					store.load();
+				}
+			}
+		},
 		autoExpandColumn: 'description'
 	});
 	
@@ -286,8 +293,7 @@ var Snapshots = function(){
 				'virtualization',
 				'type',
 				'root_device'
-			])),
-			autoLoad: true
+			]))
 		}),
 		loadMask: true,	
 		cm: new Ext.grid.ColumnModel({
@@ -305,6 +311,12 @@ var Snapshots = function(){
 			// forceFit: true,
 			emptyText: '<p style="text-align: center">The server backup has been created of has either been terminated or is currently not available</p>'
 		}),
+		listeners: {
+			activate: function(p){
+				var store = p.getStore();
+				if(store.lastOptions === null) store.load();
+			}
+		},
 		autoExpandColumn: 'name'
 	});
 	
@@ -431,6 +443,34 @@ var Snapshots = function(){
 		title: 'Created backups',
 		layout: 'fit',
 		store: store.common,
+		view: new Ext.grid.GridView({
+			forceFit: true,
+			emptyText: '<p style="text-align: center">You have not created any backup so far</p>'
+		}),
+		cm: new Ext.grid.ColumnModel({
+			defaultSortable: false,
+			columns: [
+				sm,
+				{header: "Name", dataIndex: 'name', width: 150, renderer: function(value, metadata, record){
+					if(record.data.status !== 'completed') metadata.css = 'grid-loader';
+					return value;
+				}},
+				{header: "Status", dataIndex: 'status', width: 60},
+				{header: "Provider", dataIndex: 'provider', width: 60},
+				{header: "Description", dataIndex: 'description', id: 'description', width: 150},
+				{header: "Start Time", dataIndex: 'created_on', width: 100}
+			]
+		}),
+		sm: sm,
+		listeners: {
+			rowcontextmenu: function (grid, id, e) {
+				e.preventDefault();
+				snapshot_menu.relative_grid = this;
+				snapshot_menu.selected_record = this.getStore().getAt(id);
+				snapshot_menu.showAt(e.getXY());
+			},
+			activate: Helpers.first_time_loader
+		},
 		tbar: {
 			xtype: 'toolbar',
 			items: [{
@@ -487,34 +527,6 @@ var Snapshots = function(){
 					store.common.reload();
 				}
 			}]
-		},
-		view: new Ext.grid.GridView({
-			forceFit: true,
-			emptyText: '<p style="text-align: center">You have not created any backup so far</p>'
-		}),
-		cm: new Ext.grid.ColumnModel({
-			defaultSortable: false,
-			columns: [
-				sm,
-				{header: "Name", dataIndex: 'name', width: 150, renderer: function(value, metadata, record){
-					if(record.data.status !== 'completed') metadata.css = 'grid-loader';
-					return value;
-				}},
-				{header: "Status", dataIndex: 'status', width: 60},
-				{header: "ID", dataIndex: 'id', width: 60},
-				{header: "Provider", dataIndex: 'provider', width: 60},
-				{header: "Description", dataIndex: 'description', id: 'description', width: 150},
-				{header: "Start Time", dataIndex: 'created_on', width: 100}
-			]
-		}),
-		sm: sm,
-		listeners: {
-			rowcontextmenu: function (grid, id, e) {
-				e.preventDefault();
-				snapshot_menu.relative_grid = this;
-				snapshot_menu.selected_record = this.getStore().getAt(id);
-				snapshot_menu.showAt(e.getXY());
-			}
 		}
 	});
 	

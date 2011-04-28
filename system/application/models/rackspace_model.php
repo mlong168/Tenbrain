@@ -122,6 +122,31 @@ class Rackspace_model extends Provider_model {
 		return $body ? json_decode($body) : true;	
 	}
 	
+	private function PUT_request($action, $data, $success_response_codes = array(204))
+	{
+		$curl_session = curl_init($this->server_url . '/' . $action);		
+		$headers = array(
+			sprintf("%s: %s", 'X-Auth-Token', $this->auth_token),
+			sprintf("%s: %s", 'Content-Type', 'application/json')
+		);
+		array_push($headers, json_encode($data));
+
+		curl_setopt($curl_session, CURLOPT_HEADER, 0);
+		curl_setopt($curl_session, CURLOPT_HTTPHEADER, $headers);
+		curl_setopt($curl_session, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($curl_session, CURLOPT_CUSTOMREQUEST, 'PUT');
+
+		$response = curl_exec($curl_session);
+		curl_close($curl_session);
+		
+		$response =  new HttpMessage($response);
+		print_r($response);die;
+
+		if(!in_array($response->getResponseCode(), $success_response_codes)) return false;
+		$body = $response->getBody();
+		return $body ? json_decode($body) : true;	
+	}
+	
 	public function list_images()
 	{
 		$out = array();
@@ -194,7 +219,7 @@ class Rackspace_model extends Provider_model {
 	public function modify_instance($instance_id, $instance_type)
 	{
 		if(!is_numeric($instance_type)) return false;
-			
+		
 		$flavor_id = $instance_type;
 		$resize = array(
 			'resize' => array(
@@ -611,10 +636,16 @@ class Rackspace_model extends Provider_model {
 	
 	public function test()
 	{
-		$this->server_url = str_replace('servers', 'ord.loadbalancers', $this->server_url);
-		print_r($this->GET_request('loadbalancers'));
-		// $images = $this->launch_instance('tenbrain first', 4, 1);
-		// print_r($images);
+		$server_id = 791323;
+		$new_name = 'deby';
+		$new_pass = 'secure_pass';
+		$this->PUT_request('servers/' . $server_id, array (
+			'server' => array(
+				'name'		=> $new_name,
+				'adminPass'	=> $new_pass
+			)
+		));
+
 		echo PHP_EOL; die;
 	}
 	
