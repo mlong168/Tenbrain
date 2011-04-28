@@ -16,9 +16,9 @@ var Snapshots = function(){
 				}, record)
 			}),
 			specific: new Ext.data.Store({
-				url: '/common/available_images',
+				url: '/common/view_backups',
 				reader: new Ext.data.JsonReader({
-					root: 'snapshots'
+					root: 'backups'
 				}, record)
 			})
 		};
@@ -548,7 +548,7 @@ var Snapshots = function(){
 			);			
 			store.specific.reload({
 				params: {
-					instance_id: instance_id
+					server_id: instance_id
 				}
 			});		
 			instance_snapshots.show();
