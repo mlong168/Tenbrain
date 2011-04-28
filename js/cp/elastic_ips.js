@@ -11,7 +11,7 @@ var Elastic_IPs = function(){
 					address: address
 				});
 				modal_window
-					.setTitle('Associate an instance with an IP address ' + address)
+					.setTitle('Associate server with an IP address ' + address)
 					.setSize(370, 102).show().center()
 					.getLayout().setActiveItem('elastic_ip_associator');					
 			}
@@ -29,11 +29,11 @@ var Elastic_IPs = function(){
 				menu.hide();				
 				if(!instance)
 				{
-					Ext.Msg.alert(title, 'This IP is not currently associated with any instance');
+					Ext.Msg.alert(title, 'This IP is not currently associated with any server');
 					return false;
 				}
 					
-				Ext.Msg.confirm(title, 'Are you sure you want to disassociate the IP address ' + address + ' from the instance ' + instance + '?', function(button){
+				Ext.Msg.confirm(title, 'Are you sure you want to disassociate the IP address ' + address + ' from the server ' + instance + '?', function(button){
 					if(button !== 'yes') return false;
 					
 					Ext.Msg.wait('An IP adress is being disassociated', title);
@@ -66,7 +66,7 @@ var Elastic_IPs = function(){
 				menu.hide();				
 				if(instance)
 				{
-					Ext.Msg.alert(title, 'This IP is currently associated with the instance ' + instance + ', therefore cannot be released now');
+					Ext.Msg.alert(title, 'This IP is currently associated with the server ' + instance + ', therefore cannot be released now');
 					return false;
 				}
 					
@@ -116,7 +116,7 @@ var Elastic_IPs = function(){
 			displayField: 'instance_name',
 			hiddenName: 'instance_id', // POST-var name
 			valueField: 'instance_id', // POST-var value
-			emptyText: 'Select an instance to associate',
+			emptyText: 'Select a server to associate',
 			forceSelection: true,
 			typeAhead: true,
 			triggerAction: 'all'
@@ -129,8 +129,8 @@ var Elastic_IPs = function(){
 			text: 'Proceed',
 			formBind: true,
 			handler: function(){
-				var title = 'Associate an instance to IP address',
-					success = 'The IP address has been successfully associated to an instance',
+				var title = 'Associate server to IP address',
+					success = 'The IP address has been successfully associated to the server',
 					error = 'A problem has occured while associating an IP address',
 					name = associator.getForm().getFieldValues().name;
 
@@ -195,13 +195,13 @@ var Elastic_IPs = function(){
 			columns: [
 				checkbox_sm,
 				{header: "Address", dataIndex: 'address', width: 80},
-				{header: "Instance", dataIndex: 'instance', width: 120, renderer: function(value){
+				{header: "Server", dataIndex: 'instance', width: 120, renderer: function(value){
 					return value || '<i>not associated</i>';
 				}},
 				{header: 'Test address', dataIndex: 'address', width: 80, renderer: function(value){
 					return '<a target="_blank" href="http://' + value + '/">' + value + '</a>';
 				}},
-				{header: "Link to instance", dataIndex: 'instance_dns', width: 300, renderer: function(value){
+				{header: "Link to server", dataIndex: 'instance_dns', width: 300, renderer: function(value){
 					return '<a target="_blank" href="http://' + value + '/">' + value + '</a>';
 				}}
 			]
@@ -254,7 +254,7 @@ var Elastic_IPs = function(){
 										address: address
 									});
 									modal_window
-										.setTitle('Associate an instance with an IP address ' + address)
+										.setTitle('Associate a server with an IP address ' + address)
 										.setSize(370, 102).show().center()
 										.getLayout().setActiveItem('elastic_ip_associator');
 								});

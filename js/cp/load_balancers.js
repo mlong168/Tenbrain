@@ -16,7 +16,7 @@ var Load_balancers = function(){
 			id = record.get('id');
 		
 		lb_menu.hide();
-		registered_instances_window.show().center().setTitle('Instances registered within the load balancer "' + name + '"');
+		registered_instances_window.show().center().setTitle('Servers registered within the load balancer "' + name + '"');
 		registered_instances_store.baseParams.lb_id = id;
 		registered_instances_store.reload();
 	};
@@ -30,7 +30,7 @@ var Load_balancers = function(){
 		sm: checkbox_sm,
 		view: new xg.GridView({
 			forceFit: true,
-			emptyText: '<p style="text-align: center">No instances have been registered with this load balancer</p>'
+			emptyText: '<p style="text-align: center">No servers have been registered with this load balancer</p>'
 		}),
 		listeners: {
 			activate: function(p){
@@ -61,13 +61,13 @@ var Load_balancers = function(){
 				iconCls: 'terminate',
 				handler: function(){
 					var selected = checkbox_sm.getSelections(), instances = [],
-						title = 'Deregister Instances with load balancer',
-						success = 'Selected instances have been deregistered successfully',
-						error = 'A problem has occurred while deregistering selected instances';
+						title = 'Deregister servers with load balancer',
+						success = 'Selected servers have been deregistered successfully',
+						error = 'A problem has occurred while deregistering selected servers';
 
 					if(!checkbox_sm.getCount())
 					{
-						Ext.Msg.alert('Warning', 'Please select some instances to perform the action');
+						Ext.Msg.alert('Warning', 'Please select some servers to perform the action');
 						return false;
 					}
 
@@ -76,14 +76,14 @@ var Load_balancers = function(){
 						instances.push(selected[i].data.instance_id);
 					}
 
-					Ext.MessageBox.confirm(title, 'Are you sure you want deregister selected instances from load balancer?', function(button){
+					Ext.MessageBox.confirm(title, 'Are you sure you want deregister selected servers from load balancer?', function(button){
 						if(button !== 'yes') return false;
 
 						for(var i = selected.length; i--;)
 						{
 							instances.push(selected[i].data.id);
 						}
-						Ext.Msg.wait('The instances are being deregistered from the load balancer', 'Deregistering instances');
+						Ext.Msg.wait('Servers are being deregistered from the load balancer', 'Deregistering servers');
 						Ext.Ajax.request({
 							url: 'common/deregister_instances_from_lb',
 							params: {
@@ -363,7 +363,7 @@ var Load_balancers = function(){
 			text: 'Actions',
 			menu: {
 				items: [{
-					text: 'Register instances with load balancer',
+					text: 'Register servers with load balancer',
 					handler: function(){
 						var record = lb_menu.selected_record,
 							name = record.get('name'),
@@ -372,12 +372,12 @@ var Load_balancers = function(){
 						
 						lb_menu.hide();
 						form.reset().setValues({lb_id: id});
-						register_window.show().center().setTitle('Instances to registered within the load balancer "' + name + '"');
+						register_window.show().center().setTitle('Servers to register within the load balancer "' + name + '"');
 						instances_to_register_within_lb_store.baseParams.lb_id = id;	
 						register_window.show().center();
 					}
 				}, {
-					text: 'Deregister instances from load balancer',
+					text: 'Deregister servers from load balancer',
 					handler: show_lb_instances
 				}]
 			}
@@ -385,7 +385,7 @@ var Load_balancers = function(){
 			text: 'Management',
 			menu: {
 				items: [{
-					text: 'View instances registered within the load balancer',
+					text: 'View servers registered within the load balancer',
 					handler: show_lb_instances
 				}, {
 					text: 'Delete load balancer',

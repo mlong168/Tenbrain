@@ -9,14 +9,14 @@ var Images = function(){
 		
 		items: [{
 			xtype: 'textfield',
-			fieldLabel: 'Instance Name',
+			fieldLabel: 'Server Name',
 			name: 'instance_name',
 			allowBlank: false,
 			vtype: 'alphanum'
 		}, {
 			xtype: 'combo',
 			width: 150,
-			fieldLabel: 'Instance Type',
+			fieldLabel: 'Server Type',
 			allowBlank: false,
 			editable: false,
 			store: new Ext.data.JsonStore({
@@ -49,7 +49,7 @@ var Images = function(){
 			text: 'Proceed',
 			formBind: true,
 			handler: function(){
-				var title = 'Instance Deployment',
+				var title = 'Server Deployment',
 					success = 'Your Selected image has been successfully deployed',
 					error = 'A problem occured while deploying your selected image';
 				deploy_configurator.hide();
@@ -91,7 +91,7 @@ var Images = function(){
 		items: [{
 			xtype: 'textfield',
 			width: 150,
-			fieldLabel: 'Instance Name',
+			fieldLabel: 'Server Name',
 			name: 'name',
 			allowBlank: false,
 			maxLength: 20
@@ -150,7 +150,7 @@ var Images = function(){
 			text: 'Proceed',
 			formBind: true,
 			handler: function(){
-				var title = 'Instance Deployment',
+				var title = 'Server Deployment',
 					success = 'Your Selected image has been successfully deployed',
 					error = 'A problem occured while deploying your selected image';
 				deploy_configurator.hide();
@@ -223,7 +223,7 @@ var Images = function(){
 			text: 'Proceed',
 			formBind: true,
 			handler: function(){
-				var title = 'Instance Deployment',
+				var title = 'Server Deployment',
 					success = 'Your Selected image has been successfully deployed',
 					error = 'A problem occured while deploying your selected image';
 				deploy_configurator.hide();

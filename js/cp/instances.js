@@ -216,7 +216,7 @@ var Instances = function(){
 						var record = instances_menu.ref_grid.getStore().getAt(instances_menu.selected_record_id),
 							instance_id = record.get('id'),
 							provider = record.get('provider').toLowerCase(),
-							title = 'Instance connection information',
+							title = 'Server connection information',
 							error = 'An error has occurred';
 						switch(provider) {
 							case 'amazon': 
@@ -231,7 +231,7 @@ var Instances = function(){
 										response = Ext.decode(response.responseText);
 										var s = response.success;
 										Ext.Msg.alert(title, s
-											? 'Use password "' + response.password + '" to connect to the instance with username "' + response.username + '"'
+											? 'Use password "' + response.password + '" to connect to the server with username "' + response.username + '"'
 											: response.error_message || error);
 									},
 									failure: function(){
@@ -244,7 +244,7 @@ var Instances = function(){
 				}, {
 					text: 'Download key file',
 					handler: function(){
-						Ext.Msg.confirm('Download key pair', 'Do you want to download your key pair to connect to your instance via SSH?', function(button){
+						Ext.Msg.confirm('Download key pair', 'Do you want to download your key pair to connect to your server via SSH?', function(button){
 							if(button === 'yes') document.location.assign('/amazon/download_private_key');
 						});
 					}
@@ -414,7 +414,7 @@ var Instances = function(){
 				iconCls: 'stop',
 				handler: function(){
 					var selected = sm_running.getSelections(), instances = [],
-						title = 'Stop Instances',
+						title = 'Stop servers',
 						success = 'Selected servers have been stopped successfully',
 						error = 'A problem has occurred while stopping the servers';
 						
@@ -459,7 +459,7 @@ var Instances = function(){
 				iconCls: 'terminate',
 				handler: function(){
 					var selected = sm_running.getSelections(), instances = [],
-						title = 'Terminate Instances',
+						title = 'Terminate servers',
 						success = 'Selected servers have been terminated successfully',
 						error = 'A problem has occurred while terminating servers';
 						
@@ -520,7 +520,7 @@ var Instances = function(){
 			text: 'Management',
 			menu: {
 				items: [{
-					text: 'Create Snapshot',
+					text: 'Create backup',
 					handler: function(){
 						var record = stopped_menu.ref_grid.getStore().getAt(stopped_menu.selected_record_id),
 							id = record.get('id');
@@ -528,7 +528,7 @@ var Instances = function(){
 						Snapshots.create(id);
 					}
 				}, {
-					text: 'View Snapshots',
+					text: 'View backups',
 					handler: function(){
 						var record = stopped_menu.ref_grid.getStore().getAt(stopped_menu.selected_record_id),
 							id = record.get('id'),
@@ -542,7 +542,7 @@ var Instances = function(){
 			text: 'Actions',
 			menu: {
 				items: [{
-					text: 'Start',
+					text: 'Start server',
 					id: 'start_instance',
 					handler: instances_menu_handler
 				}, {
@@ -631,7 +631,7 @@ var Instances = function(){
 					Ext.MessageBox.confirm(title, 'Are you sure you want to start these servers?', function(button){
 						if(button !== 'yes') return false;
 					
-						Ext.Msg.wait('Starting selected instances', title);
+						Ext.Msg.wait('Starting selected servers', title);
 						Ext.Ajax.request({
 							url: 'common/start_instances',
 							params: {
