@@ -759,7 +759,9 @@ class Gogrid_model extends Provider_model {
 			$response = $this->gogrid->call('grid.server.delete', array(
 				'id' => $inst_id
 			));
-			$this->instance->terminate_instance($inst_id, $this->session->userdata('account_id'));
+			$this->load->model("Instance_model","backup");
+			$instance_ids = $this->instance->get_instance_ids($inst_id);
+			$this->instance->terminate_instance($instance_ids[0]['instance_id'], $this->session->userdata('account_id'));
 		}
 		else
 			return false;
