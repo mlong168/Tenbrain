@@ -603,7 +603,7 @@ class Rackspace_model extends Provider_model {
 		{
 			$this->load->model("Instance_model","instance");
 			$this->DELETE_request('servers/' . $instance->server->id);
-			$this->instance->terminate_instance($instance->server->id, $this->session->userdata('account_id'));
+			$this->instance->terminate_instances($instance->server->id, $this->session->userdata('account_id'));
 		}
 		else
 			return false;
