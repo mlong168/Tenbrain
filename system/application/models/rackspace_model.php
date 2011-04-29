@@ -244,12 +244,20 @@ class Rackspace_model extends Provider_model {
 	public function list_instances($instances = null)
 	{
 		$out = array();
+		$av_types = $this->get_available_server_types();
 		foreach($instances as $instance_id => $db_id)
 		{
 			$server = $this->GET_request('servers/' . $instance_id);
 			if(!$server) continue;
 			$server = $server->server;
 			$ip = $server->addresses->public[0];
+			
+			foreach($av_types as &$t)
+			{
+				if($t['value'] == $server->flavorId)
+					$type = $t['name'];
+			}
+			
 			$out[] = array(
 				'id'				=> $db_id,
 				'name'				=> $server->name,
@@ -257,7 +265,7 @@ class Rackspace_model extends Provider_model {
 				'ip_address'		=> $ip,
 				'image_id'			=> $server->imageId,
 				'state'				=> $server->status === 'ACTIVE' ? 'running' : 'pending',
-				'type'				=> $server->flavorId,
+				'type'				=> $type,
 				'provider'			=> $this->name
 				// ''				=> $server->, 
 			);
