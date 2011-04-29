@@ -630,11 +630,10 @@ class Amazon_model extends Provider_model {
 		$snap_id = $response->body->snapshotId()->map_string();
 		$snap_id = $snap_id[0];
 
-		$tag_response = $this->ec2->create_tags($snap_id, array(
-			array('Key' => 'Name', 'Value' => $name),
-			array('Key' => 'User', 'Value' => $this->username),
-			array('Key' => 'ImageId', 'Value' => $image_id)
-		));
+		$tag_response = $this->tag_instance($snap_id, "Name", $name);
+		$tag_response = $this->tag_instance($snap_id, "User", $this->username);
+		$tag_response = $this->tag_instance($snap_id, "ImageId", $image_id);
+		
 		$this->load->model("Backup_model","backup");
 		
 		$backup_image = array(
@@ -700,9 +699,7 @@ class Amazon_model extends Provider_model {
 
 		if(!empty($name))
 		{
-			$tag_response = $this->ec2->create_tags($new_instance_id, array(
-				array('Key' => 'Name', 'Value' => $name)
-			));
+			$tag_response = $this->tag_instance($new_instance_id, "Name", $name);
 		}
 		
 		// write to db if things went fine
@@ -863,10 +860,9 @@ class Amazon_model extends Provider_model {
 
 			$instance_id = $response->body->instanceId()->map_string();
 			$instance_id = $instance_id[0];
-
-			$tag_response = $new_handle->create_tags($instance_id, array(
-				array('Key' => 'Name', 'Value' => $this->extract_tag_from_tagset($node->tagSet, 'Name'))
-			));
+			
+			$name = $this->extract_tag_from_tagset($node->tagSet, 'Name');
+			$tag_response = $this->tag_instance($instance_id, "Name", $name);
 
 			$this->wait_for_instance_to_complete($instance_id, $new_handle);
 
