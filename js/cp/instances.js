@@ -173,11 +173,13 @@ var Instances = function(){
 				var title = 'Modify server',
 					success = 'Server has been modified successfully',
 					error = 'A problem has occurred while modifying the server';
+					
 				modify_dialogue.hide();
 				Ext.Msg.wait('Modifying server', title);
 				modify_form.getForm().submit({
 					success: function(form, action){
 						Ext.Msg.alert(title, action.result.success ? success : response.error_message || error);
+						Instances.reload_until_stable('stopped');
 						Instances.reload_until_stable('running');
 					},
 					failure: function(form, action){
