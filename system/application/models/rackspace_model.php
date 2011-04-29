@@ -663,23 +663,32 @@ class Rackspace_model extends Provider_model {
 		foreach(array_keys($db_instances) as $id)
 		{
 			$instance = $this->GET_request('servers/' . $id);
-			$instances[$instance->server->addresses->private[0]] = $db_instances[$instance->server->id];
+			if($instance)
+			{
+				$instances[$instance->server->addresses->private[0]] = $db_instances[$instance->server->id];
+			}
+			else
+			{
+				$this->balancer->deregister_instance_from_lb($db_instances[$id]['id'], $lb_dbid);
+			}
 		}
 		
 		$this->server_url = str_replace('servers', 'ord.loadbalancers', $this->server_url);
 		$nodes = $this->GET_request('loadbalancers/' . $lb_pid . '/nodes');
 		$nodes = $nodes->nodes;
-		
 		$out = array();
 		foreach($nodes as $node)
 		{
-			$out []= array(
-				'id'				=> $instances[$node->address]['id'],
-				'name'				=> $instances[$node->address]['name'],
-				'ip_address'		=> $node->address,
-				'healthy'			=> $node->status === 'ONLINE',
-				'health_message'	=> $node->condition
-			);
+			if(array_key_exists($node->address, $instances))
+			{
+				$out []= array(
+					'id'				=> $instances[$node->address]['id'],
+					'name'				=> $instances[$node->address]['name'],
+					'ip_address'		=> $node->address,
+					'healthy'			=> $node->status === 'ONLINE',
+					'health_message'	=> $node->condition
+				);
+			}
 		}
 		return $out;
 	}
