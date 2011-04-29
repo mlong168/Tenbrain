@@ -536,7 +536,9 @@ class Rackspace_model extends Provider_model {
 		$backup = $this->backup->get_backup_by_id($backup_id);
 
 		$instance = $this->GET_request('servers/' . $backup->instance_id);
-
+		
+		if(!$instance)
+			return array();
 		$instance = $instance->server;
 		//print_r($instance);
 		$instance_desrc = array(
