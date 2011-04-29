@@ -44,10 +44,10 @@ var Load_balancers = function(){
 				checkbox_sm,
 				{header: "Name", dataIndex: 'name', width: 150},
 				{header: "Healthy?", dataIndex: 'healthy', width: 100, renderer: function(value, metadata, record){
-					var tpl = new Ext.XTemplate('<tpl for=".">sick <span ext:qtip="{health_message}" style="color:blue; text-decoration:underline">(why?)</span></tpl>');
-					return value
-						? 'healthy'
-						: tpl.applyTemplate(record.data);
+					var healthy = value.toString() !== 'false',
+						tpl = new Ext.XTemplate('<tpl for=".">sick <span ext:qtip="{health_message}" style="color:blue; text-decoration:underline">(why?)</span></tpl>');
+					record.data.healthy = healthy;
+					return healthy ? 'healthy' : tpl.applyTemplate(record.data);
 				}},
 				{header: "IP Address", dataIndex: 'ip_address', width: 120}
 			]

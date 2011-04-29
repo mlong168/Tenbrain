@@ -210,7 +210,8 @@ class Balancer_model extends Model {
 			'load_balancer_id'	=> $lb_id 
 		));
 		
-		$this->db->update('load_balancer_instances', array('active' => false));
+		// $this->db->update('load_balancer_instances', array('active' => false));
+		$this->db->delete('load_balancer_instances');
 		return true;
 	}
 }
