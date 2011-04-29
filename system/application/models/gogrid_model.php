@@ -83,7 +83,6 @@ class Gogrid_model extends Provider_model {
 			'id' => array_keys($ids)
 		));
 		$response = json_decode($response);
-		// print_r($response);//die;
 		$this->test_response($response);
 		
 		$instances = array();
@@ -98,7 +97,7 @@ class Gogrid_model extends Provider_model {
 				'ip_address'		=> $ip,
 				'image_id'			=> $server->image->id,
 				'state'				=> $server->state->name === 'On' ? 'running' : 'stopped',
-				'type'				=> $server->type->name,
+				'type'				=> $server->ram->description,
 				'provider'			=> $this->name
 				// ''				=> $server->, 
 			);
