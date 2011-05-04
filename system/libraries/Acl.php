@@ -3,7 +3,7 @@
 class Acl
 {
 	// Set the instance variable
-	var $CI;
+	private $CI;
 
 	function __construct()
 	{
@@ -21,7 +21,7 @@ class Acl
 
 		// Set the default ACL
 		$this->zacl->addRole(new Zend_Acl_Role('default'));
-		$query = $this->CI->db->get('tbl_aclresources');
+		$query = $this->CI->db->get('account_aclresources');
 		foreach($query->result() AS $row)
 		{
 			$this->zacl->add(new Zend_Acl_Resource($row->resource));
@@ -32,20 +32,20 @@ class Acl
 		}
 		// Get the ACL for the roles
 		$this->CI->db->order_by("roleorder", "ASC");
-		$query = $this->CI->db->get('tbl_aclroles');
+		$query = $this->CI->db->get('account_aclroles');
 		foreach($query->result() AS $row)
 		{
 			$role = (string)$row->name;
 			$this->zacl->addRole(new Zend_Acl_Role($role), 'default');
-			$this->CI->db->from('tbl_acl');
-			$this->CI->db->join('tbl_aclresources', 'tbl_acl.resource_id = tbl_aclresources.id');
+			$this->CI->db->from('account_acl');
+			$this->CI->db->join('account_aclresources', 'account_acl.resource_id = account_aclresources.id');
 			$this->CI->db->where('type', 'role');
 			$this->CI->db->where('type_id', $row->id);
 			
 			$subquery = $this->CI->db->get();
 			foreach($subquery->result() AS $subrow)
 			{
-				if($subrow->action == "allow")
+				if($subrow->action === 'allow')
 				{
 					$this->zacl->allow($role, $subrow->resource);
 				}
@@ -56,27 +56,27 @@ class Acl
 			}
 			
 			// Get the ACL for the users
-			$this->CI->db->from('tbl_users');
+			$this->CI->db->from('a3m_account');
 			$this->CI->db->where('roleid', $row->id);
 			$userquery = $this->CI->db->get();
 			
 			foreach($userquery->result() AS $userrow)
 			{
-				$this->zacl->addRole(new Zend_Acl_Role($userrow->user), $role);
-				$this->CI->db->from('tbl_acl');
-				$this->CI->db->join('tbl_aclresources', 'tbl_acl.resource_id = tbl_aclresources.id');
+				$this->zacl->addRole(new Zend_Acl_Role($userrow->username), $role);
+				$this->CI->db->from('account_acl');
+				$this->CI->db->join('account_aclresources', 'account_acl.resource_id = account_aclresources.id');
 				$this->CI->db->where('type', 'user');
-				$this->CI->db->where('type_id', $userrow->userid);
+				$this->CI->db->where('type_id', $userrow->id);
 				$usersubquery = $this->CI->db->get();
 				foreach($usersubquery->result() AS $usersubrow)
 				{
 					if($usersubrow->action == "allow")
 					{
-						$this->zacl->allow($userrow->user, $usersubrow->resource);
+						$this->zacl->allow($userrow->username, $usersubrow->resource);
 					}
 					else
 					{
-						$this->zacl->deny($userrow->user, $usersubrow->resource);
+						$this->zacl->deny($userrow->username, $usersubrow->resource);
 					}
 				}
 			}
@@ -88,7 +88,7 @@ class Acl
 	{
 		if(!$this->zacl->has($resource))
 		{
-			return 1;
+			return true;
 		}
 		if(empty($role))
 		{
