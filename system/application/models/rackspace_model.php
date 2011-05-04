@@ -227,17 +227,29 @@ class Rackspace_model extends Provider_model {
 			)
 		);
 		
-		$instance = $this->POST_request('server/'.$instance_id.'/action' , $resize);
-		if(!$instance) return false;
+		$instance = $this->POST_request('servers/'.$instance_id.'/action' , $resize);
 		
-		$cofirm = array(
-			'confirmResize' => NULL
-		);
-		
-		$sucess_response = array(204);
-		$instance = $this->POST_request('server/'.$instance_id.'/action' , $cofirm, $sucess_response);
-		if(!$instance) return false;
-		
+		$start_time = time();
+		$timeout = 60 * 20;
+
+		while($start_time + $timeout > time())
+		{
+			$instance = $this->GET_request('servers/' . $instance_id);
+			if($instance->server->status == 'VERIFY_RESIZE')
+			{
+				$cofirm = array(
+					'confirmResize' => NULL
+				);
+				
+				$sucess_response = array(204);
+				$instance = $this->POST_request('servers/'.$instance_id.'/action' , $cofirm, $sucess_response);
+				break;
+			}
+			else
+			{
+				sleep(15);
+			}
+		}
 		return true;
 	}
 	
