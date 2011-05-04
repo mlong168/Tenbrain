@@ -4,7 +4,7 @@ class Acl
 {
 	// Set the instance variable
 	private $CI;
-	private $role = 0;
+	private $role;
 
 	function __construct()
 	{
@@ -19,11 +19,14 @@ class Acl
 		require_once(APPPATH . '/libraries/Zend/Acl/Resource.php');
 		
 		// get the role for current user
-		$this->CI->db->select('roleid');
-		$query = $this->CI->db->get_where('a3m_account', array('id' => $this->CI->session->userdata('account_id')));
-		if($query->num_rows())
+		if($this->CI->session->userdata('account_id'))
 		{
-			$this->role = $query->row()->roleid;
+			$this->CI->db->select('roleid');
+			$query = $this->CI->db->get_where('a3m_account', array('id' => $this->CI->session->userdata('account_id')));
+			if($query->num_rows())
+			{
+				$this->role = (int) $query->row()->roleid;
+			}
 		}
 
 		$this->acl = new Zend_Acl();
@@ -31,7 +34,7 @@ class Acl
 		$this->CI->db->order_by('ParentId', 'ASC'); //Get the roles
 		$query = $this->CI->db->get('user_roles');
 		$roles = $query->result();
- 
+
 		$this->CI->db->order_by('parentId', 'ASC'); //Get the resources
 		$query = $this->CI->db->get('user_resources');
 		$resources = $query->result();
@@ -81,10 +84,15 @@ class Acl
 	// Function to check if the current or a preset role has access to a resource
 	function check_acl($resource, $role = '')
 	{
-		if(!$this->acl->has($resource))
-		{
-			return true;
-		}
+		$this->CI->db->select('id');
+		$query = $this->CI->db->get_where('user_resources', array('name' => $resource));
+		
+		if(!$query->num_rows()) return true;
+		
+		$resource_id = (int) $query->row()->id;
+
+		if(!$this->acl->has($resource_id)) return true;
+
 		if(empty($role))
 		{
 			if(isset($this->role))
@@ -92,11 +100,9 @@ class Acl
 				$role = $this->role;
 			}
 		}
-		if(empty($role))
-		{
-			return false;
-		}
-		return $this->zacl->isAllowed($role, $resource);
+		if(empty($role)) return false;
+
+		return $this->acl->isAllowed($role, $resource_id, 'read');
 	}
 	
 	function can_read($role, $resource)
