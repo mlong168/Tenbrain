@@ -7,7 +7,7 @@ class Rackspace_model extends Provider_model {
 	private $server_url = '';
 	private $auth_token = '';
 	
-	private $premium = false;
+	private $premium = true;
 	private $default_type = 1;	
 
 	public $name = 'Rackspace';
