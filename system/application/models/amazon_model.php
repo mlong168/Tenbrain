@@ -792,7 +792,7 @@ class Amazon_model extends Provider_model {
 
 		$this->wait_for_instance_to_complete($instance_id, $handle);
 	}
-
+		
 	public function transfer_instances($new_credentials)
 	{
 		if(empty($new_credentials)) return false;

@@ -34,7 +34,31 @@ class Amazon extends Controller {
 		$this->amazon->test();
 		die(PHP_EOL . 'voila! this is an amazon controller index function');
 	}
-
+	
+	function get_user_credentials()
+	{
+		echo json_encode(array(
+			'success'	=> true,
+			'credentials'		=> $this->amazon->get_user_aws_credentials()
+		));
+	}
+	
+	function set_user_credentials()
+	{
+		$new_credentials = array();
+		$new_credentials['key'] = $this->input->post('key');
+		$new_credentials['user_id'] = $this->input->post('user_id');
+		$new_credentials['secret_key'] = $this->input->post('secret_key');
+		
+		$credentials = $this->amazon->get_user_aws_credentials();
+		
+		echo json_encode(array(
+			'success'	=> $credentials 
+			? $this->amazon->update_user_aws_credentials($new_credentials)
+			: $this->amazon->set_user_aws_credentials($new_credentials)
+		));
+	}
+	
 	function show_instances($state)
 	{
 		$states = array('running', 'terminated', 'stopped');

@@ -35,6 +35,28 @@ class Gogrid extends Controller {
 		die(PHP_EOL . 'voila! this is an gogrid controller index function');
 	}
 	
+	function get_user_credentials()
+	{
+		echo json_encode(array(
+			'success'	=> true,
+			'credentials'		=> $this->gg->get_user_gogrid_credentials()
+		));
+	}
+	
+	function set_user_credentials()
+	{
+		$new_credentials = array();
+		$new_credentials['key'] = $this->input->post('key');
+		
+		$credentials = $this->gg->get_user_gogrid_credentials();
+		
+		echo json_encode(array(
+			'success'	=> $credentials 
+			? $this->gg->update_user_gogrid_credentials($new_credentials)
+			: $this->gg->set_user_gogrid_credentials($new_credentials)
+		));
+	}
+	
 	function lookup($lookup)
 	{
 		print_r($this->gg->lookup($lookup));

@@ -147,6 +147,52 @@ class Rackspace_model extends Provider_model {
 		return $body ? json_decode($body) : true;	
 	}
 	
+	private function get_user_rackspace_credentials()
+	{
+		$credentials = array();
+		$this->db->select('user_id, key')
+			->from('account_rackspace_credentials')
+			->where('account_id', $this->session->userdata('account_id'));
+
+		$query = $this->db->get();
+		if(!$this->db->count_all_results()) return false;
+		foreach ($query->result() as $row)
+		{
+			$credentials = array(
+				'user_id'		=> $row->user_id,
+				'key'			=> $row->key
+			);
+		}
+
+		return $credentials;
+	}
+
+	private function set_user_rackspace_credentials($new_credentials)
+	{
+		$this->db->set('account_id', $this->session->userdata('account_id'));
+		$this->db->set('user_id', $new_credentials['user_id']);
+		$this->db->set('key', $new_credentials['key']);
+
+		$this->db->insert('account_rackspace_credentials');
+
+		return true;
+	}
+
+	private function update_user_rackspace_credentials($new_credentials)
+	{
+		$this->db->where('account_id', $this->session->userdata('account_id'));
+		$this->db->update('account_rackspace_credentials', $new_credentials);
+
+		return true;
+	}
+
+	public function get_account_type()
+	{
+		$credentials = $this->get_user_rackspace_credentials();
+		if(!$credentials) return 'basic';
+		return 'premium';
+	}
+	
 	public function list_images()
 	{
 		$out = array();

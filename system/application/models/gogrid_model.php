@@ -41,6 +41,52 @@ class Gogrid_model extends Provider_model {
 		return json_decode($response);
 	}
 	
+	private function get_user_gogrid_credentials()
+	{
+		$credentials = array();
+		$this->db->select('user_id, key')
+			->from('account_gogrid_credentials')
+			->where('account_id', $this->session->userdata('account_id'));
+
+		$query = $this->db->get();
+		if(!$this->db->count_all_results()) return false;
+		foreach ($query->result() as $row)
+		{
+			$credentials = array(
+				'user_id'		=> $row->user_id,
+				'key'			=> $row->key
+			);
+		}
+
+		return $credentials;
+	}
+
+	private function set_user_gogrid_credentials($new_credentials)
+	{
+		$this->db->set('account_id', $this->session->userdata('account_id'));
+		$this->db->set('user_id', $new_credentials['user_id']);
+		$this->db->set('key', $new_credentials['key']);
+
+		$this->db->insert('account_gogrid_credentials');
+
+		return true;
+	}
+
+	private function update_user_gogrid_credentials($new_credentials)
+	{
+		$this->db->where('account_id', $this->session->userdata('account_id'));
+		$this->db->update('account_gogrid_credentials', $new_credentials);
+
+		return true;
+	}
+
+	public function get_account_type()
+	{
+		$credentials = $this->get_user_gogrid_credentials();
+		if(!$credentials) return 'basic';
+		return 'premium';
+	}
+	
 	public function list_images()
 	{
 		$response = $this->gogrid->call('grid.image.list', array(

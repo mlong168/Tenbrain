@@ -34,6 +34,28 @@ class Rackspace extends Controller {
 		die(PHP_EOL . 'voila! this is a rackspace controller index function');
 	}
 	
+	function get_user_credentials()
+	{
+		echo json_encode(array(
+			'success'	=> true,
+			'credentials'		=> $this->rack->get_user_rackspace_credentials()
+		));
+	}
+	
+	function set_user_credentials()
+	{
+		$new_credentials = array();
+		$new_credentials['key'] = $this->input->post('key');
+		
+		$credentials = $this->rack->get_user_rackspace_credentials();
+		
+		echo json_encode(array(
+			'success'	=> $credentials 
+			? $this->rack->update_user_rackspace_credentials($new_credentials)
+			: $this->rack->set_user_rackspace_credentials($new_credentials)
+		));
+	}
+	
 	function get_flavors()
 	{
 		echo json_encode(array(
