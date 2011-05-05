@@ -35,8 +35,8 @@ class Amazon_model extends Provider_model {
 		$credentials = $this->get_user_aws_credentials();
 
 		$this->ec2 = $credentials
-			? new AmazonEC2(self::API_KEY, self::API_SECRET)
-			: new AmazonEC2($credentials['key'], $credentials['secret_key']);
+			? new AmazonEC2($credentials['key'], $credentials['secret_key'])
+			: new AmazonEC2(self::API_KEY, self::API_SECRET);
 
 		$this->premium = !empty($credentials);
 		$this->username = $this->authentication->is_signed_in()
