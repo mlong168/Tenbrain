@@ -1,23 +1,25 @@
 var Transferer = function(){
-	var transfer_form = new Ext.FormPanel({
-		labelWidth: 70,
-		frame: true,
-		border: false,
-		url: '/amazon/transfer_instances',		
+	
+	var amazon_transfer_form = new Ext.FormPanel({
+		title: 'Amazon',
+		url: '/amazon/set_user_credentials',		
+		buttonAlign: 'center',
+		baseCls: 'x-plain',
 		monitorValid: true,
+		autoHeight: true,
+		labelWidth: 70,
+		defaults: {
+			xtype: 'textfield'
+		},
 		items: [{
-			xtype: 'textfield',
 			width: 200,
 			fieldLabel: 'Key',
 			name: 'key',
-			value: 'AKIAIZPNXU6QOZESFUGQ',
 			allowBlank: false
 		}, {
-			xtype: 'textfield',
-			width: 350,
+			width: 300,
 			fieldLabel: 'Secret Key',
 			name: 'secret_key',
-			value: 'Ss3kioejna+eIEeDkQkL9yWURZOo+H3EO2cUD7ea',
 			allowBlank: false
 		}],
 
@@ -25,26 +27,129 @@ var Transferer = function(){
 			text: 'Proceed',
 			formBind: true,
 			handler: function(){
-				var title = 'Transfer Instances',
-					success = 'The account was transferred successfully',
-					error = 'A problem has occured while transferring your instances';
+				var title = 'Registering your credentials',
+					success = 'Your credentials have been registered successfully',
+					error = 'A problem has occurred when registering your credentials. Please try again';
 				transfer_dialogue.hide();
-				Ext.Msg.wait('Your instances are being transferred.<br />' +
-					'The operation might take a couple of minutes depending on the number of instances you are running<br />' +
-					'Please wait', title);
-				Ext.Ajax.request({
-					url: 'amazon/transfer_instances',
-					params: transfer_form.getForm().getFieldValues(),
-					timeout: 300*1000, // 5 minutes
-					success: function(response){
-						response = Ext.decode(response.responseText);
-						var s = response.success;
+				gogrid_transfer_form.getForm.submit({
+					waitTitle: title,
+					waitMsg: 'Your credentials are being registered...',
+					success: function(form, action){
+						var response = action.result,
+							s = response.success;
 						Ext.Msg.alert(title, s ? success : response.error_message || error, function(){
 							document.location.reload();
 						});
 					},
-					failure: function(){
-						Ext.Msg.alert(title, error);
+					failure: function(form, action){
+						Ext.Msg.alert(title, action.result.error_message || error);
+					}
+				});
+			}
+		}, {
+			text: 'Cancel',
+			handler: function(){
+				transfer_dialogue.hide();
+			}
+		}]
+	});
+	
+	var rackspace_transfer_form = new Ext.FormPanel({
+		title: 'Rackspace',
+		url: '/rackspace/set_user_credentials',		
+		buttonAlign: 'center',
+		baseCls: 'x-plain',
+		monitorValid: true,
+		autoHeight: true,
+		labelWidth: 70,
+		defaults: {
+			xtype: 'textfield'
+		},
+		items: [{
+			width: 200,
+			fieldLabel: 'Username',
+			name: 'username',
+			allowBlank: false
+		}, {
+			width: 300,
+			fieldLabel: 'API Key',
+			name: 'key',
+			allowBlank: false
+		}],
+
+		buttons: [{
+			text: 'Proceed',
+			formBind: true,
+			handler: function(){
+				var title = 'Registering your credentials',
+					success = 'Your credentials have been registered successfully',
+					error = 'A problem has occurred when registering your credentials. Please try again';
+				transfer_dialogue.hide();
+				gogrid_transfer_form.getForm.submit({
+					waitTitle: title,
+					waitMsg: 'Your credentials are being registered...',
+					success: function(form, action){
+						var response = action.result,
+							s = response.success;
+						Ext.Msg.alert(title, s ? success : response.error_message || error, function(){
+							document.location.reload();
+						});
+					},
+					failure: function(form, action){
+						Ext.Msg.alert(title, action.result.error_message || error);
+					}
+				});
+			}
+		}, {
+			text: 'Cancel',
+			handler: function(){
+				transfer_dialogue.hide();
+			}
+		}]
+	});
+	var gogrid_transfer_form = new Ext.FormPanel({
+		title: 'GoGrid',
+		url: '/gogrid/set_user_credentials',		
+		buttonAlign: 'center',
+		baseCls: 'x-plain',
+		monitorValid: true,
+		autoHeight: true,
+		labelWidth: 70,
+		defaults: {
+			xtype: 'textfield'
+		},
+		items: [{
+			width: 200,
+			fieldLabel: 'API Key',
+			name: 'key',
+			allowBlank: false
+		}, {
+			width: 300,
+			fieldLabel: 'Secret Key',
+			name: 'secret_key',
+			allowBlank: false
+		}],
+
+		buttons: [{
+			text: 'Proceed',
+			formBind: true,
+			handler: function(){
+				var title = 'Registering your credentials',
+					success = 'Your credentials have been registered successfully',
+					error = 'A problem has occurred when registering your credentials. Please try again';
+				transfer_dialogue.hide();
+				gogrid_transfer_form.getForm.submit({
+					waitTitle: title,
+					waitMsg: 'Your credentials are being registered...',
+					success: function(form, action){
+						var response = action.result,
+							s = response.success;
+						Ext.Msg.alert(title, s ? success : response.error_message || error, function(){
+							document.location.reload();
+						});
+					},
+					failure: function(form, action){
+						Ext.Msg.alert(title, action.result.error_message || error);
 					}
 				});
 			}
@@ -58,13 +163,22 @@ var Transferer = function(){
 	
 	var transfer_dialogue = new Ext.Window({
 		title: 'Upgrade to TenBrain premium!',
-		height: 128,
+		layout: 'fit',
 		width: 450,
+		minWidth: 400,
+		//border: false,
 		closeAction: 'hide',
-		items: transfer_form,
-		border: false,
+		items: new Ext.TabPanel({
+            activeTab: 0,
+            border: false,
+            defaults:{autoHeight: true},
+			items: [amazon_transfer_form, rackspace_transfer_form, gogrid_transfer_form]
+		}),
+		plain: 'true',
+		//bodyStyle: 'padding:5px;',
 		modal : true
 	});
+	
 	return {
 		show_dialogue: function(){
 			transfer_dialogue.show();
@@ -73,7 +187,7 @@ var Transferer = function(){
 }();
 
 Ext.onReady(function(){
+	Transferer.show_dialogue();
 	Ext.get('upgrader').addListener('click', function(){
-		Transferer.show_dialogue();
 	});
 });
