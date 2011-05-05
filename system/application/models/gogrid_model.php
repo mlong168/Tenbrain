@@ -44,7 +44,7 @@ class Gogrid_model extends Provider_model {
 	private function get_user_gogrid_credentials()
 	{
 		$credentials = array();
-		$this->db->select('user_id, key')
+		$this->db->select('key')
 			->from('account_gogrid_credentials')
 			->where('account_id', $this->session->userdata('account_id'));
 
@@ -53,7 +53,6 @@ class Gogrid_model extends Provider_model {
 		foreach ($query->result() as $row)
 		{
 			$credentials = array(
-				'user_id'		=> $row->user_id,
 				'key'			=> $row->key
 			);
 		}
@@ -64,7 +63,6 @@ class Gogrid_model extends Provider_model {
 	private function set_user_gogrid_credentials($new_credentials)
 	{
 		$this->db->set('account_id', $this->session->userdata('account_id'));
-		$this->db->set('user_id', $new_credentials['user_id']);
 		$this->db->set('key', $new_credentials['key']);
 
 		$this->db->insert('account_gogrid_credentials');
