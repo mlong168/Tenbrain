@@ -14,8 +14,13 @@ class Gogrid_model extends Provider_model {
 	function __construct()
 	{
 		parent::Model();
+		
+		$credentials = $this->get_user_gogrid_credentials();
+
 		$this->load->helper('gogrid');
-		$this->gogrid = new GoGridClient();
+		$this->gogrid = $credentials 
+						? new GoGridClient($credentials['key'],$credentials['secret_key'])
+						: new GoGridClient();
 	}
 	
 	private function test_response($response)
@@ -41,7 +46,7 @@ class Gogrid_model extends Provider_model {
 		return json_decode($response);
 	}
 	
-	private function get_user_gogrid_credentials()
+	public function get_user_gogrid_credentials()
 	{
 		$credentials = array();
 		$this->db->select('key, secret_key')
@@ -60,24 +65,54 @@ class Gogrid_model extends Provider_model {
 
 		return $credentials;
 	}
-
-	private function set_user_gogrid_credentials($new_credentials)
+	
+	private function validate_credentials($new_credentials)
 	{
+		$client =  new GoGridClient($new_credentials['key'],$new_credentials['secret_key']);	
+		$response = $client->call('grid.ip.list');
+		$response = json_decode($response);
+
+		if(!isset($response->status))
+			return false;
+			
+		return true;
+	}
+	
+	public function set_user_gogrid_credentials($new_credentials)
+	{
+		$valid = $this->validate_credentials($new_credentials);
+		if(!$valid)
+			return array(
+					'success'	=> false,
+					'error_message'	=> "The security credentials you've provided do not seem to be valid. Please try again."
+				);
+		
 		$this->db->set('account_id', $this->session->userdata('account_id'));
 		$this->db->set('key', $new_credentials['key']);
 		$this->db->set('secret_key', $new_credentials['secret_key']);
 		
 		$this->db->insert('account_gogrid_credentials');
 
-		return true;
+		return array(
+					'success'	=> true
+				);
 	}
 
-	private function update_user_gogrid_credentials($new_credentials)
+	public function update_user_gogrid_credentials($new_credentials)
 	{
+		$valid = $this->validate_credentials($new_credentials);
+		if(!$valid)
+			return array(
+					'success'	=> false,
+					'error_message'	=> "The security credentials you've provided do not seem to be valid.<br />Please try again"
+				);
+				
 		$this->db->where('account_id', $this->session->userdata('account_id'));
 		$this->db->update('account_gogrid_credentials', $new_credentials);
 
-		return true;
+		return array(
+					'success'	=> true
+				);
 	}
 
 	public function get_account_type()

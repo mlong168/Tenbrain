@@ -52,11 +52,11 @@ class Amazon extends Controller {
 		
 		$credentials = $this->amazon->get_user_aws_credentials();
 		
-		echo json_encode(array(
-			'success'	=> $credentials 
+		$result = $credentials 
 			? $this->amazon->update_user_aws_credentials($new_credentials)
-			: $this->amazon->set_user_aws_credentials($new_credentials)
-		));
+			: $this->amazon->set_user_aws_credentials($new_credentials);
+		
+		echo json_encode($result);
 	}
 	
 	function show_instances($state)

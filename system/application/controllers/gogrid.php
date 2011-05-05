@@ -47,14 +47,15 @@ class Gogrid extends Controller {
 	{
 		$new_credentials = array();
 		$new_credentials['key'] = $this->input->post('key');
+		$new_credentials['secret_key'] = $this->input->post('secret_key');
 		
 		$credentials = $this->gg->get_user_gogrid_credentials();
 		
-		echo json_encode(array(
-			'success'	=> $credentials 
+		$result = $credentials 
 			? $this->gg->update_user_gogrid_credentials($new_credentials)
-			: $this->gg->set_user_gogrid_credentials($new_credentials)
-		));
+			: $this->gg->set_user_gogrid_credentials($new_credentials);
+			
+		echo json_encode($result);
 	}
 	
 	function lookup($lookup)

@@ -46,14 +46,15 @@ class Rackspace extends Controller {
 	{
 		$new_credentials = array();
 		$new_credentials['key'] = $this->input->post('key');
+		$new_credentials['username'] = $this->input->post('username');
 		
 		$credentials = $this->rack->get_user_rackspace_credentials();
 		
-		echo json_encode(array(
-			'success'	=> $credentials 
+		$result = $credentials 
 			? $this->rack->update_user_rackspace_credentials($new_credentials)
-			: $this->rack->set_user_rackspace_credentials($new_credentials)
-		));
+			: $this->rack->set_user_rackspace_credentials($new_credentials);
+		
+		echo json_encode($result);
 	}
 	
 	function get_flavors()

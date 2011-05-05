@@ -21,6 +21,11 @@ class Amazon_model extends Provider_model {
 									'cg1.4xlarge');
 	public $default_type = 't1.micro';
 	
+	const API_KEY	=	'AKIAIZPNXU6QOZESFUGQ';
+	const API_SECRET	=	'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';
+	const API_USER_ID	=	'808560206295';
+	
+	
 	function __construct()
 	{
 		parent::__construct();
@@ -28,9 +33,9 @@ class Amazon_model extends Provider_model {
 		$this->load->helper('amazon_sdk/sdk');
 
 		$credentials = $this->get_user_aws_credentials();
-		// $credentials = array();
-		$this->ec2 = empty($credentials)
-			? new AmazonEC2()
+
+		$this->ec2 = $credentials
+			? new AmazonEC2(self::API_KEY, self::API_SECRET)
 			: new AmazonEC2($credentials['key'], $credentials['secret_key']);
 
 		$this->premium = !empty($credentials);
@@ -40,7 +45,7 @@ class Amazon_model extends Provider_model {
 			
 	}
 	
-	private function get_user_aws_credentials()
+	public function get_user_aws_credentials()
 	{
 		$credentials = array();
 		$this->db->select('user_id, key, secret_key')
@@ -61,24 +66,61 @@ class Amazon_model extends Provider_model {
 		return $credentials;
 	}
 
-	private function set_user_aws_credentials($new_credentials)
+	private function validate_credentials($new_credentials)
 	{
-		$this->db->set('account_id', $this->session->userdata('account_id'));
-		$this->db->set('user_id', $new_credentials['user_id']);
-		$this->db->set('key', $new_credentials['key']);
-		$this->db->set('secret_key', $new_credentials['secret_key']);
-
-		$this->db->insert('account_aws_credentials');
-
+		$user_id = $this->get_aws_user_id($new_credentials);
+		if(!$user_id) 
+			return false;
+		
 		return true;
 	}
-
-	private function update_user_aws_credentials($new_credentials)
+	
+	private function get_aws_user_id($credentials)
 	{
+		$amaz_handle = new AmazonIAM($credentials['key'], $credentials['secret_key']);
+		$response = $amaz_handle->get_user();
+		if($response->isOK()) 
+			return (string) $response->body->GetUserResult->User->UserId;
+	}
+	
+	public function set_user_aws_credentials($new_credentials)
+	{
+		$this->db->set('account_id', $this->session->userdata('account_id'));
+		$this->db->set('key', $new_credentials['key']);
+		$this->db->set('secret_key', $new_credentials['secret_key']);
+		
+		$valid = $this->validate_credentials($new_credentials);
+		if(!$valid)
+			return array(
+					'success'	=> false,
+					'error_message'	=> "The security credentials you've provided do not seem to be valid. Please try again."
+				);
+
+		$new_credentials['user_id'] = $this->get_aws_user_id($new_credentials);
+		
+		$this->db->set('user_id', $new_credentials['user_id']);
+		$this->db->insert('account_aws_credentials');
+
+		return array(
+				'success'	=> true
+			);
+	}
+
+	public function update_user_aws_credentials($new_credentials)
+	{
+		$valid = $this->validate_credentials($new_credentials);
+		if(!$valid)
+			return array(
+					'success'	=> false,
+					'error_message'	=> "The security credentials you've provided do not seem to be valid. Please try again."
+				);
+				
 		$this->db->where('account_id', $this->session->userdata('account_id'));
 		$this->db->update('account_aws_credentials', $new_credentials);
 
-		return true;
+		return array(
+				'success'	=> true
+			);
 	}
 
 	public function get_account_type()

@@ -21,18 +21,24 @@ class Rackspace_model extends Provider_model {
 	{
 		parent::__construct();
 		
-		$auth_params = $this->authenticate();
+		$credentials = $this->get_user_rackspace_credentials();
+		if($credentials)
+			$auth_params = $this->authenticate($credentials['username'],$credentials['key']);
+		else
+			$auth_params = $this->authenticate(self::USERNAME, self::API_KEY);
+		
+
 		$this->auth_token = $auth_params['auth_token'];
 		$this->server_url = $auth_params['server_management_url'];
 	}
 	
-	private function authenticate()
+	private function authenticate($username = null, $key = null)
 	{
 		$curl_session = curl_init(self::AUTH_URL . '/' . self::VERSION);
 		
 		$headers = array(
-			'X-Auth-User: ' . self::USERNAME,
-			'X-Auth-Key: ' . self::API_KEY
+			'X-Auth-User: ' . $username,
+			'X-Auth-Key: ' . $key
 		);
 
 		curl_setopt($curl_session, CURLOPT_HEADER, true);
@@ -147,10 +153,10 @@ class Rackspace_model extends Provider_model {
 		return $body ? json_decode($body) : true;	
 	}
 	
-	private function get_user_rackspace_credentials()
+	public function get_user_rackspace_credentials()
 	{
 		$credentials = array();
-		$this->db->select('key')
+		$this->db->select('username, key')
 			->from('account_rackspace_credentials')
 			->where('account_id', $this->session->userdata('account_id'));
 
@@ -159,29 +165,73 @@ class Rackspace_model extends Provider_model {
 		foreach ($query->result() as $row)
 		{
 			$credentials = array(
+				'username'		=> $row->username,
 				'key'			=> $row->key
 			);
 		}
 
 		return $credentials;
 	}
-
-	private function set_user_rackspace_credentials($new_credentials)
+	
+	public function validate_credentials($new_credentials)
 	{
-		$this->db->set('account_id', $this->session->userdata('account_id'));
-		$this->db->set('key', $new_credentials['key']);
+		$curl_session = curl_init(self::AUTH_URL . '/' . self::VERSION);
+		
+		$headers = array(
+			'X-Auth-User: ' . $new_credentials['username'],
+			'X-Auth-Key: ' . $new_credentials['key']
+		);
 
-		$this->db->insert('account_rackspace_credentials');
+		curl_setopt($curl_session, CURLOPT_HEADER, true);
+		curl_setopt($curl_session, CURLOPT_HTTPHEADER, $headers);
+		curl_setopt($curl_session, CURLOPT_RETURNTRANSFER, true);
 
+		$response = curl_exec($curl_session);
+		curl_close($curl_session);
+		
+		$response =  new HttpMessage($response);
+		
+		if($response->getResponseCode() !== 204) 
+			return false;
+		
 		return true;
 	}
-
-	private function update_user_rackspace_credentials($new_credentials)
+	
+	
+	public function set_user_rackspace_credentials($new_credentials)
 	{
+		$valid = $this->validate_credentials($new_credentials);
+		if(!$valid)
+			return array(
+					'success'	=> false,
+					'error_message'	=> "The security credentials you've provided do not seem to be valid. Please try again."
+				);
+
+		$this->db->set('account_id', $this->session->userdata('account_id'));
+		$this->db->set('key', $new_credentials['key']);
+		$this->db->set('username', $new_credentials['username']);
+		
+		$this->db->insert('account_rackspace_credentials');
+
+		return array(
+					'success'	=> true
+				);
+	}
+
+	public function update_user_rackspace_credentials($new_credentials)
+	{
+		$valid = $this->validate_credentials($new_credentials);
+		if(!$valid)
+			return array(
+					'success'	=> false,
+					'error_message'	=> "The security credentials you've provided do not seem to be valid. Please try again."
+				);
 		$this->db->where('account_id', $this->session->userdata('account_id'));
 		$this->db->update('account_rackspace_credentials', $new_credentials);
 
-		return true;
+		return array(
+					'success'	=> true
+				);
 	}
 
 	public function get_account_type()
