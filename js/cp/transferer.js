@@ -147,7 +147,7 @@ var Transferer = function(){
 }();
 
 Ext.onReady(function(){
-	Transferer.show_dialogue();
 	Ext.get('upgrader').addListener('click', function(){
+		Transferer.show_dialogue();
 	});
 });
