@@ -2,8 +2,36 @@
 
 abstract class Provider_model extends CI_Model {
 	
+	protected $account_server_count_limits = array();
+	
 	function __construct(){
 		parent::__construct();
+		$this->account_server_count_limits = $this->load_account_server_count_limits();
+	}
+	
+	private function load_account_server_count_limits()
+	{
+		$query = $this->db->get('account_server_count_limits');
+
+		if($query->num_rows())
+		{
+			$server_limit = array();
+			$server_count_limits = $query->result_array();
+
+			foreach($server_count_limits as $limit)
+			{
+				$server_limit[$limit['provider']][$limit['roleid']] = $limit['count'];
+			}
+			return $server_limit;
+		}
+	}
+	
+	protected function get_deployed_server_count()
+	{
+		$this->load->model("Instance_model", "instance");
+		$servers = $this->instance->get_user_instances();
+
+		return count($servers);
 	}
 	
 	protected function get_provider_instance_id($id)

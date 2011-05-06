@@ -95,6 +95,16 @@ class Amazon extends CI_Controller {
 
 	function launch_instance()
 	{
+		$roleid = $this->acl->get_user_role_id();
+		$allow_launch = $this->amazon->allow_launch_instance($roleid);
+		if(!$allow_launch)
+		{
+			echo json_encode(array(
+				'success' => false
+			));
+			die;
+		}
+		
 		$image_id = $this->input->post('image_id');
 		$type = $this->input->post('instance_type');
 		$available_types = $this->amazon->available_types;
