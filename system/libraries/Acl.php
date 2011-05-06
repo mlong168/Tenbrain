@@ -153,10 +153,10 @@ class Acl
 		//$this->session->userdata('account_id')
 		$new_role = array('roleid' => $role_id);
 		
-		$this->db->where('id', $user_id);
-		$this->db->update('a3m_account', $new_role);
+		$this->CI->db->where('id', $user_id);
+		$this->CI->db->update('a3m_account', $new_role);
 		
-		return $role_id;
+		return true;
 	} 
 	
 	function get_role_id_by_name($role_name)

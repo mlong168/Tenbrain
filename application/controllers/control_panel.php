@@ -147,11 +147,10 @@ class Control_panel extends CI_Controller {
 
 	function change_user_account_type()
 	{
-		$user_id = $this->input->post('user_id');
-		$role_id = (int)$this->input->post('role_id');
-		
+		$user_id = $this->session->userdata('account_id');
+		$role = $this->input->post('account_type');
 		echo json_encode(array(
-			'success'	=>	$this->acl->change_user_role($user_id,$role_id)
+			'success'	=>	$this->acl->change_user_role($user_id,$role)
 		));
 	}
 
