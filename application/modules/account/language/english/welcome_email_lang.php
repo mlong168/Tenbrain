@@ -7,7 +7,7 @@
 */
 $lang['welcome_email_sender'] 		= 'TenBrain';
 $lang['welcome_email_subject'] 		= 'Welcome to TenBrain!';
-$lang['welcome_email_text']			= 'Hi %s,<br /><br />Welcome to TenBrain!.<br /><br />
+$lang['welcome_email_text']			= 'Hi %s,<br /><br />Welcome to TenBrain!<br /><br />
 To access your TenBrain Control Panel, please click on the link below or copy and paste the URL into your browser:<br />%s';
 
 
