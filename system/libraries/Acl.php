@@ -129,4 +129,57 @@ class Acl
 	{
 		return $this->acl->isAllowed($role, $resource, 'publish')? TRUE : FALSE;
 	}
+	
+	function get_user_role()
+	{
+		if($this->CI->session->userdata('account_id'))
+		{
+			$this->CI->db->select('*');
+			$query = $this->CI->db->get_where('user_roles', array('id' => $this->role));
+			if($query->num_rows())
+			{
+				return $query->row();
+			}
+		}
+	}
+	
+	function change_user_role($user_id, $role)
+	{
+		
+		$role_id = is_int($role) ? $role : $this->get_role_id_by_name($role);
+		if(!$role_id)
+			return false;
+		
+		//$this->session->userdata('account_id')
+		$new_role = array('roleid' => $role_id);
+		
+		$this->db->where('id', $user_id);
+		$this->db->update('a3m_account', $new_role);
+		
+		return $role_id;
+	} 
+	
+	function get_role_id_by_name($role_name)
+	{
+		$this->CI->db->select('id');
+		$query = $this->CI->db->get_where('user_roles', array('name' => $role_name));
+		if($query->num_rows())
+		{
+			return $query->row()->id;
+		}
+		return false;
+	}
+	
+	function get_roles()
+	{
+		$admin_role_id = 1;
+		$this->CI->db->where('id != '.$admin_role_id);
+		$query = $this->CI->db->get('user_roles');
+		if($query->num_rows())
+		{
+			return $query->result();
+		}
+		return array();
+	}
+	
 }

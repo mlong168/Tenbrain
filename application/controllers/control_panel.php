@@ -144,6 +144,32 @@ class Control_panel extends CI_Controller {
 		header('Content-type: application/json');
 		echo json_encode($menu);
 	}
+
+	function change_user_account_type()
+	{
+		$user_id = $this->input->post('user_id');
+		$role_id = (int)$this->input->post('role_id');
+		
+		echo json_encode(array(
+			'success'	=>	$this->acl->change_user_role($user_id,$role_id)
+		));
+	}
+
+	function get_user_account_type()
+	{
+		echo json_encode(array(
+			'success'	=>	true,
+			'account_description'	=>	$this->acl->get_user_role()
+		));
+	}
+	
+	function get_available_account_types()
+	{
+		echo json_encode(array(
+			'success'	=>	true,
+			'accounts'	=>	$this->acl->get_roles()
+		));
+	}
 }
 
 /* End of file control_panel.php */
