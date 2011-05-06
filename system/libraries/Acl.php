@@ -12,7 +12,7 @@ class Acl
 		$this->CI =& get_instance();
 
 		// Set the include path and require the needed files
-		set_include_path(get_include_path() . PATH_SEPARATOR . BASEPATH . 'application/libraries');
+		set_include_path(get_include_path() . PATH_SEPARATOR . str_replace('system/', '', BASEPATH) . 'application/libraries');
 		
 		require_once(APPPATH . '/libraries/Zend/Acl.php');
 		require_once(APPPATH . '/libraries/Zend/Acl/Role.php');
