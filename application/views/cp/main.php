@@ -17,10 +17,9 @@
 		<div class="signed_in_controls">
 			<span class="welcome_message">Welcome, <?php echo $this->account_model->get_by_id($this->session->userdata('account_id'))->username ?>!</span>
 			<a class="blue underlined_dash" href="/account/sign_out">Sign out</a><br />
-			<span class="welcome_message">Account type: <?php echo $account_type ?></span>
-			<?php if($account_type !== 'premium'): ?>
-				<a class="blue underlined_dash" href="#" id="upgrader">Upgrage to TenBrain Premium!</a>
-			<?php endif; ?>
+			<span class="welcome_message">Account type: <?php echo $account_type ?></span>&nbsp;(<a href="#" class="blue underlined_dash" id="account_type_changer">change</a>)
+			
+			<a class="blue underlined_dash" href="#" id="cloud_account_manager">Manage your cloud account</a>
 		</div>
 	</div>
 </div>

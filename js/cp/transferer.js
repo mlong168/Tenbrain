@@ -6,7 +6,7 @@ var Transferer = function(){
 			success = 'Your credentials have been registered successfully',
 			error = 'A problem has occurred when registering your credentials. Please try again';
 
-		transfer_dialogue.hide();
+		credentials_dialogue.hide();
 		this.findParentByType('form').getForm().submit({
 			waitTitle: title,
 			waitMsg: 'Your credentials are being registered...',
@@ -23,7 +23,7 @@ var Transferer = function(){
 		});
 	};
 	
-	var amazon_transfer_form = new Ext.FormPanel({
+	var amazon_credentials_form = new Ext.FormPanel({
 		title: 'Amazon',
 		url: '/amazon/set_user_credentials',		
 		buttonAlign: 'center',
@@ -52,11 +52,11 @@ var Transferer = function(){
 			handler: submit_credentials
 		}, {
 			text: 'Cancel',
-			handler: function(){ transfer_dialogue.hide(); }
+			handler: function(){ credentials_dialogue.hide(); }
 		}]
 	});
 	
-	var rackspace_transfer_form = new Ext.FormPanel({
+	var rackspace_credentials_form = new Ext.FormPanel({
 		title: 'Rackspace',
 		url: '/rackspace/set_user_credentials',		
 		buttonAlign: 'center',
@@ -85,10 +85,10 @@ var Transferer = function(){
 			handler: submit_credentials
 		}, {
 			text: 'Cancel',
-			handler: function(){ transfer_dialogue.hide(); }
+			handler: function(){ credentials_dialogue.hide(); }
 		}]
 	});
-	var gogrid_transfer_form = new Ext.FormPanel({
+	var gogrid_credentials_form = new Ext.FormPanel({
 		title: 'GoGrid',
 		url: '/gogrid/set_user_credentials',		
 		buttonAlign: 'center',
@@ -117,37 +117,112 @@ var Transferer = function(){
 			handler: submit_credentials
 		}, {
 			text: 'Cancel',
-			handler: function(){ transfer_dialogue.hide(); }
+			handler: function(){ credentials_dialogue.hide(); }
 		}]
 	});
 	
-	var transfer_dialogue = new Ext.Window({
-		title: 'Upgrade to TenBrain premium!',
+	var credentials_dialogue = new Ext.Window({
+		title: 'Cloud account credentials manager',
 		layout: 'fit',
 		width: 450,
 		minWidth: 400,
-		//border: false,
 		closeAction: 'hide',
 		items: new Ext.TabPanel({
             activeTab: 0,
             border: false,
             defaults:{autoHeight: true, bodyStyle: 'padding: 10px'},
-			items: [amazon_transfer_form, rackspace_transfer_form, gogrid_transfer_form]
+			items: [amazon_credentials_form, rackspace_credentials_form, gogrid_credentials_form]
 		}),
 		plain: 'true',
-		//bodyStyle: 'padding:5px;',
+		modal : true
+	});
+	
+	var type_switcher = new Ext.FormPanel({
+		labelWidth: 90,
+		url: '/control_panel/change_user_account_type',
+		baseCls: 'x-plain',
+		autoHeight: true,
+		buttonAlign: 'center',
+		monitorValid: true,
+
+		items: [{
+			xtype: 'combo',
+			anchor: '100%',
+			fieldLabel: 'Account Type',
+			allowBlank: false,
+			editable: false,
+			store: new Ext.data.JsonStore({
+				url: '/control_panel/get_available_account_types',
+				root: 'accounts',
+				fields: ['name', 'description']
+			}),
+			mode: 'remote',
+			displayField: 'name',
+			hiddenName: 'account_type', // POST-var name
+			valueField: 'name', // POST-var value
+			emptyText: 'Select type',
+			tpl: '<tpl for="."><div ext:qtip="{description}" class="x-combo-list-item">{name}</div></tpl>',
+			forceSelection: true,
+			typeAhead: true,
+			triggerAction: 'all'
+		}],
+
+		buttons: [{
+			text: 'Proceed',
+			formBind: true,
+			handler: function(){
+				var title = 'Account type change',
+					success = 'The type of your account has been successfully changed',
+					error = 'A problem has occurred while changing the type of your account';
+					
+				account_type_dialogue.hide();
+				modify_form.getForm().submit({
+					waitTitle: title,
+					waitMsg: 'Changing your account type...',
+					success: function(form, action){
+						Ext.Msg.alert(title, action.result.success ? success : response.error_message || error);
+					},
+					failure: function(form, action){
+						Ext.Msg.alert(title, error);
+					}
+				});
+			}
+		}, {
+			text: 'Cancel',
+			handler: function(){
+				account_type_dialogue.hide();
+			}
+		}]
+	});
+	
+	var account_type_dialogue = new Ext.Window({
+		title: 'Change your account type',
+		layout: 'fit',
+		width: 300,
+		minWidth: 300,
+		closeAction: 'hide',
+		items: type_switcher,
+		bodyStyle: 'padding:5px;',
+		plain: 'true',
 		modal : true
 	});
 	
 	return {
-		show_dialogue: function(){
-			transfer_dialogue.show();
+		manage_credentials: function(){
+			credentials_dialogue.show();
+		},
+		manage_account_type: function(){
+			account_type_dialogue.show();
 		}
 	}
 }();
 
 Ext.onReady(function(){
-	Ext.get('upgrader').addListener('click', function(){
-		Transferer.show_dialogue();
+	Ext.get('cloud_account_manager').addListener('click', function(){
+		Transferer.manage_credentials();
+	});
+	
+	Ext.get('account_type_changer').addListener('click', function(){
+		Transferer.manage_account_type();
 	});
 });
