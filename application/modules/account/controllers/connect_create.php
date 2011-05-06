@@ -2,14 +2,14 @@
 /*
  * Connect_create Controller
  */
-class Connect_create extends Controller {
+class Connect_create extends CI_Controller {
 	
 	/**
 	 * Constructor
 	 */
-	function Connect_create()
+	function __construct()
 	{
-		parent::Controller();
+		parent::__construct();
 		
 		// Load the necessary stuff...
 		$this->load->config('account/account');
