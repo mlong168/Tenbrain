@@ -176,7 +176,7 @@ var Transferer = function(){
 					error = 'A problem has occurred while changing the type of your account';
 					
 				account_type_dialogue.hide();
-				modify_form.getForm().submit({
+				type_switcher.getForm().submit({
 					waitTitle: title,
 					waitMsg: 'Changing your account type...',
 					success: function(form, action){

@@ -346,6 +346,14 @@ class Gogrid_model extends Provider_model {
 		else return false;
 	}
 	
+	public function allow_launch_instance($roleid)
+	{
+		$loaded_servers_count = (int)$this->get_deployed_server_count();
+		$available_server_count = (int)$this->account_server_count_limits[$this->name][$roleid];
+		
+		return ($available_server_count > $loaded_servers_count);
+	}
+	
 	public function launch_instance($params)
 	{
 		$response = $this->gogrid->call('grid.server.add', $params);

@@ -67,6 +67,16 @@ class Rackspace extends CI_Controller {
 	
 	function launch_instance()
 	{
+		$roleid = $this->acl->get_user_role_id();
+		$allow_launch = $this->rack->allow_launch_instance($roleid);
+		if(!$allow_launch)
+		{
+			echo json_encode(array(
+				'success' => false
+			));
+			die;
+		}
+		
 		echo json_encode(array(
 			'success' => $this->rack->launch_instance(
 				$this->input->post('name'),

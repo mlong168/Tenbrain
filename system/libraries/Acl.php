@@ -143,6 +143,15 @@ class Acl
 		}
 	}
 	
+	function get_user_role_id()
+	{
+		if($this->CI->session->userdata('account_id'))
+		{
+			$role = $this->get_user_role();
+			return $role->id;
+		}
+	}
+	
 	function change_user_role($user_id, $role)
 	{
 		
@@ -153,10 +162,10 @@ class Acl
 		//$this->session->userdata('account_id')
 		$new_role = array('roleid' => $role_id);
 		
-		$this->db->where('id', $user_id);
-		$this->db->update('a3m_account', $new_role);
+		$this->CI->db->where('id', $user_id);
+		$this->CI->db->update('a3m_account', $new_role);
 		
-		return $role_id;
+		return true;
 	} 
 	
 	function get_role_id_by_name($role_name)
