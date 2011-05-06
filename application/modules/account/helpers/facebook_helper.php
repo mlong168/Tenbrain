@@ -341,6 +341,14 @@ class Facebook
         // sig is good, use the signedRequest
         $session = $this->createSessionFromSignedRequest($signedRequest);
       }
+	
+	// patch by slavko - somewhy the cookies do not work everytime
+	$query_string = substr(strrchr($_SERVER['REQUEST_URI'], "?"), 1);
+	parse_str($query_string, $_GET);
+	$_SERVER['QUERY_STRING'] = $query_string;
+	// the library tries to retrieve the session from $_REQUEST - we'll let it do that thing ;)
+	$_REQUEST = array_merge($_REQUEST, $_GET);
+	// end of the patch
 
       // try loading session from $_REQUEST
       if (!$session && isset($_REQUEST['session'])) {

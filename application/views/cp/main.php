@@ -1,12 +1,26 @@
 <?php
+	
+	$ext_scripts = array(
+		// currently used (extjs3):
+		'extjs/adapter/ext/ext-base',
+		'extjs/ext-all',
+		
+		// to be used when migrating to extjs4:
+		// 'extjs4/ext-all-debug',
+		// 'extjs4/ext3-core-compat',
+		// 'extjs4/ext3-compat'
+	);
+
 	$cp_scripts = array('cp/instances', 'cp/images', 'cp/snapshots', 'cp/profile');
 	if($account_type !== 'premium') $cp_scripts []= 'cp/transferer';
 	if($account_type === 'premium') $cp_scripts = array_merge($cp_scripts, array('cp/SuperBoxSelect', 'cp/load_balancers', 'cp/elastic_ips'));
+	
 	$cp_scripts []= 'cp/cp';
+	
 	$this->load->view('cp/header', array(
 		'title'		=> 'TenBrain Control Panel',
 		'styles'	=> array('main', 'account', 'ext_resources/css/ext-all', 'icons'),
-		'scripts'	=> array_merge(array('extjs/adapter/ext/ext-base', 'extjs/ext-all'), $cp_scripts),
+		'scripts'	=> array_merge($ext_scripts, $cp_scripts),
 		'active_menu_item'	=> $active_menu_item,
 		'account_type'		=> $account_type
 	));
