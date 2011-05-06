@@ -16,7 +16,7 @@ class Sign_up extends CI_Controller {
 		$this->load->helper(array('language', 'account/ssl', 'url'));
         $this->load->library(array('account/authentication', 'account/recaptcha', 'form_validation'));
 		$this->load->model(array('account/account_model', 'account/account_details_model'));
-		$this->load->language(array('general', 'account/sign_up', 'account/connect_third_party'));
+		$this->load->language(array('general', 'account/sign_up', 'account/connect_third_party', 'account/welcome_email'));
 	}
 	
 	/**
