@@ -31,7 +31,7 @@ class Paypal extends CI_Controller {
 	function form()
 	{
 		
-		$this->paypal_lib->add_field('business', 'PAYPAL@EMAIL.COM');
+		$this->paypal_lib->add_field('business', 'kkorni_1304690711_biz@softjourn.com');
 	    $this->paypal_lib->add_field('return', site_url('paypal/success'));
 	    $this->paypal_lib->add_field('cancel_return', site_url('paypal/cancel'));
 	    $this->paypal_lib->add_field('notify_url', site_url('paypal/ipn')); // <-- IPN url
@@ -39,7 +39,7 @@ class Paypal extends CI_Controller {
 
 	    $this->paypal_lib->add_field('item_name', 'Paypal Test Transaction');
 	    $this->paypal_lib->add_field('item_number', '6941');
-	    $this->paypal_lib->add_field('amount', '100');
+	    $this->paypal_lib->add_field('amount', '1');
 
 		// if you want an image button use this:
 		$this->paypal_lib->image('button_03.gif');
@@ -104,7 +104,7 @@ class Paypal extends CI_Controller {
 		// in the ipn_data() array.
  
 		// For this example, we'll just email ourselves ALL the data.
-		$to    = 'kkorniyenko@sofrjourn.com';    //  your email
+		$to    = 'kkorniyenko@softjourn.com';    //  your email
 
 		if ($this->paypal_lib->validate_ipn()) 
 		{
