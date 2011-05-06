@@ -444,7 +444,7 @@ class Amazon_model extends Provider_model {
 		$loaded_servers_count = (int)$this->get_deployed_server_count();
 		$available_server_count = (int)$this->account_server_count_limits[$this->name][$roleid];
 		
-		return ($available_server_count >= $loaded_servers_count);
+		return ($available_server_count > $loaded_servers_count);
 	}
 	
 	public function launch_instance($image_id, $type, $name)
