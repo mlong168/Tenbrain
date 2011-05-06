@@ -39,7 +39,7 @@ class Paypal extends CI_Controller {
 
 	    $this->paypal_lib->add_field('item_name', 'Paypal Test Transaction');
 	    $this->paypal_lib->add_field('item_number', '6941');
-	    $this->paypal_lib->add_field('amount', '197');
+	    $this->paypal_lib->add_field('amount', '100');
 
 		// if you want an image button use this:
 		$this->paypal_lib->image('button_03.gif');
@@ -70,7 +70,7 @@ class Paypal extends CI_Controller {
 	}
 	function cancel()
 	{
-		$this->view('paypal/cancel');
+		$this->load->view('paypal/cancel');
 	}
 	
 	function success()
@@ -88,7 +88,7 @@ class Paypal extends CI_Controller {
 		// below).
 
 		$data['pp_info'] = $this->input->post();
-		$this->view('paypal/success', $data);
+		$this->load->view('paypal/success', $data);
 	}
 	
 	function ipn()
@@ -104,7 +104,7 @@ class Paypal extends CI_Controller {
 		// in the ipn_data() array.
  
 		// For this example, we'll just email ourselves ALL the data.
-		$to    = 'YOUR@EMAIL.COM';    //  your email
+		$to    = 'kkorniyenko@sofrjourn.com';    //  your email
 
 		if ($this->paypal_lib->validate_ipn()) 
 		{

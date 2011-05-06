@@ -7,7 +7,7 @@
 <p><code>
 <?php	
 	foreach ($this->input->post() as $key => $value)
-		echo '<strong>$key</strong>: $value <br/>';
+		echo "<strong>$key</strong>: $value <br/>";
 ?>
 </code></p>
 <?php endif; ?>
