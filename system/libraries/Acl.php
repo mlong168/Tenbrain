@@ -143,6 +143,15 @@ class Acl
 		}
 	}
 	
+	function get_user_role_id()
+	{
+		if($this->CI->session->userdata('account_id'))
+		{
+			$role = $this->get_user_role();
+			return $role->id;
+		}
+	}
+	
 	function change_user_role($user_id, $role)
 	{
 		

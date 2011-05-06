@@ -83,6 +83,16 @@ class Gogrid extends CI_Controller {
 	
 	function launch_instance()
 	{
+		$roleid = $this->acl->get_user_role_id();
+		$allow_launch = $this->gg->allow_launch_instance($roleid);
+		if(!$allow_launch)
+		{
+			echo json_encode(array(
+				'success' => false
+			));
+			die;
+		}
+		
 		$params = array(
 			'image'			=> $this->input->post('image_id'),
 			'name'			=> $this->input->post('name'),
