@@ -68,7 +68,7 @@ class Paypal_Lib {
 		$this->CI->load->helper('form');
 		$this->CI->load->config('paypallib_config');
 		
-		$this->paypal_url = 'https://www.paypal.com/cgi-bin/webscr';
+		$this->paypal_url = 'https://www.sandbox.paypal.com/cgi-bin/webscr';
 
 		$this->last_error = '';
 		$this->ipn_response = '';
@@ -132,11 +132,11 @@ class Paypal_Lib {
 	function paypal_form($form_name='paypal_form') 
 	{
 		$str = '';
-		$str .= '<form method="post" action="'.$this->paypal_url.'" name="'.$form_name.'"/>' . "\n";
+		$str .= '<form method="post" action="'.$this->paypal_url.'" name="'.$form_name.'"/>' . "<br>";
 		foreach ($this->fields as $name => $value)
-			$str .= form_hidden($name, $value) . "\n";
+			$str .= form_input($name, $value) . "<br>";
 		$str .= '<p>'. $this->submit_btn . '</p>';
-		$str .= form_close() . "\n";
+		$str .= form_close() . "<br>";
 
 		return $str;
 	}
