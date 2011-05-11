@@ -207,7 +207,6 @@ var Load_balancers = function(){
 			valueField: 'address', // POST-var value
 			autoSelect: true,
 			forceSelection: true,
-			typeAhead: true,
 			triggerAction: 'all',
 		}, {
 			id: 'instance_to_register_within_lb',

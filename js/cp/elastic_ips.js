@@ -118,7 +118,6 @@ var Elastic_IPs = function(){
 			valueField: 'instance_id', // POST-var value
 			emptyText: 'Select a server to associate',
 			forceSelection: true,
-			typeAhead: true,
 			triggerAction: 'all'
 		}, {
 			xtype: 'hidden',

@@ -1,3 +1,4 @@
+// Ext.Compat.showErrors = true;
 var Helpers = function(){
 	return {
 		link_wrapper: function(link){
@@ -5,9 +6,9 @@ var Helpers = function(){
 		},
 		first_time_loader: function(p){
 			var store = p.getStore(),
-				elem = p.bwrap;
+				elem = p.getEl();
 			
-			if(store.lastOptions === null)
+			if(store.last() === undefined)
 			{
 				elem.mask('Loading, please wait ...');
 				store.load({
@@ -24,26 +25,32 @@ var Helpers = function(){
 var Instances = function(){
 	var states = ['running', 'terminated', 'stopped'];
 	var store = function(){
-		var record = Ext.data.Record.create([
-			'id',
-			'name',
-			'dns_name',
-			'ip_address',
-			'image_id',
-			'state',
-			'type',
-			'provider'
-		]),
-		stores = {};
+		var stores = {};
+		Ext.define('Server', {
+			extend: 'Ext.data.Model',
+			fields: [
+				{name: 'id',			type: 'int'},
+				{name: 'name',			type: 'string'},
+				{name: 'dns_name',		type: 'string'},
+				{name: 'ip_address',	type: 'string'},
+				{name: 'image_id',		type: 'string'},
+				{name: 'state',			type: 'string'},
+				{name: 'type',			type: 'string'},
+				{name: 'provider',		type: 'string'}
+			]
+		});
 		for(var i = states.length; i--;)
 		{
 			stores[states[i]] = new Ext.data.Store({
-				url: '/common/list_instances/' + states[i],
-				reader: new Ext.data.JsonReader({
-					root: 'instances',
-					successProperty: 'success',
-					idProperty: 'id'
-				}, record)
+				model: 'Server',
+				proxy: {
+					type: 'ajax',
+					url: '/common/list_instances/' + states[i],
+					reader: {
+						type: 'json',
+						root: 'instances'
+					}
+				}
 			});
 		}
 		return stores;
@@ -59,7 +66,7 @@ var Instances = function(){
 				interval = init_timeout;
 			}
 			
-			store[state].reload({
+			store[state].load({
 				callback: function(r){
 					for(var i = r.length; i--;)
 					{
@@ -124,13 +131,25 @@ var Instances = function(){
 		});
 	};
 	
+	Ext.define('Server_types', {
+		extend: 'Ext.data.Model',
+		fields: [
+			{name: 'value',		type: 'string'},
+			{name: 'name',		type: 'string'},
+			{name: 'available',	type: 'boolean'},
+			{name: 'reason',	type: 'string'}
+		]
+	});
+	
 	var modify_form = new Ext.form.FormPanel({
-		labelWidth: 80,
+		fieldDefaults: {
+			labelWidth: 80
+		},
 		url: '/common/modify_instance',
 		baseCls: 'x-plain',
 		autoHeight: true,
 		buttonAlign: 'center',
-		monitorValid: true,
+		pollForChanges: true,
 
 		items: [{
 			xtype: 'hidden',
@@ -142,19 +161,24 @@ var Instances = function(){
 			allowBlank: false,
 			editable: false,
 			store: new Ext.data.JsonStore({
-				url: '/common/get_available_server_types',
-				root: 'types',
-				fields: ['value', 'name', 'available', 'reason'],
-				baseParams: {provider: ''}
+				model: 'Server_types',
+				proxy: {
+					type: 'ajax',
+					url: '/common/get_available_server_types',
+					reader: {
+						type: 'json',
+						root: 'types'
+					},
+					extraParams: {provider: ''}
+				}
 			}),
-			mode: 'remote',
+			queryMode: 'remote',
 			displayField: 'name',
-			hiddenName: 'instance_type', // POST-var name
+			name: 'instance_type', // POST-var name
 			valueField: 'value', // POST-var value
 			emptyText: 'Select type',
 			tpl: '<tpl for="."><div ext:qtip="{reason}" class="x-combo-list-item">{name}</div></tpl>',
 			forceSelection: true,
-			typeAhead: true,
 			triggerAction: 'all',
 			listeners: {
 				beforequery: function(qe){
@@ -330,16 +354,15 @@ var Instances = function(){
 	});
 
 	// layouts:
-	var xg = Ext.grid, sm_running = new xg.CheckboxSelectionModel(), grids = { };
-	grids.running = new xg.GridPanel({
+	var xg = Ext.grid, sm_running = Ext.create('Ext.selection.CheckboxModel'), grids = { };
+	grids.running = Ext.create('Ext.grid.Panel', {
 		id: 'running_instances-panel',
 		title: 'Your currently running servers',
 		layout: 'fit',
 		store: store.running,
-		view: new xg.GridView({
-			forceFit: true,
-			emptyText: '<p style="text-align: center">You have not launched any server so far</p>'
-		}),
+		forceFit: true,
+		border: false,
+		emptyText: '<p style="text-align: center">You have not launched any server so far</p>',
 		listeners: {
 			rowcontextmenu: function (grid, id, e) {
 				var menu = instances_menu;
@@ -350,22 +373,17 @@ var Instances = function(){
 			}
 		},
 		sm: sm_running,
-		cm: new xg.ColumnModel({
-			defaultSortable: false,
-			columns: [
-				sm_running,
-				{header: "Name", dataIndex: 'name', width: 150, renderer: function(value, metadata, record){
-					if(record.data.state !== 'running') metadata.css = 'grid-loader';
-					return value;
-				}},
-				{header: "Link to server root", dataIndex: 'dns_name', width: 250, renderer: Helpers.link_wrapper},
-				{header: "IP Address", dataIndex: 'ip_address', width: 120},
-				{header: "State", dataIndex: 'state', width: 100},
-				{header: "Type", dataIndex: 'type', width: 100}
-			]
-		}),
-		tbar: {
-			xtype: 'toolbar',
+		columns: [
+			{text: "Name", dataIndex: 'name', width: 150, renderer: function(value, metadata, record){
+				if(record.data.state !== 'running') metadata.css = 'grid-loader';
+				return value;
+			}},
+			{text: "Link to server root", dataIndex: 'dns_name', width: 250, renderer: Helpers.link_wrapper},
+			{text: "IP Address", dataIndex: 'ip_address', width: 120},
+			{text: "State", dataIndex: 'state', width: 100},
+			{text: "Type", dataIndex: 'type', width: 100}
+		],
+		tbar: Ext.create('Ext.toolbar.Toolbar', {
 			items: [{
 				xtype: 'button',
 				text: 'Reboot',
@@ -501,19 +519,20 @@ var Instances = function(){
 					})
 				}
 			}]
-		},
-		bbar: {
+		}),
+		dockedItems: [{
 			xtype: 'toolbar',
+			dock: 'bottom',
 			items: ['->', {
 				xtype: 'button',
 				text: 'Refresh List',
 				cls: 'x-btn-text-icon',
 				iconCls: 'restart',
 				handler: function(){
-					store.running.reload();
+					store.running.load();
 				}
 			}]
-		}
+		}],
 	});
 	
 	var stopped_menu = new Ext.menu.Menu({
@@ -569,33 +588,28 @@ var Instances = function(){
 		selected_record_id: null
 	});
 	
-	var sm_stopped = new xg.CheckboxSelectionModel();
-	grids.stopped = new xg.GridPanel({
+	var sm_stopped = Ext.create('Ext.selection.CheckboxModel');
+	grids.stopped = Ext.create('Ext.grid.Panel', {
 		id: 'stopped_instances-panel',
 		title: 'Servers that have been stopped',
 		layout: 'fit',
 		store: store.stopped,
-		view: new xg.GridView({
-			forceFit: true,
-			emptyText: '<p style="text-align: center">You do not currently have any stopped server</p>'
-		}),
+		forceFit: true,
+		border: false,
+		emptyText: '<p style="text-align: center">You do not currently have any stopped server</p>',
 		sm: sm_stopped,
-		cm: new xg.ColumnModel({
-			defaultSortable: false,
-			columns: [
-				sm_stopped,
-				{header: "Name", dataIndex: 'name', width: 150, renderer: function(value, metadata, record){
-					if(record.data.state !== 'stopped') metadata.css = 'grid-loader';
-					return value;
-				}},
-				{header: "Link to server root", dataIndex: 'dns_name', width: 250, renderer: Helpers.link_wrapper},
-				{header: "IP Address", dataIndex: 'ip_address', width: 120},
-				{header: "State", dataIndex: 'state', width: 100},
-				{header: "Virtualization", dataIndex: 'virtualization', width: 100},
-				{header: "Type", dataIndex: 'type', width: 100},
-				{header: "Root Device", dataIndex: 'root_device', width: 100}
-			]
-		}),
+		columns: [
+			{text: "Name", dataIndex: 'name', width: 150, renderer: function(value, metadata, record){
+				if(record.data.state !== 'stopped') metadata.css = 'grid-loader';
+				return value;
+			}},
+			{text: "Link to server root", dataIndex: 'dns_name', width: 250, renderer: Helpers.link_wrapper},
+			{text: "IP Address", dataIndex: 'ip_address', width: 120},
+			{text: "State", dataIndex: 'state', width: 100},
+			{text: "Virtualization", dataIndex: 'virtualization', width: 100},
+			{text: "Type", dataIndex: 'type', width: 100},
+			{text: "Root Device", dataIndex: 'root_device', width: 100}
+		],
 		listeners: {
 			rowcontextmenu: function (grid, id, e) {
 				var menu = stopped_menu;
@@ -663,7 +677,7 @@ var Instances = function(){
 				cls: 'x-btn-text-icon',
 				iconCls: 'restart',
 				handler: function(){
-					store.stopped.reload();
+					store.stopped.load();
 				}
 			}]
 		}
@@ -673,6 +687,7 @@ var Instances = function(){
 		id: 'terminated_instances-panel',
 		title: 'Servers that have previously been terminated',
 		layout: 'fit',
+		border: false,
 		store: store.terminated,
 		bbar: {
 			xtype: 'toolbar',
@@ -682,28 +697,23 @@ var Instances = function(){
 				cls: 'x-btn-text-icon',
 				iconCls: 'restart',
 				handler: function(){
-					store.terminated.reload();
+					store.terminated.load();
 				}
 			}]
 		},
-		view: new xg.GridView({
-			forceFit: true,
-			emptyText: '<p style="text-align: center">You do not have any terminated server so far</p>'
-		}),
+		forceFit: true,
+		emptyText: '<p style="text-align: center">You do not have any terminated server so far</p>',
 		listeners: {
 			activate: Helpers.first_time_loader
 		},
-		cm: new xg.ColumnModel({
-			defaultSortable: false,
-			columns: [
-				{header: "Name", dataIndex: 'name', width: 150},
-				{header: "Provider", dataIndex: 'provider', width: 80},
-				{header: "State", dataIndex: 'state', width: 100},
-				{header: "Virtualization", dataIndex: 'virtualization', width: 100},
-				{header: "Type", dataIndex: 'type', width: 100},
-				{header: "Root Device", dataIndex: 'root_device', width: 100}
-			]
-		})
+		columns: [
+			{text: "Name", dataIndex: 'name', width: 150},
+			{text: "Provider", dataIndex: 'provider', width: 80},
+			{text: "State", dataIndex: 'state', width: 100},
+			{text: "Virtualization", dataIndex: 'virtualization', width: 100},
+			{text: "Type", dataIndex: 'type', width: 100},
+			{text: "Root Device", dataIndex: 'root_device', width: 100}
+		]
 	});
 	
 	// var terminated_mask = new Ext.LoadMask('terminated_instances-panel', {

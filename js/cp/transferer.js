@@ -28,9 +28,11 @@ var Transferer = function(){
 		url: '/amazon/set_user_credentials',		
 		buttonAlign: 'center',
 		baseCls: 'x-plain',
-		monitorValid: true,
 		autoHeight: true,
-		labelWidth: 70,
+		pollForChanges: true,
+		fieldDefaults: {
+			labelWidth: 70
+		},
 		defaults: {
 			xtype: 'textfield'
 		},
@@ -61,9 +63,11 @@ var Transferer = function(){
 		url: '/rackspace/set_user_credentials',		
 		buttonAlign: 'center',
 		baseCls: 'x-plain',
-		monitorValid: true,
+		pollForChanges: true,
+		fieldDefaults: {
+			labelWidth: 70
+		},
 		autoHeight: true,
-		labelWidth: 70,
 		defaults: {
 			xtype: 'textfield'
 		},
@@ -93,9 +97,11 @@ var Transferer = function(){
 		url: '/gogrid/set_user_credentials',		
 		buttonAlign: 'center',
 		baseCls: 'x-plain',
-		monitorValid: true,
 		autoHeight: true,
-		labelWidth: 70,
+		pollForChanges: true,
+		fieldDefaults: {
+			labelWidth: 70
+		},
 		defaults: {
 			xtype: 'textfield'
 		},
@@ -137,13 +143,23 @@ var Transferer = function(){
 		modal : true
 	});
 	
+	Ext.define('Account_types', {
+		extend: 'Ext.data.Model',
+		fields: [
+			{name: 'name',			type: 'string'},
+			{name: 'description',	type: 'string'}
+		]
+	});
+	
 	var type_switcher = new Ext.FormPanel({
-		labelWidth: 90,
 		url: '/control_panel/change_user_account_type',
 		baseCls: 'x-plain',
 		autoHeight: true,
 		buttonAlign: 'center',
-		monitorValid: true,
+		pollForChanges: true,
+		fieldDefaults: {
+			labelWidth: 70
+		},
 
 		items: [{
 			xtype: 'combo',
@@ -151,19 +167,24 @@ var Transferer = function(){
 			fieldLabel: 'Account Type',
 			allowBlank: false,
 			editable: false,
-			store: new Ext.data.JsonStore({
-				url: '/control_panel/get_available_account_types',
-				root: 'accounts',
-				fields: ['name', 'description']
+			store: Ext.create('Ext.data.Store', {
+				model: 'Account_types',
+				proxy: {
+					type: 'ajax',
+					url: '/control_panel/get_available_account_types',
+					reader: {
+						type: 'json',
+						root: 'accounts'
+					}
+				}
 			}),
-			mode: 'remote',
+			queryMode: 'remote',
 			displayField: 'name',
 			hiddenName: 'account_type', // POST-var name
 			valueField: 'name', // POST-var value
 			emptyText: 'Select type',
 			tpl: '<tpl for="."><div ext:qtip="{description}" class="x-combo-list-item">{name}</div></tpl>',
 			forceSelection: true,
-			typeAhead: true,
 			triggerAction: 'all'
 		}],
 

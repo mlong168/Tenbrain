@@ -1,7 +1,3 @@
-// console.log(Ext.BLANK_IMAGE_URL)
-// if (Ext.BLANK_IMAGE_URL.substr(0, 5) != 'data:') {
-	// Ext.BLANK_IMAGE_URL = '/css/ext_resources/images/default/s.gif';
-// }
 Ext.onReady(function(){
 	Ext.QuickTips.init();
 	
@@ -42,35 +38,25 @@ Ext.onReady(function(){
 		}
 	}();
 	
-	var content_panel = {
-		id: 'content-panel',
-		region: 'center',
-		layout: 'card',
-		margins: '2 5 5 0',
-		items: menu.get_items(),
-		activeItem: menu.get_active(),
-		border: false
-	},	
-    tree_panel = new Ext.tree.TreePanel({
+	var tree_panel = Ext.create('Ext.tree.Panel', {
     	id: 'tree-panel',
     	title: 'Menu',
-        region:'north',
+        region: 'north',
         split: true,
         height: 300,
         minSize: 150,
-        autoScroll: true,
         
         // tree-specific configs:
         rootVisible: false,
         lines: false,
-        singleExpand: true,
         useArrows: true,
         
-        loader: new Ext.tree.TreeLoader({
-            dataUrl:'/control_panel/menu'
-        }),
-        
-        root: new Ext.tree.AsyncTreeNode()
+        store: Ext.create('Ext.data.TreeStore', {
+	    	proxy: {
+	    		type: 'ajax',
+	    		url: '/control_panel/menu'
+	    	}
+	    })
     }),
 	help_panel = {
 		id: 'details-panel',
@@ -81,41 +67,54 @@ Ext.onReady(function(){
     },
 	helper;
     
-    tree_panel.on('click', function(n){
-    	var sn = this.selModel.selNode || {}; // selNode is null on initial selection
-    	if(n.leaf && n.id != sn.id){  // ignore clicks on folders and currently selected node 
-    		Ext.getCmp('content-panel').layout.setActiveItem(n.id + '-panel');
-    		if(!helper){
-				// create default empty div
-    			helper = Ext.getCmp('details-panel').body.update('').setStyle('background', '#fff').createChild();
-    		}
-    		helper.hide().update(Ext.getDom(n.id + '-details').innerHTML).slideIn('l', {stopFx: true, duration: .2});
+    tree_panel.on('selectionchange', function(m, selections){
+    	if(selections.length){
+	    	var node = selections[0],
+	    		id = node.internalId;
+	    	if(node.isLeaf()){  // ignore clicks on folders
+	    		Ext.getCmp('content-panel').layout.setActiveItem(id + '-panel');
+	    		if(!helper){
+					// create default empty div
+	    			helper = Ext.getCmp('details-panel').body.update('').setStyle('background', '#fff').createChild();
+	    		}
+	    		helper.hide().update(Ext.getDom(id + '-details').innerHTML).slideIn('l', {stopFx: true, duration: .2});
+	    	}
     	}
     });
 	
-    new Ext.Viewport({
+    Ext.create('Ext.container.Viewport', {
 		layout: 'border',
-		title: 'TenBrain User Control Panel',
+		renderTo: Ext.getBody(),
 		items: [{
 			xtype: 'box',
 			region: 'north',
-			applyTo: 'header'
+			contentEl: 'header'
 		}, {
 			layout: 'border',
-	    	id: 'layout-browser',
-	        region:'west',
-	        border: false,
-	        split: true,
+			id: 'layout-browser',
+			region: 'west',
+			border: false,
+			split: true,
 			margins: '2 0 5 5',
-	        width: 275,
-	        minSize: 100,
-	        maxSize: 500,
+			width: 275,
+			minSize: 100,
+			maxSize: 500,
 			items: [tree_panel, help_panel]
-		}, content_panel, {
+		}, {
 			xtype: 'box',
 			region: 'south',
-			applyTo: 'footnote'
-		}],
-        renderTo: Ext.getBody()
+			height: 25,
+			contentEl: 'footnote'
+		}, {
+			id: 'content-panel',
+			region: 'center',
+			layout: 'card',
+			margins: '2 5 5 0',
+			items: menu.get_items(),
+			activeItem: menu.get_active(),
+			defaults: {
+				border: false
+			}
+		}]
     });
 });

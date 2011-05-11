@@ -1,5 +1,5 @@
 var Images = function(){
-	var deployment_form = new Ext.FormPanel({
+	var deployment_form = Ext.create('Ext.form.Panel', {
 		id: 'amazon_image_deployment_form',
 		url: '/amazon/launch_instance',
 		frame: true,
@@ -33,7 +33,6 @@ var Images = function(){
 			emptyText: 'Select type',
 			tpl: '<tpl for="."><div ext:qtip="{reason}" class="x-combo-list-item">{name}</div></tpl>',
 			forceSelection: true,
-			typeAhead: true,
 			triggerAction: 'all',
 			listeners: {
 				beforeselect: function(combo, record){
@@ -80,7 +79,7 @@ var Images = function(){
 		IPAddressMask: /[\d\.]/i
 	});
 	
-	var gogrid_deployment_form = new Ext.FormPanel({
+	var gogrid_deployment_form = Ext.create('Ext.form.Panel', {
 		id: 'gogrid_image_deployment_form',
 		url: '/gogrid/launch_instance',
 		frame: true,
@@ -114,7 +113,6 @@ var Images = function(){
 			valueField: 'address', // POST-var value
 			autoSelect: true,
 			forceSelection: true,
-			typeAhead: true,
 			triggerAction: 'all'
 		}, {
 			xtype: 'combo',
@@ -134,7 +132,6 @@ var Images = function(){
 			valueField: 'size', // POST-var value
 			autoSelect: true,
 			forceSelection: true,
-			typeAhead: true,
 			triggerAction: 'all',
 			listeners: {
 				beforeselect: function(combo, record){
@@ -173,7 +170,7 @@ var Images = function(){
 		}]
 	});
 	
-	var rackspace_deployment_form = new Ext.FormPanel({
+	var rackspace_deployment_form = Ext.create('Ext.form.Panel', {
 		id: 'rackspace_image_deployment_form',
 		url: '/rackspace/launch_instance',
 		frame: true,
@@ -207,7 +204,6 @@ var Images = function(){
 			tpl: '<tpl for="."><div ext:qtip="{ram}MB RAM, {disk}GB storage" class="x-combo-list-item">{name}</div></tpl>',
 			autoSelect: true,
 			forceSelection: true,
-			typeAhead: true,
 			triggerAction: 'all',
 			listeners: {
 				beforeselect: function(combo, record){
@@ -246,7 +242,7 @@ var Images = function(){
 		}]
 	});
 	
-	var deploy_configurator = new Ext.Window({
+	var deploy_configurator = Ext.create('Ext.window.Window', {
 		closeAction: 'hide',
 		layout: 'card',
 		items: [deployment_form, gogrid_deployment_form, rackspace_deployment_form],
@@ -254,56 +250,53 @@ var Images = function(){
 		modal : true
 	});
 
-	var images_menu = new Ext.menu.Menu({
+	var images_menu = Ext.create('Ext.menu.Menu', {
 		items: [{
-			text: 'Actions',
-			menu: {
-				items: [{
-					text: 'Deploy',
-					handler: function(){
-						images_menu.hide();
-						var image = images_menu.selected_image,
-							provider = image.get('provider'),
-							form_height = provider === 'Amazon' ? 128 : 152,
-							form = Ext.getCmp(provider.toLowerCase() + '_image_deployment_form');
-							
-						form.getForm().reset().setValues({
-							image_id: image.get('image_id')
-						});
-						deploy_configurator
-							.setTitle('Deploy ' + provider + ' image')
-							.setSize(320, form_height).show().center()
-							.getLayout().setActiveItem(form);
-						return false;
-					}
-				}, {
-					text: '2'
-				}, {
-					text: '3'
-				}]			
+			text: 'Deploy Image',
+			iconCls: 'buy-button',
+			handler: function(){
+				images_menu.hide();
+				var image = images_menu.selected_image,
+					provider = image.get('provider'),
+					form_height = provider === 'Amazon' ? 128 : 152,
+					form = Ext.getCmp(provider.toLowerCase() + '_image_deployment_form');
+					
+				form.getForm().reset().setValues({
+					image_id: image.get('image_id')
+				});
+				deploy_configurator.setSize(320, form_height).setTitle('Deploy ' + provider + ' image')
+				// deploy_configurator.getLayout().setActiveItem(form);
+				deploy_configurator.show().center()
+				return false;
 			}
 		}],
 		selected_image: null
 	});
 	
 	var images = function(){
-		var dt = Ext.data, record = dt.Record.create([
-			'id',
-			'image_id',
-			'name',
-			'state',
-			'description',
-			'location',
-			'provider'
-		]);
-		return new dt.GroupingStore({
-			url: '/common/available_images',
-			reader: new dt.JsonReader({
-				root: 'images',
-				successProperty: 'success',
-				idProperty: 'id'
-			}, record),
-			groupField: 'provider'
+		Ext.define('Images', {
+			extend: 'Ext.data.Model',
+			fields: [
+				{name: 'id',			type: 'int'},
+				{name: 'name',			type: 'string'},
+				{name: 'image_id',		type: 'string'},
+				{name: 'state',			type: 'string'},
+				{name: 'description',	type: 'string'},
+				{name: 'location',		type: 'string'},
+				{name: 'provider',		type: 'string'}
+			]
+		});
+		return Ext.create('Ext.data.Store', {
+			model: 'Images',
+			groupField: 'provider',
+			proxy: {
+				type: 'ajax',
+				url: '/common/available_images',
+				reader: {
+					type: 'json',
+					root: 'images'
+				}
+			}
 		});
 	}();
 	
@@ -312,31 +305,30 @@ var Images = function(){
 		title: 'Images available for deployment',
 		store: images,
 		loadMask: true,
-		view: new Ext.grid.GroupingView({
-			forceFit: true,
-			emptyText: '<p style="text-align: center">No images are available for deployment</p>',
-			groupTextTpl: '{text} ({[values.rs.length]} {[values.rs.length > 1 ? "Images" : "Image"]})'
-		}),
+		forceFit: true,
+		border: false,
+		emptyText: '<p style="text-align: center">No images are available for deployment</p>',
+		features: [Ext.create('Ext.grid.feature.Grouping', {
+			groupHeaderTpl: 'Provider: {name} ({rows.length} {[values.rows.length > 1 ? "Images" : "Image"]})'
+		})],
 		listeners: {
-			rowcontextmenu: function (grid, id, e) {
+			itemcontextmenu: function (view, record, item, index, e) {
 				e.preventDefault();
-				images_menu.selected_image = grid.getStore().getAt(id);
+				images_menu.selected_image = record;
 				images_menu.showAt(e.getXY());
 			},
 			activate: function(p){
 				var store = p.getStore();
-				if(store.lastOptions === null) store.load();
+				if(store.last() === undefined) store.load();
 			}
 		},
-		colModel: new Ext.grid.ColumnModel({
-			columns: [
-				{header: "Name", dataIndex: 'name', width: 100},
-				{header: "Provider", dataIndex: 'provider', hidden: true},
-				{header: "State", dataIndex: 'state', width: 70},
-				{header: "Description", dataIndex: 'description', width: 170},
-				{header: "Location", dataIndex: 'location', width: 120}
-			]
-		}),
+		columns: [
+			{header: "Name", dataIndex: 'name', width: 100, flex: 1},
+			{header: "Provider", dataIndex: 'provider', hidden: true},
+			{header: "State", dataIndex: 'state', width: 70, flex: 1},
+			{header: "Description", dataIndex: 'description', width: 170, flex: 1},
+			{header: "Location", dataIndex: 'location', width: 120, flex: 1}
+		],
 		bbar: {
 			xtype: 'toolbar',
 			items: ['->', {
@@ -345,7 +337,7 @@ var Images = function(){
 				cls: 'x-btn-text-icon',
 				iconCls: 'restart',
 				handler: function(){
-					images.reload();
+					images.load();
 				}
 			}]
 		}

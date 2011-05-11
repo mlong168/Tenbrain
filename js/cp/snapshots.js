@@ -162,7 +162,6 @@ var Snapshots = function(){
 			valueField: 'address', // POST-var value
 			autoSelect: true,
 			forceSelection: true,
-			typeAhead: true,
 			triggerAction: 'all'
 		}, {
 			xtype: 'combo',
@@ -184,7 +183,6 @@ var Snapshots = function(){
 			emptyText: 'Select type',
 			tpl: '<tpl for="."><div ext:qtip="{reason}" class="x-combo-list-item">{name}</div></tpl>',
 			forceSelection: true,
-			typeAhead: true,
 			triggerAction: 'all',
 			listeners: {
 				beforequery: function(q){
@@ -248,10 +246,8 @@ var Snapshots = function(){
 				{header: "Start Time", dataIndex: 'created_on', width: 100}
 			]
 		}),
-		view: new Ext.grid.GridView({
-			// forceFit: true,
-			emptyText: '<p style="text-align: center">No backups were created for this instance</p>'
-		}),
+		forceFit: true,
+		emptyText: '<p style="text-align: center">No backups were created for this instance</p>',
 		listeners: {
 			activate: function(p){
 				var store = p.getStore();
@@ -307,10 +303,8 @@ var Snapshots = function(){
 				{header: "State", dataIndex: 'state', width: 100}
 			]
 		}),
-		view: new Ext.grid.GridView({
-			// forceFit: true,
-			emptyText: '<p style="text-align: center">The server backup has been created of has either been terminated or is currently not available</p>'
-		}),
+		forceFit: true,
+		emptyText: '<p style="text-align: center">The server backup has been created of has either been terminated or is currently not available</p>',
 		listeners: {
 			activate: function(p){
 				var store = p.getStore();
@@ -437,30 +431,24 @@ var Snapshots = function(){
 		selected_record: null
 	});
 
-	var sm = new Ext.grid.CheckboxSelectionModel();
+	var sm = Ext.create('Ext.selection.CheckboxModel');
 	var snapshots = new Ext.grid.GridPanel({
 		id: 'snapshots-panel',
 		title: 'Created backups',
 		layout: 'fit',
 		store: store.common,
-		view: new Ext.grid.GridView({
-			forceFit: true,
-			emptyText: '<p style="text-align: center">You have not created any backup so far</p>'
-		}),
-		cm: new Ext.grid.ColumnModel({
-			defaultSortable: false,
-			columns: [
-				sm,
-				{header: "Name", dataIndex: 'name', width: 150, renderer: function(value, metadata, record){
-					if(record.data.status !== 'completed') metadata.css = 'grid-loader';
-					return value;
-				}},
-				{header: "Status", dataIndex: 'status', width: 60},
-				{header: "Provider", dataIndex: 'provider', width: 60},
-				{header: "Description", dataIndex: 'description', id: 'description', width: 150},
-				{header: "Start Time", dataIndex: 'created_on', width: 100}
-			]
-		}),
+		forceFit: true,
+		emptyText: '<p style="text-align: center">You have not created any backup so far</p>',
+		columns: [
+			{text: "Name", dataIndex: 'name', width: 150, renderer: function(value, metadata, record){
+				if(record.data.status !== 'completed') metadata.css = 'grid-loader';
+				return value;
+			}},
+			{text: "Status", dataIndex: 'status', width: 60},
+			{text: "Provider", dataIndex: 'provider', width: 60},
+			{text: "Description", dataIndex: 'description', id: 'description', width: 150},
+			{text: "Start Time", dataIndex: 'created_on', width: 100}
+		],
 		sm: sm,
 		listeners: {
 			rowcontextmenu: function (grid, id, e) {
