@@ -164,53 +164,55 @@ var Elastic_IPs = function(){
 		border: false,
 		modal : true
 	});
-	
-	var ip_store = function(){
-		var record = Ext.data.Record.create([
-			'id',
-			'address',
-			'instance',
-			'instance_dns'
-		]);
-		return new Ext.data.Store({
-			url: '/amazon/elastic_ips',
-			reader: new Ext.data.JsonReader({
-				root: 'elastic_ips',
-				successProperty: 'success',
-				idProperty: 'id'
-			}, record)
-		});
-	}();
 
-	var xg = Ext.grid, checkbox_sm = new xg.CheckboxSelectionModel();
-	var grid = new xg.GridPanel({
+	Ext.define('Elastic_ips', {
+		extend: 'Ext.data.Model',
+		fields: [
+			{name: 'id',			type: 'int'},
+			{name: 'address',		type: 'string'},
+			{name: 'instance',		type: 'string'},
+			{name: 'instance_dns',	type: 'string'}
+		]
+	});
+	
+	var ip_store = Ext.create('Ext.data.Store', {
+		model: 'Elastic_ips',
+		proxy: {
+			type: 'ajax',
+			url: '/amazon/elastic_ips',
+			reader: {
+				type: 'json',
+				root: 'elastic_ips'
+			}
+		}
+	});
+
+	var checkbox_sm = Ext.create('Ext.selection.CheckboxModel');
+	var grid = Ext.create('Ext.grid.Panel', {
 		id: 'elastic_ips-panel',
 		layout: 'fit',
 		title: 'Elastic IPs',
 		store: ip_store,
 		loadMask: true,
 		sm: checkbox_sm,
-		colModel: new xg.ColumnModel({
-			columns: [
-				checkbox_sm,
-				{header: "Address", dataIndex: 'address', width: 80},
-				{header: "Server", dataIndex: 'instance', width: 120, renderer: function(value){
-					return value || '<i>not associated</i>';
-				}},
-				{header: 'Test address', dataIndex: 'address', width: 80, renderer: function(value){
-					return '<a target="_blank" href="http://' + value + '/">' + value + '</a>';
-				}},
-				{header: "Link to server", dataIndex: 'instance_dns', width: 300, renderer: function(value){
-					return '<a target="_blank" href="http://' + value + '/">' + value + '</a>';
-				}}
-			]
-		}),
+		columns: [
+			{text: "Address", dataIndex: 'address', width: 80},
+			{text: "Server", dataIndex: 'instance', width: 120, renderer: function(value){
+				return value || '<i>not associated</i>';
+			}},
+			{text: 'Test address', dataIndex: 'address', width: 80, renderer: function(value){
+				return '<a target="_blank" href="http://' + value + '/">' + value + '</a>';
+			}},
+			{text: "Link to server", dataIndex: 'instance_dns', width: 300, renderer: function(value){
+				return '<a target="_blank" href="http://' + value + '/">' + value + '</a>';
+			}}
+		],
+		forceFit: true,
 		viewConfig: {
-			forceFit: true,
 			emptyText: '<p style="text-align: center">No elastic IPs have been allocated</p>'
 		},
 		listeners: {
-			rowcontextmenu: function (grid, id, e) {
+			itemcontextmenu: function (grid, id, e) {
 				var record = this.getStore().getAt(id),
 					associated = !!record.get('instance');
 				

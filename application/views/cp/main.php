@@ -13,7 +13,8 @@
 		'cp/profile',
 		'cp/transferer'
 	);
-	if($account_type === 'premium') $cp_scripts = array_merge($cp_scripts, array('cp/SuperBoxSelect', 'cp/load_balancers', 'cp/elastic_ips'));
+	// if($account_type === 'premium') $cp_scripts = array_merge($cp_scripts, array('cp/SuperBoxSelect', 'cp/load_balancers', 'cp/elastic_ips'));
+	if($account_type === 'premium') $cp_scripts = array_merge($cp_scripts, array('cp/load_balancers', 'cp/elastic_ips'));
 	
 	$cp_scripts []= 'cp/cp';
 	
