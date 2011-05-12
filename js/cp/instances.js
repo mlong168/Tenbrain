@@ -90,7 +90,7 @@ var Instances = function(){
 	// menus:
 	var instances_menu_handler = function(item){
 		var id = item.id, action = id.substr(0, id.indexOf('_')),
-			parent_menu = item.parentMenu.findParentByType('menu'),
+			parent_menu = item.up('menu').parentMenu,
 			record = parent_menu.ref_grid.getStore().getAt(parent_menu.selected_record_id),
 			instance_id = record.get('id'),
 			titles = {
@@ -354,11 +354,10 @@ var Instances = function(){
 	});
 
 	// layouts:
-	var xg = Ext.grid, sm_running = Ext.create('Ext.selection.CheckboxModel'), grids = { };
+	var sm_running = Ext.create('Ext.selection.CheckboxModel'), grids = { };
 	grids.running = Ext.create('Ext.grid.Panel', {
 		id: 'running_instances-panel',
 		title: 'Your currently running servers',
-		layout: 'fit',
 		store: store.running,
 		forceFit: true,
 		border: false,
@@ -367,26 +366,28 @@ var Instances = function(){
 		},
 		columnLines: true,
 		listeners: {
-			rowcontextmenu: function (grid, id, e) {
+			itemcontextmenu: function (view, record, item, index, e) {
 				var menu = instances_menu;
 				e.preventDefault();
-				if(menu.ref_grid === null) menu.ref_grid = grid;
-				menu.selected_record_id = id;
+				if(menu.ref_grid === null) menu.ref_grid = this;
+				menu.selected_record_id = index;
 				menu.showAt(e.getXY());
 			}
 		},
-		sm: sm_running,
+		selModel: sm_running,
 		columns: [
-			{text: "Name", dataIndex: 'name', width: 150, renderer: function(value, metadata, record){
+			{text: "Name", dataIndex: 'name', width: 100, renderer: function(value, metadata, record){
 				if(record.data.state !== 'running') metadata.css = 'grid-loader';
 				return value;
 			}},
-			{text: "Link to server root", dataIndex: 'dns_name', width: 250, renderer: Helpers.link_wrapper},
-			{text: "IP Address", dataIndex: 'ip_address', width: 120},
-			{text: "State", dataIndex: 'state', width: 100},
-			{text: "Type", dataIndex: 'type', width: 100}
+			{text: "Link to server root", dataIndex: 'dns_name', flex: 1, renderer: Helpers.link_wrapper},
+			{text: "IP Address", dataIndex: 'ip_address', width: 80},
+			{text: "State", dataIndex: 'state', width: 70},
+			{text: "Type", dataIndex: 'type', width: 70}
 		],
-		tbar: Ext.create('Ext.toolbar.Toolbar', {
+		dockedItems: [{
+			xtype: 'toolbar',
+			dock: 'top',
 			items: [{
 				xtype: 'button',
 				text: 'Reboot',
@@ -522,8 +523,8 @@ var Instances = function(){
 					})
 				}
 			}]
-		}),
-		dockedItems: [{
+			
+		}, {
 			xtype: 'toolbar',
 			dock: 'bottom',
 			items: ['->', {
@@ -617,11 +618,11 @@ var Instances = function(){
 			{text: "Root Device", dataIndex: 'root_device', width: 100}
 		],
 		listeners: {
-			rowcontextmenu: function (grid, id, e) {
+			itemcontextmenu: function (view, record, item, index, e) {
 				var menu = stopped_menu;
 				e.preventDefault();
-				if(menu.ref_grid === null) menu.ref_grid = grid;
-				menu.selected_record_id = id;
+				if(menu.ref_grid === null) menu.ref_grid = this;
+				menu.selected_record_id = index;
 				menu.showAt(e.getXY());
 			},
 			activate: Helpers.first_time_loader
@@ -689,7 +690,7 @@ var Instances = function(){
 		}
 	});
 
-	grids.terminated = new xg.GridPanel({
+	grids.terminated = Ext.create('Ext.grid.Panel', {
 		id: 'terminated_instances-panel',
 		title: 'Servers that have previously been terminated',
 		border: false,

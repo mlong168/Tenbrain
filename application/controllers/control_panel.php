@@ -16,6 +16,7 @@ class Control_panel extends CI_Controller {
 	{
 		$active_menu = $this->session->userdata('active_menu_item');
 		if(!$active_menu) $active_menu = 'running_instances';
+		// if(!$active_menu) $active_menu = 'available_images';
 		
 		if($this->authentication->is_signed_in())
 		{
@@ -41,20 +42,24 @@ class Control_panel extends CI_Controller {
 		$menu []= array(
 			'text'		=> 'Server Management',
 			'expanded'	=> !$profile_active,
+			'cls'		=> 'file',
 			'children'	=> array(
 				array(
 					'text'	=> 'Running Servers',
 					'id'	=> 'running_instances',
+					'cls'	=> 'file',
 					'leaf'	=> true
 				),
 				array(
 					'text'	=> 'Stopped Servers',
 					'id'	=> 'stopped_instances',
+					'cls'	=> 'file',
 					'leaf'	=> true
 				),
 				array(
 					'text'	=> 'Terminated Servers',
 					'id'	=> 'terminated_instances',
+					'cls'	=> 'file',
 					'leaf'	=> true
 				)
 			)
@@ -67,6 +72,7 @@ class Control_panel extends CI_Controller {
 				array(
 					'text'	=> 'Images available for deployment',
 					'id'	=> 'available_images',
+					'cls'	=> 'file',
 					'leaf'	=> true
 				)
 			)
@@ -79,6 +85,7 @@ class Control_panel extends CI_Controller {
 				array(
 					'text'	=> 'Created Backups',
 					'id'	=> 'snapshots',
+					'cls'	=> 'file',
 					'leaf'	=> true
 				)
 			)
@@ -91,6 +98,7 @@ class Control_panel extends CI_Controller {
 				array(
 					'text'	=> 'Load Balancers',
 					'id'	=> 'load_balancers',
+					'cls'	=> 'file',
 					'leaf'	=> true
 				)
 			)
@@ -103,6 +111,7 @@ class Control_panel extends CI_Controller {
 				array(
 					'text'	=> 'Elastic IPs',
 					'id'	=> 'elastic_ips',
+					'cls'	=> 'file',
 					'leaf'	=> true
 				)
 			)
@@ -115,16 +124,19 @@ class Control_panel extends CI_Controller {
 				array(
 					'text'	=> 'Profile Information',
 					'id'	=> 'account_profile',
+					'cls'	=> 'file',
 					'leaf'	=> true
 				),
 				array(
 					'text'	=> 'Account Settings',
 					'id'	=> 'account_settings',
+					'cls'	=> 'file',
 					'leaf'	=> true
 				),
 				array(
 					'text'	=> 'Linked accounts',
 					'id'	=> 'account_linked',
+					'cls'	=> 'file',
 					'leaf'	=> true
 				)
 			)
@@ -135,6 +147,7 @@ class Control_panel extends CI_Controller {
 			$profile_menu['children'] []= array(
 				'text'	=> 'Password',
 				'id'	=> 'account_password',
+				'cls'	=> 'file',
 				'leaf'	=> true
 			);
 		}

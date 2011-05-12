@@ -195,6 +195,10 @@ var Elastic_IPs = function(){
 		store: ip_store,
 		loadMask: true,
 		sm: checkbox_sm,
+		forceFit: true,
+		viewConfig: {
+			emptyText: '<p style="text-align: center">No elastic IPs have been allocated</p>'
+		},
 		columns: [
 			{text: "Address", dataIndex: 'address', width: 80},
 			{text: "Server", dataIndex: 'instance', width: 120, renderer: function(value){
@@ -207,10 +211,6 @@ var Elastic_IPs = function(){
 				return '<a target="_blank" href="http://' + value + '/">' + value + '</a>';
 			}}
 		],
-		forceFit: true,
-		viewConfig: {
-			emptyText: '<p style="text-align: center">No elastic IPs have been allocated</p>'
-		},
 		listeners: {
 			itemcontextmenu: function (grid, id, e) {
 				var record = this.getStore().getAt(id),
