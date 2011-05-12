@@ -1,14 +1,9 @@
 <?php
 	
 	$ext_scripts = array(
-		// currently used (extjs3):
-		// 'extjs/adapter/ext/ext-base',
-		// 'extjs/ext-all',
-		
-		// to be used when migrating to extjs4:
 		'extjs4/ext-all-debug',
-		'extjs4/ext3-core-compat',
-		'extjs4/ext3-compat'
+		// 'extjs4/ext3-core-compat',
+		// 'extjs4/ext3-compat'
 	);
 
 	$cp_scripts = array(

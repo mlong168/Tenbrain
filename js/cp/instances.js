@@ -41,7 +41,7 @@ var Instances = function(){
 		});
 		for(var i = states.length; i--;)
 		{
-			stores[states[i]] = new Ext.data.Store({
+			stores[states[i]] = Ext.create('Ext.data.Store', {
 				model: 'Server',
 				proxy: {
 					type: 'ajax',
@@ -115,12 +115,12 @@ var Instances = function(){
 					var stopped = parent_menu.id === 'stopped_instances_menu';
 					reload_until_stable(stopped ? 'stopped' : 'running', function(){
 						if(action === 'terminate') {
-							store.terminated.reload();
+							store.terminated.load();
 						} else if(action === 'stop') {
-							store.stopped.reload();
+							store.stopped.load();
 						} else if(action === 'start') {
 							reload_until_stable('running');
-							store.stopped.reload();
+							store.stopped.load();
 						}
 					});
 				},
@@ -362,7 +362,10 @@ var Instances = function(){
 		store: store.running,
 		forceFit: true,
 		border: false,
-		emptyText: '<p style="text-align: center">You have not launched any server so far</p>',
+		viewConfig: {
+			emptyText: '<p style="text-align: center">You have not launched any server so far</p>'
+		},
+		columnLines: true,
 		listeners: {
 			rowcontextmenu: function (grid, id, e) {
 				var menu = instances_menu;
@@ -596,7 +599,10 @@ var Instances = function(){
 		store: store.stopped,
 		forceFit: true,
 		border: false,
-		emptyText: '<p style="text-align: center">You do not currently have any stopped server</p>',
+		viewConfig: {
+			emptyText: '<p style="text-align: center">You do not currently have any stopped server</p>'
+		},
+		columnLines: true,
 		sm: sm_stopped,
 		columns: [
 			{text: "Name", dataIndex: 'name', width: 150, renderer: function(value, metadata, record){
@@ -686,7 +692,6 @@ var Instances = function(){
 	grids.terminated = new xg.GridPanel({
 		id: 'terminated_instances-panel',
 		title: 'Servers that have previously been terminated',
-		layout: 'fit',
 		border: false,
 		store: store.terminated,
 		bbar: {
@@ -702,7 +707,10 @@ var Instances = function(){
 			}]
 		},
 		forceFit: true,
-		emptyText: '<p style="text-align: center">You do not have any terminated server so far</p>',
+		viewConfig: {
+			emptyText: '<p style="text-align: center">You do not have any terminated server so far</p>'
+		},
+		columnLines: true,
 		listeners: {
 			activate: Helpers.first_time_loader
 		},
@@ -715,12 +723,6 @@ var Instances = function(){
 			{text: "Root Device", dataIndex: 'root_device', width: 100}
 		]
 	});
-	
-	// var terminated_mask = new Ext.LoadMask('terminated_instances-panel', {
-	// 	msg: 'Loading the list of terminated instances, please wait',
-	// 	removeMask: true,
-	// 	store: store.terminated
-	// });
 	
 	return {
 		get_panel: function(state){ return grids[state] },

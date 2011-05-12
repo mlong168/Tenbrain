@@ -1,11 +1,46 @@
 var Images = function(){
-	var deployment_form = Ext.create('Ext.form.Panel', {
+	
+	var image_deploy_form_submitter = function(){
+		var title = 'Server Deployment',
+			success = 'Your Selected image has been successfully deployed',
+			error = 'A problem occured while deploying your selected image';
+			
+		this.up('window').hide();
+		this.up('form').getForm().submit({
+			waitTitle: title,
+			waitMsg: 'Deploying your image',
+			success: function(form, action){
+				Ext.Msg.alert(title, success);
+				Instances.reload_until_stable('running');
+			},
+			failure: function(form, action){
+				Ext.Msg.alert(title, action.result.error_message || error);
+			}
+		});
+	};
+	
+	Ext.define('Amazon_instance_type', {
+		extend: 'Ext.data.Model',
+		fields: [
+			{name: 'name',		type: 'string'},
+			{name: 'available',	type: 'boolean'},
+			{name: 'reason',	type: 'string'}
+		]
+	});
+	
+	var amazon_deployment_form = Ext.create('Ext.form.Panel', {
 		id: 'amazon_image_deployment_form',
 		url: '/amazon/launch_instance',
 		frame: true,
 		border: false,
-		labelWidth: 125,
-		monitorValid: true,
+		height: 80,
+		minHeight: 80,
+		baseCls: 'x-plain',
+		pollForChanges: true,
+		fieldDefaults: {
+			labelWidth: 100,
+			anchor: '100%'
+		},
 		
 		items: [{
 			xtype: 'textfield',
@@ -15,27 +50,30 @@ var Images = function(){
 			vtype: 'alphanum'
 		}, {
 			xtype: 'combo',
-			width: 150,
 			fieldLabel: 'Server Type',
 			allowBlank: false,
 			editable: false,
-			store: new Ext.data.JsonStore({
-				url: '/amazon/get_available_instance_types',
-				successProperty: 'success',
-				root: 'types',
-				fields: ['name', 'available', 'reason']
+			store: Ext.create('Ext.data.Store', {
+				model: 'Amazon_instance_type',
+				proxy: {
+					type: 'ajax',
+					url: '/amazon/get_available_instance_types',
+					reader: {
+						type: 'json',
+						root: 'types'
+					}
+				}
 			}),
-			mode: 'remote',
+			queryMode: 'remote',
 			name: 'instance_type',
 			displayField: 'name',
-			hiddenName: 'instance_type', // POST-var name
 			valueField: 'name', // POST-var value
 			emptyText: 'Select type',
 			tpl: '<tpl for="."><div ext:qtip="{reason}" class="x-combo-list-item">{name}</div></tpl>',
 			forceSelection: true,
 			triggerAction: 'all',
 			listeners: {
-				beforeselect: function(combo, record){
+				select: function(combo, record){
 					return record.data.available; // false if not selectable
 				}
 			}
@@ -47,26 +85,11 @@ var Images = function(){
 		buttons: [{
 			text: 'Proceed',
 			formBind: true,
-			handler: function(){
-				var title = 'Server Deployment',
-					success = 'Your Selected image has been successfully deployed',
-					error = 'A problem occured while deploying your selected image';
-				deploy_configurator.hide();
-				Ext.Msg.wait('Deploying your image', title);
-				deployment_form.getForm().submit({
-					success: function(form, action){
-						Ext.Msg.alert(title, success);
-						Instances.reload_until_stable('running');
-					},
-					failure: function(form, action){
-						Ext.Msg.alert(title, action.result.error_message || error);
-					}
-				});
-			}
+			handler: image_deploy_form_submitter
 		},{
 			text: 'Cancel',
 			handler: function(){
-				deploy_configurator.hide();
+				this.up('window').hide();
 			}
 		}]
 	});
@@ -79,56 +102,92 @@ var Images = function(){
 		IPAddressMask: /[\d\.]/i
 	});
 	
+	Ext.create('Ext.window.Window', {
+		title: 'Deploy Amazon Image',
+		layout: 'fit',
+		width: 300,
+		minWidth: 200,
+		closeAction: 'hide',
+		plain: 'true',
+		modal : true,
+		bodyStyle: 'padding:5px;',
+		items: amazon_deployment_form
+	});
+	
+	Ext.define('Gogrid_ip_address', {
+		extend: 'Ext.data.Model',
+		fields: [{name: 'address', type: 'string'}]
+	});
+	
+	Ext.define('Gogrid_ram_size', {
+		extend: 'Ext.data.Model',
+		fields: [
+			{name: 'size',			type: 'string'},
+			// {name: 'available',	type: 'boolean'},
+			{name: 'description',	type: 'string'}
+		]
+	});
+	
 	var gogrid_deployment_form = Ext.create('Ext.form.Panel', {
 		id: 'gogrid_image_deployment_form',
 		url: '/gogrid/launch_instance',
 		frame: true,
 		border: false,
-		labelWidth: 125,
-		monitorValid: true,
+		height: 110,
+		minHeight: 110,
+		baseCls: 'x-plain',
+		pollForChanges: true,
+		fieldDefaults: {
+			labelWidth: 100,
+			anchor: '100%'
+		},
 		
 		items: [{
 			xtype: 'textfield',
-			width: 150,
 			fieldLabel: 'Server Name',
 			name: 'name',
-			allowBlank: false,
-			maxLength: 20
+			allowBlank: false
 		}, {
 			xtype: 'combo',
-			width: 150,
 			fieldLabel: 'IP address',
+			name: 'address',
 			allowBlank: false,
 			vtype: 'IPAddress',
-			store: new Ext.data.JsonStore({
-				url: '/gogrid/get_free_addresses',
-				successProperty: 'success',
-				root: 'addresses',
-				fields: ['address']
+			store: Ext.create('Ext.data.Store', {
+				model: 'Gogrid_ip_address',
+				proxy: {
+					type: 'ajax',
+					url: '/gogrid/get_free_addresses',
+					reader: {
+						type: 'json',
+						root: 'addresses'
+					}
+				}
 			}),
-			mode: 'remote',
-			name: 'address',
+			queryMode: 'remote',
 			displayField: 'address',
-			hiddenName: 'address', // POST-var name
 			valueField: 'address', // POST-var value
 			autoSelect: true,
 			forceSelection: true,
 			triggerAction: 'all'
 		}, {
 			xtype: 'combo',
-			width: 150,
 			fieldLabel: 'RAM size',
-			allowBlank: false,
-			store: new Ext.data.JsonStore({
-				url: '/gogrid/get_available_ram_sizes',
-				successProperty: 'success',
-				root: 'sizes',
-				fields: ['size']
-			}),
-			mode: 'remote',
 			name: 'ram',
+			allowBlank: false,
+			store: Ext.create('Ext.data.Store', {
+				model: 'Gogrid_ram_size',
+				proxy: {
+					type: 'ajax',
+					url: '/gogrid/get_available_ram_sizes',
+					reader: {
+						type: 'json',
+						root: 'sizes'
+					}
+				}
+			}),
+			queryMode: 'remote',
 			displayField: 'size',
-			hiddenName: 'ram', // POST-var name
 			valueField: 'size', // POST-var value
 			autoSelect: true,
 			forceSelection: true,
@@ -146,28 +205,35 @@ var Images = function(){
 		buttons: [{
 			text: 'Proceed',
 			formBind: true,
-			handler: function(){
-				var title = 'Server Deployment',
-					success = 'Your Selected image has been successfully deployed',
-					error = 'A problem occured while deploying your selected image';
-				deploy_configurator.hide();
-				Ext.Msg.wait('Deploying your image', title);
-				gogrid_deployment_form.getForm().submit({
-					success: function(form, action){
-						Ext.Msg.alert(title, success);
-						Instances.reload_until_stable('running');
-					},
-					failure: function(form, action){
-						Ext.Msg.alert(title, action.result.error_message || error);
-					}
-				});
-			}
+			handler: image_deploy_form_submitter
 		},{
 			text: 'Cancel',
 			handler: function(){
-				deploy_configurator.hide();
+				this.up('window').hide();
 			}
 		}]
+	});
+	
+	Ext.create('Ext.window.Window', {
+		title: 'Deploy GoGrid Image',
+		layout: 'fit',
+		width: 450,
+		minWidth: 400,
+		closeAction: 'hide',
+		plain: 'true',
+		modal : true,
+		bodyStyle: 'padding:5px;',
+		items: gogrid_deployment_form
+	});
+	
+	Ext.define('Rackspace_flavor', {
+		extend: 'Ext.data.Model',
+		fields: [
+			{name: 'id',	type: 'string'},
+			{name: 'name',	type: 'string'},
+			{name: 'disc',	type: 'string'},
+			{name: 'ram',	type: 'string'}
+		]
 	});
 	
 	var rackspace_deployment_form = Ext.create('Ext.form.Panel', {
@@ -175,31 +241,38 @@ var Images = function(){
 		url: '/rackspace/launch_instance',
 		frame: true,
 		border: false,
-		labelWidth: 125,
-		monitorValid: true,
-		
+		height: 80,
+		minHeight: 80,
+		baseCls: 'x-plain',
+		pollForChanges: true,
+		fieldDefaults: {
+			labelWidth: 100,
+			anchor: '100%'
+		},		
 		items: [{
 			xtype: 'textfield',
-			width: 150,
-			fieldLabel: 'Instance Name',
+			fieldLabel: 'Server Name',
 			name: 'name',
 			allowBlank: false,
 			maxLength: 20
 		}, {
 			xtype: 'combo',
-			width: 150,
 			fieldLabel: 'Flavor',
 			allowBlank: false,
-			store: new Ext.data.JsonStore({
-				url: '/rackspace/get_flavors',
-				successProperty: 'success',
-				root: 'flavors',
-				fields: ['id', 'name', 'disk', 'ram']
+			store: Ext.create('Ext.data.Store', {
+				model: 'Rackspace_flavor',
+				proxy: {
+					type: 'ajax',
+					url: '/rackspace/get_flavors',
+					reader: {
+						type: 'json',
+						root: 'flavors'
+					}
+				}
 			}),
-			mode: 'remote',
-			name: 'flavor',
+			queryMode: 'remote',
+			name: 'flavor_id',
 			displayField: 'name',
-			hiddenName: 'flavor_id', // POST-var name
 			valueField: 'id', // POST-var value
 			tpl: '<tpl for="."><div ext:qtip="{ram}MB RAM, {disk}GB storage" class="x-combo-list-item">{name}</div></tpl>',
 			autoSelect: true,
@@ -218,36 +291,25 @@ var Images = function(){
 		buttons: [{
 			text: 'Proceed',
 			formBind: true,
-			handler: function(){
-				var title = 'Server Deployment',
-					success = 'Your Selected image has been successfully deployed',
-					error = 'A problem occured while deploying your selected image';
-				deploy_configurator.hide();
-				Ext.Msg.wait('Deploying your image', title);
-				rackspace_deployment_form.getForm().submit({
-					success: function(form, action){
-						Ext.Msg.alert(title, success);
-						Instances.reload_until_stable('running');
-					},
-					failure: function(form, action){
-						Ext.Msg.alert(title, action.result.error_message || error);
-					}
-				});
-			}
+			handler: image_deploy_form_submitter
 		},{
 			text: 'Cancel',
 			handler: function(){
-				deploy_configurator.hide();
+				this.up('window').hide();
 			}
 		}]
 	});
 	
-	var deploy_configurator = Ext.create('Ext.window.Window', {
+	Ext.create('Ext.window.Window', {
+		title: 'Deploy Rackspace Image',
+		layout: 'fit',
+		width: 450,
+		minWidth: 400,
 		closeAction: 'hide',
-		layout: 'card',
-		items: [deployment_form, gogrid_deployment_form, rackspace_deployment_form],
-		border: false,
-		modal : true
+		plain: 'true',
+		modal : true,
+		bodyStyle: 'padding:5px;',
+		items: rackspace_deployment_form
 	});
 
 	var images_menu = Ext.create('Ext.menu.Menu', {
@@ -260,45 +322,42 @@ var Images = function(){
 					provider = image.get('provider'),
 					form_height = provider === 'Amazon' ? 128 : 152,
 					form = Ext.getCmp(provider.toLowerCase() + '_image_deployment_form');
-					
+
 				form.getForm().reset().setValues({
 					image_id: image.get('image_id')
 				});
-				deploy_configurator.setSize(320, form_height).setTitle('Deploy ' + provider + ' image')
-				// deploy_configurator.getLayout().setActiveItem(form);
-				deploy_configurator.show().center()
+				
+				form.up('window').show().center();
 				return false;
 			}
 		}],
 		selected_image: null
 	});
 	
-	var images = function(){
-		Ext.define('Images', {
-			extend: 'Ext.data.Model',
-			fields: [
-				{name: 'id',			type: 'int'},
-				{name: 'name',			type: 'string'},
-				{name: 'image_id',		type: 'string'},
-				{name: 'state',			type: 'string'},
-				{name: 'description',	type: 'string'},
-				{name: 'location',		type: 'string'},
-				{name: 'provider',		type: 'string'}
-			]
-		});
-		return Ext.create('Ext.data.Store', {
-			model: 'Images',
-			groupField: 'provider',
-			proxy: {
-				type: 'ajax',
-				url: '/common/available_images',
-				reader: {
-					type: 'json',
-					root: 'images'
-				}
+	Ext.define('Images', {
+		extend: 'Ext.data.Model',
+		fields: [
+			{name: 'id',			type: 'int'},
+			{name: 'name',			type: 'string'},
+			{name: 'image_id',		type: 'string'},
+			{name: 'state',			type: 'string'},
+			{name: 'description',	type: 'string'},
+			{name: 'location',		type: 'string'},
+			{name: 'provider',		type: 'string'}
+		]
+	});
+	var images = Ext.create('Ext.data.Store', {
+		model: 'Images',
+		groupField: 'provider',
+		proxy: {
+			type: 'ajax',
+			url: '/common/available_images',
+			reader: {
+				type: 'json',
+				root: 'images'
 			}
-		});
-	}();
+		}
+	});
 	
 	var images_grid = new Ext.grid.GridPanel({
 		id: 'available_images-panel',

@@ -1,12 +1,28 @@
 var Load_balancers = function(){
 	
-	var registered_instances_store = new Ext.data.JsonStore({
-		url: 'common/get_load_balanced_instances',
-		root: 'instances',
-		fields: [{name: 'id', type: 'int'}, {name: 'name', type: 'string'},
-				{name: 'ip_address', type: 'string'}, {name: 'healthy', type: 'string'}, {name: 'health_message', type: 'string'}],
-		baseParams: {
-			lb_id: 0
+	Ext.define('Load_balanced_instances', {
+		extend: 'Ext.data.Model',
+		fields: [
+			{name: 'id',			type: 'int'},
+			{name: 'name',			type: 'string'},
+			{name: 'ip_address',	type: 'string'},
+			{name: 'healthy',		type: 'boolean'},
+			{name: 'health_message',type: 'string'}
+		]
+	});
+	
+	var registered_instances_store = Ext.create('Ext.data.Store', {
+		model: 'Load_balanced_instances',
+		proxy: {
+			type: 'ajax',
+			url: 'common/get_load_balanced_instances',
+			reader: {
+				type: 'json',
+				root: 'instances'
+			},
+			extraParams: {
+				lb_id: 0
+			}
 		}
 	});
 	
@@ -17,41 +33,36 @@ var Load_balancers = function(){
 		
 		lb_menu.hide();
 		registered_instances_window.show().center().setTitle('Servers registered within the load balancer "' + name + '"');
-		registered_instances_store.baseParams.lb_id = id;
-		registered_instances_store.reload();
+		registered_instances_store.getProxy().baseParams.lb_id = id;
+		registered_instances_store.load();
 	};
 	
-	var xg = Ext.grid, checkbox_sm = new xg.CheckboxSelectionModel()
-	var registered_instances_grid = new xg.GridPanel({
+	var checkbox_sm = Ext.create('Ext.selection.CheckboxModel');
+	var registered_instances_grid = Ext.create('Ext.grid.Panel', {
 		id: 'lb_registered_instances',
 		layout: 'fit',
 		loadMask: true,
 		store: registered_instances_store,
 		sm: checkbox_sm,
-		view: new xg.GridView({
-			forceFit: true,
-			emptyText: '<p style="text-align: center">No servers have been registered with this load balancer</p>'
-		}),
+		forceFit: true,
+		emptyText: '<p style="text-align: center">No servers have been registered with this load balancer</p>',
 		listeners: {
 			activate: function(p){
 				var store = p.getStore();
 				if(store.lastOptions === null) store.load();
 			}
 		},
-		cm: new xg.ColumnModel({
-			defaultSortable: false,
-			columns: [
-				checkbox_sm,
-				{header: "Name", dataIndex: 'name', width: 150},
-				{header: "Healthy?", dataIndex: 'healthy', width: 100, renderer: function(value, metadata, record){
-					var healthy = value.toString() !== 'false',
-						tpl = new Ext.XTemplate('<tpl for=".">sick <span ext:qtip="{health_message}" style="color:blue; text-decoration:underline">(why?)</span></tpl>');
-					record.data.healthy = healthy;
-					return healthy ? 'healthy' : tpl.applyTemplate(record.data);
-				}},
-				{header: "IP Address", dataIndex: 'ip_address', width: 120}
-			]
-		}),
+		columns: [
+			{text: "Name", dataIndex: 'name', width: 150},
+			{text: "Healthy?", dataIndex: 'healthy', width: 100, renderer: function(value, metadata, record){
+				console.log(healthy)
+				var healthy = value.toString() !== 'false',
+					tpl = new Ext.XTemplate('<tpl for=".">sick <span ext:qtip="{health_message}" style="color:blue; text-decoration:underline">(why?)</span></tpl>');
+				record.data.healthy = healthy;
+				return healthy ? 'healthy' : tpl.applyTemplate(record.data);
+			}},
+			{text: "IP Address", dataIndex: 'ip_address', width: 120}
+		],
 		tbar: {
 			xtype: 'toolbar',
 			items: [{
@@ -129,39 +140,55 @@ var Load_balancers = function(){
 		modal : true
 	});
 	
-	var instances_to_register_store = new Ext.data.JsonStore({
-		url: 'common/instances_for_load_balancing',
-		root: 'instances',
-		fields: [{name: 'id', type: 'int'}, {name: 'name', type: 'string'}, {name: 'address', type: 'string'}],
-		baseParams: {
-			provider: 'Amazon'
+	Ext.define('Servers_to_register', {
+		extend: 'Ext.data.Model',
+		fields: [
+			{name: 'id', type: 'int'},
+			{name: 'name', type: 'string'},
+			{name: 'address', type: 'string'}
+		]
+	});
+	
+	var instances_to_register_store = Ext.create('Ext.data.Store', {
+		model: 'Servers_to_register',
+		proxy: {
+			type: 'ajax',
+			url: 'common/instances_for_load_balancing',
+			reader: {
+				type: 'json',
+				root: 'backups'
+			},
+			extraParams: {
+				provider: 'Amazon'
+			}
 		}
 	});
-
-	var deploy_form = new Ext.FormPanel({
+	
+		
+	var deploy_form = Ext.create('Ext.form.Panel', {
 		id: 'lb_deploy_form',
 		url: '/common/create_load_balancer',
-		labelWidth: 60,
+		frame: true,
+		border: false,
+		height: 110,
+		minHeight: 110,
+		pollForChanges: true,
 		baseCls: 'x-plain',
-		monitorValid: true,
-		autoHeight: true,
-		buttonAlign: 'center',
 		defaults: {
-			xtype: 'textfield'
+			xtype: 'combo',
+			anchor: '100%',
+			labelWidth: 60,
+			allowBlank: false
 		},
 		items: [{
+			xtype: 'textfield',
 			fieldLabel: 'Name',
-			anchor: '100%',
 			name: 'name',
 			vtype: 'alphanum',
-			emptyText: 'Type a load balancer name here',
-			allowBlank: false
+			emptyText: 'Type a load balancer name here'
 		}, {
-			xtype: 'combo',
 			fieldLabel: 'Provider',
-			anchor: '100%',
 			name: 'provider',
-			allowBlank: false,
 			store: new Ext.data.ArrayStore({
 				fields: ['name'],
 				data: [['Amazon'], ['GoGrid'], ['Rackspace']]
@@ -187,37 +214,36 @@ var Load_balancers = function(){
 			}
 		},  {
 			id: 'gogrid_lb_address',
-			xtype: 'combo',
-			anchor: '100%',
 			disabled: true,
 			hidden: true,
 			fieldLabel: 'IP address',
-			allowBlank: false,
 			vtype: 'IPAddress',
-			store: new Ext.data.JsonStore({
-				url: '/gogrid/get_free_addresses',
-				successProperty: 'success',
-				root: 'addresses',
-				fields: ['address']
+			store: Ext.create('Ext.data.Store', {
+				model: 'Gogrid_ip_address',
+				proxy: {
+					type: 'ajax',
+					url: '/gogrid/get_free_addresses',
+					reader: {
+						type: 'json',
+						root: 'addresses'
+					}
+				}
 			}),
-			mode: 'remote',
+			queryMode: 'remote',
 			name: 'address',
 			displayField: 'address',
-			hiddenName: 'address', // POST-var name
 			valueField: 'address', // POST-var value
 			autoSelect: true,
 			forceSelection: true,
 			triggerAction: 'all',
 		}, {
 			id: 'instance_to_register_within_lb',
-			xtype: 'superboxselect',
+			// xtype: 'superboxselect',
 			disabled: true,
 			editable: false,
-			allowBlank: false,
 			msgTarget: 'under',
 			allowAddNewData: false,
 			fieldLabel: 'Servers',
-			anchor: '100%',
 			blankText: 'Please select one or more servers',
 			emptyText: 'Select one or more servers',
 			listEmptyText: 'No servers are available to be registered',
@@ -240,9 +266,10 @@ var Load_balancers = function(){
 					success = 'Load balancer was created successfully',
 					error = 'A problem has occured while creating a load balancer';
 				
-				deploy_window.hide();
-				Ext.Msg.wait('Your load balancer is being created', title);
-				deploy_form.getForm().submit({
+				this.up('window').hide();
+				this.up('form').getForm().submit({
+					waitTitle: title,
+					waitMsg: 'Your load balancer is being created',
 					success: function(form, action){
 						var s = action.result.success;
 						Ext.Msg.alert(title, s ? success : action.result.error_message || error);
@@ -256,12 +283,12 @@ var Load_balancers = function(){
 		}, {
 			text: 'Cancel',
 			handler: function(){
-				deploy_window.hide();
+				this.up('window').hide();
 			}
 		}]
 	});
 
-	var deploy_window = new Ext.Window({
+	Ext.create('Ext.window.Window', {
 		title: 'Create load balancer',
 		layout: 'fit',
 		closeAction: 'hide',
@@ -274,27 +301,31 @@ var Load_balancers = function(){
 		modal : true
 	});
 	
-	var instances_to_register_within_lb_store = new Ext.data.JsonStore({
-		url: 'common/instances_for_registering_within_lb',
-		root: 'instances',
-		fields: [{name: 'id', type: 'int'}, {name: 'name', type: 'string'}, {name: 'address', type: 'string'}],
-		baseParams: {
-			lb_id: 0
+	var instances_to_register_within_lb_store = Ext.create('Ext.data.Store', {
+		model: 'Servers_to_register',
+		proxy: {
+			type: 'ajax',
+			url: 'common/instances_for_registering_within_lb',
+			reader: {
+				type: 'json',
+				root: 'instances'
+			},
+			extraParams: {
+				lb_id: 0
+			}
 		}
 	});
 
-	var register_form = new Ext.FormPanel({
+	var register_form = Ext.create('Ext.form.Panel', {
 		url: '/common/register_instances_within_load_balancer',
 		labelWidth: 50,
 		baseCls: 'x-plain',
-		monitorValid: true,
-		autoHeight: true,
-		buttonAlign: 'center',
 		items: [{
 			xtype: 'hidden',
 			name: 'lb_id'
 		}, {
-			xtype: 'superboxselect',
+			// xtype: 'superboxselect',
+			xtype: 'combo',
 			editable: false,
 			allowBlank: false,
 			msgTarget: 'under',
@@ -323,9 +354,10 @@ var Load_balancers = function(){
 					success = 'Selected servers have been registered successfully',
 					error = 'A problem has occured while registering your servers';
 				
-				register_window.hide();
-				Ext.Msg.wait('Servers are registering', title);
-				register_form.getForm().submit({
+				this.up('window').hide();
+				this.up('form').getForm().submit({
+					waitTitle: title,
+					waitMsg:'Servers are registering', 
 					success: function(form, action){
 						var s = action.result.success;
 						Ext.Msg.alert(title, s ? success : action.result.error_message || error);
@@ -338,12 +370,12 @@ var Load_balancers = function(){
 		}, {
 			text: 'Cancel',
 			handler: function(){
-				register_window.hide();
+				this.up('window').hide();
 			}
 		}]
 	});
 
-	var register_window = new Ext.Window({
+	var register_window = Ext.create('Ext.window.Window', {
 		title: 'Register instances within load balancer',
 		layout: 'fit',
 		closeAction: 'hide',
@@ -426,23 +458,28 @@ var Load_balancers = function(){
 		selected_record: null
 	});
 	
-	var store = function(){
-		var record = Ext.data.Record.create([
-			'id',
-			'name',
-			'provider',
-			'dns_name',
-			'state'
-		]);
-		return new Ext.data.Store({
+	Ext.define('Load_balancer', {
+		extend: 'Ext.data.Model',
+		fields: [
+			{name: 'id',		type: 'int'},
+			{name: 'name',		type: 'string'},
+			{name: 'provider',	type: 'string'},
+			{name: 'dns_name',	type: 'boolean'},
+			{name: 'state',		type: 'string'}
+		]
+	});
+	
+	var store = Ext.create('Ext.data.Store', {
+		model: 'Load_balancer',
+		proxy: {
+			type: 'ajax',
 			url: '/common/list_load_balancers',
-			reader: new Ext.data.JsonReader({
-				root: 'load_balancers',
-				successProperty: 'success',
-				idProperty: 'id'
-			}, record)
-		});
-	}();
+			reader: {
+				type: 'json',
+				root: 'load_balancers'
+			}
+		}
+	});
 	
 	var reload_until_stable = function(){
 		var init_timeout = 10000, interval = init_timeout, minimum_interval = 5000, step = 1000;
@@ -454,7 +491,7 @@ var Load_balancers = function(){
 				interval = init_timeout;
 			}
 			
-			store.reload({
+			store.load({
 				callback: function(r){
 					for(var i = r.length; i--;)
 					{
@@ -475,17 +512,30 @@ var Load_balancers = function(){
 		};
 	}();
 
-	var grid = new xg.GridPanel({
+	var grid = Ext.create('Ext.grid.Panel', {
 		id: 'load_balancers-panel',
-		layout: 'fit',
 		title: 'Load Balancers',
 		store: store,
+		forceFit: true,
+		scroll: 'vertical',
+		border: false,
 		viewConfig: {
-			forceFit: true,
 			emptyText: '<p style="text-align: center">No load balancers have been created</p>'
 		},
+		columnLines: true,
+		columns: [
+			{text: "Name", dataIndex: 'name', width: 130, renderer: function(value, metadata, record){
+				if(record.data.state !== 'On') metadata.css = 'grid-loader';
+				return value;
+			}},
+			{text: "Provider", dataIndex: 'provider', width: 100},
+			{text: "State", dataIndex: 'state', width: 60},
+			{text: "DNS Name", dataIndex: 'dns_name', width: 130, renderer: function(value){
+				return '<a target="_blank" href="http://' + value + '/">' + value + '</a>';
+			}}
+		],
 		listeners: {
-			rowcontextmenu: function (grid, id, e) {
+			itemcontextmenu: function (grid, id, e) {
 				e.preventDefault();
 				lb_menu.ref_grid = this;
 				lb_menu.selected_record = this.getStore().getAt(id);
@@ -496,39 +546,22 @@ var Load_balancers = function(){
 		tbar: {
 			xtype: 'toolbar',
 			items: [{
-				xtype: 'button',
 				text: 'Deploy a load balancer',
-				cls: 'x-btn-text-icon',
 				iconCls: 'start',
 				handler: function(){
 					var form = deploy_form.getForm().reset();					
 					form.findField('gogrid_lb_address').disable().hide();
 					form.findField('instance_to_register_within_lb').disable();
-					deploy_window.show().center();
+					deploy_form.up('window').show().center();
 				}
 			}, '->', {
-				xtype: 'button',
 				text: 'Refresh List',
-				cls: 'x-btn-text-icon',
 				iconCls: 'restart',
 				handler: function(){
-					store.reload();
+					store.load();
 				}
 			}]
-		},
-		colModel: new xg.ColumnModel({
-			columns: [
-				{header: "Name", dataIndex: 'name', width: 130, renderer: function(value, metadata, record){
-					if(record.data.state !== 'On') metadata.css = 'grid-loader';
-					return value;
-				}},
-				{header: "Provider", dataIndex: 'provider', width: 100},
-				{header: "State", dataIndex: 'state', width: 60},
-				{header: "DNS Name", dataIndex: 'dns_name', width: 130, renderer: function(value){
-					return '<a target="_blank" href="http://' + value + '/">' + value + '</a>';
-				}}
-			]
-		})
+		}
 	});
 	
 	return {

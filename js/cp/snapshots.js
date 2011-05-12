@@ -1,28 +1,42 @@
 var Snapshots = function(){
-	var store = function(){
-		var record = Ext.data.Record.create([
-			'id',
-			'name',
-			'description',
-			'provider',
-			'created_on',
-			'status'
-		]);
-		return {
-			common: new Ext.data.Store({
+	
+	Ext.define('Backups', {
+		extend: 'Ext.data.Model',
+		fields: [
+			{name: 'id',			type: 'int'},
+			{name: 'name',			type: 'string'},
+			{name: 'description',	type: 'string'},
+			{name: 'provider',		type: 'string'},
+			{name: 'status',		type: 'string'},
+			{name: 'created_on',	type: 'string'}
+		]
+	});
+	
+	var store = {
+		common: Ext.create('Ext.data.Store', {
+			model: 'Backups',
+			proxy: {
+				type: 'ajax',
 				url: '/common/list_backups',
-				reader: new Ext.data.JsonReader({
+				reader: {
+					type: 'json',
 					root: 'backups'
-				}, record)
-			}),
-			specific: new Ext.data.Store({
+				}
+			}
+		}),
+		specific: Ext.create('Ext.data.Store', {
+			model: 'Backups',
+			proxy: {
+				type: 'ajax',
 				url: '/common/view_backups',
-				reader: new Ext.data.JsonReader({
+				reader: {
+					type: 'json',
 					root: 'backups'
-				}, record)
-			})
-		};
-	}();
+				}
+			}
+		})
+	};
+	
 	var reload_until_stable = function(){
 		var starter = 8000, interval = starter, minimum_interval = 2000, jump = 2000, stable_state = 'completed';
 		return function(state, step){
@@ -35,7 +49,7 @@ var Snapshots = function(){
 				interval = starter;
 			}
 			
-			store.common.reload({
+			store.common.load({
 				callback: function(r){
 					for(var i = r.length; i--;)
 					{
@@ -59,29 +73,31 @@ var Snapshots = function(){
 		};
 	}();	
 
-	var creator = new Ext.FormPanel({
-		labelWidth: 70,
+	var creator = Ext.create('Ext.form.Panel', {
+		url: '/common/create_backup',		
 		frame: true,
 		border: false,
-		url: '/common/create_backup',		
-		monitorValid: true,
+		height: 80,
+		minHeight: 80,
+		baseCls: 'x-plain',
+		pollForChanges: true,
+		fieldDefaults: {
+			xtype: 'textfield',
+			labelWidth: 70,
+			anchor: '100%',
+			allowBlank: false,
+			vtype: 'alphanum'
+		},
 		items: [{
 			xtype: 'hidden',
 			name: 'instance_id'	
 		}, {
-			xtype: 'textfield',
-			width: 150,
 			fieldLabel: 'Name',
-			name: 'name',
-			allowBlank: false,
-			vtype: 'alphanum'
+			name: 'name'
 		}, {
 			xtype: 'textfield',
-			width: 250,
 			fieldLabel: 'Description',
-			name: 'description',
-			allowBlank: false,
-			vtype: 'alphanum'
+			name: 'description'
 		}],
 
 		buttons: [{
@@ -91,9 +107,11 @@ var Snapshots = function(){
 				var title = 'Create Backup',
 					success = 'Backup has been created successfully',
 					error = 'A problem occured while creating your backup';
-				create_dialogue.hide();
-				Ext.Msg.wait('Backup is being created', title);
-				creator.getForm().submit({
+					
+				this.up('window').hide();
+				this.up('form').getForm().submit({
+					waitTitle: title,
+					waitMsg: 'Backup is being created',
 					success: function(form, action){
 						var s = action.result.success
 						Ext.Msg.alert(title, s ? success : error);
@@ -107,78 +125,88 @@ var Snapshots = function(){
 		}, {
 			text: 'Cancel',
 			handler: function(){
-				create_dialogue.hide();
+				this.up('window').hide();
 			}
 		}]
 	});
 	
-	var create_dialogue = new Ext.Window({
+	Ext.create('Ext.window.Window', {
 		title: 'Create backup for the instance',
-		height: 128,
+		layout: 'fit',
 		width: 350,
+		minWidth: 200,
 		closeAction: 'hide',
-		items: creator,
-		border: false,
-		modal : true
+		plain: 'true',
+		modal : true,
+		bodyStyle: 'padding:5px;',
+		items: creator
 	});
 	
-	var redeployment_form = new Ext.form.FormPanel({
-		labelWidth: 100,
+	var redeployment_form = Ext.create('Ext.form.Panel', {
 		url: '/common/restore_backup_to_new_instance',
 		baseCls: 'x-plain',
-		autoHeight: true,
-		buttonAlign: 'center',
-		defaults: {
-			xtype: 'textfield'
+		frame: true,
+		border: false,
+		height: 80,
+		minHeight: 80,
+		pollForChanges: true,
+		fieldDefaults: {
+			xtype: 'textfield',
+			labelWidth: 70,
+			anchor: '100%',
+			allowBlank: false,
+			vtype: 'alphanum'
 		},
-		monitorValid: true,
 
 		items: [{
 			xtype: 'hidden',
 			name: 'backup_id'
 		}, {
-			anchor: '100%',
 			fieldLabel: 'Name',
 			name: 'name',
-			allowBlank: false,
-			vtype: 'alphanum'
 		}, {
 			xtype: 'combo',
-			anchor: '100%',
 			disabled: true,
 			hidden: true,
 			fieldLabel: 'IP address',
-			allowBlank: false,
 			vtype: 'IPAddress',
-			store: new Ext.data.JsonStore({
-				url: '/gogrid/get_free_addresses',
-				root: 'addresses',
-				fields: ['address']
+			store: Ext.create('Ext.data.Store', {
+				model: 'Gogrid_ip_address',
+				proxy: {
+					type: 'ajax',
+					url: '/gogrid/get_free_addresses',
+					reader: {
+						type: 'json',
+						root: 'addresses'
+					}
+				}
 			}),
-			mode: 'remote',
-			name: 'address',
+			queryMode: 'remote',
+			name: 'ip_address',
 			displayField: 'address',
-			hiddenName: 'ip_address', // POST-var name
 			valueField: 'address', // POST-var value
 			autoSelect: true,
 			forceSelection: true,
 			triggerAction: 'all'
 		}, {
 			xtype: 'combo',
-			anchor: '100%',
 			fieldLabel: 'Server Type',
-			allowBlank: false,
 			editable: false,
 			store: new Ext.data.JsonStore({
-				url: '/common/get_available_server_types',
-				root: 'types',
-				fields: ['value', 'name', 'available', 'reason'],
-				baseParams: {provider: ''}
+				model: 'Server_types',
+				proxy: {
+					type: 'ajax',
+					url: '/common/get_available_server_types',
+					reader: {
+						type: 'json',
+						root: 'types'
+					},
+					extraParams: {provider: ''}
+				}
 			}),
-			mode: 'remote',
+			queryMode: 'remote',
 			name: 'server_type',
 			displayField: 'name',
-			hiddenName: 'server_type', // POST-var name
 			valueField: 'value', // POST-var value
 			emptyText: 'Select type',
 			tpl: '<tpl for="."><div ext:qtip="{reason}" class="x-combo-list-item">{name}</div></tpl>',
@@ -201,9 +229,11 @@ var Snapshots = function(){
 				var title = 'Create new server from backup',
 					success = 'A new server has been successfully created from backup',
 					error = 'A problem has occurred while creating new server from backup';
-				redeployment_dialogue.hide();
-				Ext.Msg.wait('Creating the server', title);
-				redeployment_form.getForm().submit({
+				
+				this.up('window').hide();
+				this.up('form').getForm().submit({
+					waitTitle: title,
+					waitMsg: 'Creating the server',
 					success: function(form, action){
 						Ext.Msg.alert(title, action.result.success ? success : response.error_message || error);
 						Instances.reload_until_stable('running');
@@ -216,19 +246,19 @@ var Snapshots = function(){
 		}, {
 			text: 'Cancel',
 			handler: function(){
-				redeployment_dialogue.hide();
+				this.up('window').hide();
 			}
 		}]
 	});
 	
-	var redeployment_dialogue = new Ext.Window({
+	Ext.create('Ext.window.Window', {
 		title: 'Create a new server from backup',
+		layout: 'fit',
 		width: 350,
+		minWidth: 300,
 		closeAction: 'hide',
 		items: redeployment_form,
 		modal : true,
-		layout: 'fit',
-		minWidth: 300,
 		plain: 'true',
 		bodyStyle: 'padding:5px;'
 	});
@@ -237,30 +267,26 @@ var Snapshots = function(){
 		border: false,
 		store: store.specific,
 		loadMask: true,
-		cm: new Ext.grid.ColumnModel({
-			defaultSortable: false,
-			columns: [
-				{header: "Name", dataIndex: 'name', width: 80},
-				{header: "Provider", dataIndex: 'provider', width: 60},
-				{header: "Description", dataIndex: 'description', id: 'description', width: 150},
-				{header: "Start Time", dataIndex: 'created_on', width: 100}
-			]
-		}),
+		columns: [
+			{text: "Name", dataIndex: 'name', width: 80},
+			{text: "Provider", dataIndex: 'provider', width: 60},
+			{text: "Description", dataIndex: 'description', id: 'description', width: 150},
+			{text: "Start Time", dataIndex: 'created_on', width: 100}
+		],
 		forceFit: true,
-		emptyText: '<p style="text-align: center">No backups were created for this instance</p>',
+		viewConfig: {
+			emptyText: '<p style="text-align: center">No backups were created for this instance</p>'
+		},
+		columnLines: true,
 		listeners: {
 			activate: function(p){
 				var store = p.getStore();
-				if(store.lastOptions === null)
-				{
-					store.load();
-				}
+				if(store.last() === undefined) store.load();
 			}
-		},
-		autoExpandColumn: 'description'
+		}
 	});
 	
-	var instance_snapshots = new Ext.Window({
+	Ext.create('Ext.window.Window', {
 		title: 'Server backups',
 		height: 250,
 		width: 700,
@@ -272,49 +298,40 @@ var Snapshots = function(){
 	
 	var snapshot_instance_grid = new Ext.grid.GridPanel({
 		border: false,
-		store: new Ext.data.Store({
-			url: '/common/backup_instance',
-			reader: new Ext.data.JsonReader({
-				root: 'instances',
-				successProperty: 'success',
-				idProperty: 'id'
-			}, Ext.data.Record.create([
-				'id',
-				'name',
-				'dns_name',
-				'ip',
-				'instance_id',
-				'image_id',
-				'state',
-				'virtualization',
-				'type',
-				'root_device'
-			]))
+		store: Ext.create('Ext.data.Store', {
+			model: 'Server',
+			proxy: {
+				type: 'ajax',
+				url: '/common/backup_instance',
+				reader: {
+					type: 'json',
+					root: 'instances'
+				}
+			}
 		}),
 		loadMask: true,	
-		cm: new Ext.grid.ColumnModel({
-			defaultSortable: false,
-			columns: [
-				{header: "Name", dataIndex: 'name', width: 150, id: 'name'},
-				{header: "Link to instance root", dataIndex: 'dns_name', width: 250, renderer: function(link){
-					return '<a target="_blank" href="http://' + link + '/">' + link + '</a>';
-				}},
-				{header: "IP Address", dataIndex: 'ip', width: 120},
-				{header: "State", dataIndex: 'state', width: 100}
-			]
-		}),
+		columns: [
+			{header: "Name", dataIndex: 'name', width: 150, id: 'name'},
+			{header: "Link to instance root", dataIndex: 'dns_name', width: 250, renderer: function(link){
+				return '<a target="_blank" href="http://' + link + '/">' + link + '</a>';
+			}},
+			{header: "IP Address", dataIndex: 'ip', width: 120},
+			{header: "State", dataIndex: 'state', width: 100}
+		],
 		forceFit: true,
-		emptyText: '<p style="text-align: center">The server backup has been created of has either been terminated or is currently not available</p>',
+		viewConfig: {
+			emptyText: '<p style="text-align: center">The server backup has been created of has either been terminated or is currently not available</p>'
+		},
+		columnLines: true,
 		listeners: {
 			activate: function(p){
 				var store = p.getStore();
-				if(store.lastOptions === null) store.load();
+				if(store.last() === undefined) store.load();
 			}
-		},
-		autoExpandColumn: 'name'
+		}
 	});
 	
-	var snapshot_instance = new Ext.Window({
+	var snapshot_instance = Ext.create('Ext.window.Window', {
 		title: 'Server for backup',
 		height: 250,
 		width: 700,
@@ -348,7 +365,7 @@ var Snapshots = function(){
 										? 'Backup has been restored successfully'
 										: response.error_message || error_message
 									);
-									store.common.reload();
+									store.common.load();
 									Instances.reload_until_stable('running');
 									Instances.reload_until_stable('stopped', function(){
 										Instances.reload_instances('terminated');
@@ -378,7 +395,7 @@ var Snapshots = function(){
 				form.findField('ip_address').setDisabled(!is_gogrid).setVisible(is_gogrid);
 
 				types.getStore().baseParams.provider = provider;
-				redeployment_dialogue.show().center();
+				redeployment_form.up('window').show().center();
 				return false;
 			}
 		}, {
@@ -432,13 +449,17 @@ var Snapshots = function(){
 	});
 
 	var sm = Ext.create('Ext.selection.CheckboxModel');
-	var snapshots = new Ext.grid.GridPanel({
+	var snapshots = Ext.create('Ext.grid.Panel', {
 		id: 'snapshots-panel',
 		title: 'Created backups',
 		layout: 'fit',
+		border: false,
 		store: store.common,
 		forceFit: true,
-		emptyText: '<p style="text-align: center">You have not created any backup so far</p>',
+		viewConfig: {
+			emptyText: '<p style="text-align: center">You have not created any backup so far</p>'
+		},
+		columnLines: true,
 		columns: [
 			{text: "Name", dataIndex: 'name', width: 150, renderer: function(value, metadata, record){
 				if(record.data.status !== 'completed') metadata.css = 'grid-loader';
@@ -524,17 +545,18 @@ var Snapshots = function(){
 		
 		create: function(instance_id){
 			creator.getForm().reset().setValues({instance_id: instance_id});
-			create_dialogue.show();
+			creator.up('window').show();
 			return false;
 		},
 		
 		show_instance_snapshots: function(instance_id, instance_name){
+			var instance_snapshots = snapshot_instance_grid.up('window');
 			instance_name = instance_name || '';
 			instance_snapshots.setTitle(instance_name.length
 				? 'Backups for server "' + instance_name + '"'
 				: 'Server backups'
 			);			
-			store.specific.reload({
+			store.specific.load({
 				params: {
 					server_id: instance_id
 				}
