@@ -1,1 +1,56 @@
-<?= $this->form;?>
+<?php echo $this->doctype() ?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title><?php //echo $title ?> - TenBrain - Save your Brain, While saving Money!</title>
+	<?php echo $this->headLink()->appendStylesheet('/css/global.css') ?>
+	<?php echo $this->headLink()->appendStylesheet('/css/main.css') ?>
+	<?php echo $this->headLink()->appendStylesheet('/css/account.css') ?>
+	<?php echo $this->headLink()->prependStylesheet('/css/global.css', 'all') ?> 
+    <?php echo $this->headScript()->appendFile('/js/jquery-1.4.4.min.js') ?>
+    <?php echo $this->headScript()->appendFile('jquery-ui-1.8.9.custom.min.js') ?>
+    <?php echo $this->headScript()->appendFile('main.js') ?>
+</head>
+<body>
+	<div class="main big_content">
+		<div class="reg_form">
+			<h2>Sign Up</h2>
+			<h3>Create your TenBrain Account</h3>
+			<form action="/auth/register" method="post" accept-charset="utf-8" class="account_form signup">
+				<p class="input_wrapper">
+					<label for="username">Username</label>:
+					<input type="text" name="username" value="" id="username" class="control input" maxlength="24"  />				
+					<p class="input_wrapper center account_error"></p>
+				</p>
+	
+				<p class="input_wrapper">
+					<label for="password">Password</label>:
+					<input type="password" name="password" value="" id="password" class="control input"  />				
+					<p class="input_wrapper center account_error"></p>
+				</p>
+	
+				<p class="input_wrapper">
+					<label for="email">Email</label>:
+					<input type="text" name="email" value="" id="email" class="control input" maxlength="160"  />
+					<p class="input_wrapper center account_error"></p>
+				</p>
+	
+				<div class="input_wrapper">
+				
+				</div>
+	
+				<p class="input_wrapper">
+					<button name="" type="submit" class="login_submit underlined_dash" >Create my account</button>			
+				</p>
+			</form>
+			<p class="input_wrapper center">
+				Already have an account? 
+				<a href="http://alpha.tenbrain.com/account/sign_in" class="blue underlined_dash">Sign in now</a>
+			</p>
+		</div>
+		<h3>Sign up with your account from:</h3>
+	
+		<div class="clearfix"></div>
+	</div>
+</body>
+</html>

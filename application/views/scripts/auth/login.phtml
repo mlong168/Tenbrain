@@ -1,1 +1,66 @@
-<?= $this->form;?>
+<?php echo $this->doctype() ?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title><?php //echo $title ?> - TenBrain - Save your Brain, While saving Money!</title>
+	<?php echo $this->headLink()->appendStylesheet('/css/global.css') ?>
+	<?php echo $this->headLink()->appendStylesheet('/css/main.css') ?>
+	<?php echo $this->headLink()->appendStylesheet('/css/account.css') ?>
+	<?php echo $this->headLink()->prependStylesheet('/css/global.css', 'all') ?> 
+    <?php echo $this->headScript()->appendFile('/js/jquery-1.4.4.min.js') ?>
+    <?php echo $this->headScript()->appendFile('jquery-ui-1.8.9.custom.min.js') ?>
+    <?php echo $this->headScript()->appendFile('main.js') ?>
+</head>
+<div class="main big_content">
+	<div class="reg_form">
+		<h2>Sign In</h2>
+		<form action="/auth/login" method="post" accept-charset="utf-8" class="account_form signin">			
+			<h3>Sign in with your TenBrain Account</h3>
+				<p class="input_wrapper">
+					<label for="sign_in_username_email">Username/Email</label>				
+					<input type="text" name="sign_in_username_email" value="" id="sign_in_username_email" class="control input" maxlength="24"  />					
+					<p class="input_wrapper center account_error"></p>
+				</p>
+
+				<p class="input_wrapper">
+					<label for="sign_in_password">Password</label>				
+					<input type="password" name="sign_in_password" value="" id="sign_in_password" class="control input"  />
+				</p>
+
+				<p class="input_wrapper center account_error"></p>
+				
+				<p class="input_wrapper">
+					<input type="checkbox" name="sign_in_remember" value="checked" id="sign_in_remember" class="checkbox"  />				<label for="sign_in_remember">Remember me</label>				
+					<button name="" type="submit" class="login_submit underlined_dash" >Sign In</button>			
+				</p>
+				
+				<p class="input_wrapper center">
+					<a href="http://alpha.tenbrain.com/account/forgot_password" class="blue underlined_dash">Forgot your password?</a>			
+				</p>
+				
+				<p class="input_wrapper center">
+					Don't have an account? <a href="http://alpha.tenbrain.com/account/sign_up" class="blue underlined_dash">Sign up now</a>			
+				</p>
+
+		</form>	
+	</div>
+
+	<h3>Sign in with your account from:</h3>
+
+	<ul class="third_parties">
+		<li class="control third_party big facebook">
+			<a href="http://alpha.tenbrain.com/account/connect_facebook" title="Sign In with Facebook" class="social">Facebook</a>		
+		</li>
+		<li class="control third_party big twitter">
+			<a href="http://alpha.tenbrain.com/account/connect_twitter" title="Sign In with Twitter" class="social">Twitter</a>		
+		</li>
+		<li class="control third_party big google">
+			<a href="http://alpha.tenbrain.com/account/connect_google" title="Sign In with Google" class="social">Google</a>
+		</li>
+	</ul>
+
+	<div class="clearfix"></div>
+
+</div>
+</body>
+</html>

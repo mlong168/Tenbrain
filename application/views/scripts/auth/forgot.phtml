@@ -1,0 +1,49 @@
+<?php echo $this->doctype() ?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title><?php //echo $title ?> - TenBrain - Save your Brain, While saving Money!</title>
+	<?php echo $this->headLink()->appendStylesheet('/css/global.css') ?>
+	<?php echo $this->headLink()->appendStylesheet('/css/main.css') ?>
+	<?php echo $this->headLink()->appendStylesheet('/css/account.css') ?>
+	<?php echo $this->headLink()->prependStylesheet('/css/global.css', 'all') ?> 
+    <?php echo $this->headScript()->appendFile('/js/jquery-1.4.4.min.js') ?>
+    <?php echo $this->headScript()->appendFile('jquery-ui-1.8.9.custom.min.js') ?>
+    <?php echo $this->headScript()->appendFile('main.js') ?>
+</head>
+<body>
+<div class="reg_form">
+
+		<h2>Forgot your password?</h2>
+
+		<form action="http://alpha.tenbrain.com/account/forgot_password" method="post" accept-charset="utf-8">		<p>We will send reset password instructions to the email address associated with your account.</p>
+
+		<p class="input_wrapper center">
+
+			<label for="forgot_password_username_email">Username/Email</label>:
+
+			<input type="text" name="forgot_password_username_email" value="" id="forgot_password_username_email" class="control input" maxlength="80"  />		</p>
+
+		<p class="input_wrapper center account_error">
+
+								</p>
+
+				<div class="input_wrapper">
+
+			<script type="text/javascript">var RecaptchaOptions = { theme : "white" };</script><script type="text/javascript" src="http://www.google.com/recaptcha/api/challenge?k=6LcRIcESAAAAAFrR_ZESjZ5B1nlmFboCLicxQJtQ"></script> 
+ 
+	<noscript> 
+  		<iframe src="http://www.google.com/recaptcha/api/noscript?k=6LcRIcESAAAAAFrR_ZESjZ5B1nlmFboCLicxQJtQ" height="300" width="500" frameborder="0"></iframe><br/>
+  		<textarea name="recaptcha_challenge_field" rows="3" cols="40"></textarea>
+  		<input type="hidden" name="recaptcha_response_field" value="manual_challenge"/>
+	</noscript>		</div>
+
+						<p class="input_wrapper center">
+
+			<button name="" type="submit" class="login_submit underlined_dash" >Send instructions</button>		</p>
+
+		</form>	</div>
+
+
+</body>
+</html>

@@ -11,21 +11,19 @@ class AuthController extends Zend_Controller_Action
     }
     
     public function loginAction() {
-    	//echo class_exists('Application_Model_DbTable_Accounts');
-        $users = new Application_Model_DbTable_Accounts();
+        $accounts = new Application_Model_DbTable_Accounts();
         $form = new Application_View_Helper_LoginForm();
         $this->view->form = $form;
         if ($this->getRequest()->isPost()) {
             if ($form->isValid($_POST)) {
                 $data = $form->getValues();
                 $auth = Zend_Auth::getInstance();
-                $authAdapter = new Zend_Auth_Adapter_DbTable($users->getAdapter(), 'accounts');
+                $authAdapter = new Zend_Auth_Adapter_DbTable($accounts->getAdapter(), 'accounts');
                 $authAdapter->setIdentityColumn('username')
                         ->setCredentialColumn('password')
                         ->setIdentity($data['username'])
-                        ->setCredential($data['password']);
+                        ->setCredential(md5($data['password']));
                 $result = $auth->authenticate($authAdapter);
-                print_r($result);
                 if ($result->isValid()) {
                     $storage = new Zend_Auth_Storage_Session();
                     $storage->write($authAdapter->getResultRowObject());
@@ -38,7 +36,7 @@ class AuthController extends Zend_Controller_Action
     }
     
     public function registerAction() {
-        $users = new Application_Model_DbTable_Accounts();
+        $accounts = new Application_Model_DbTable_Accounts();
         $form = new Application_View_Helper_RegistrationForm();
         $this->view->form = $form;
         if ($this->getRequest()->isPost()) {
@@ -48,12 +46,22 @@ class AuthController extends Zend_Controller_Action
                     $this->view->errorMessage = 'Password and confirm password dont \' match';
                     return;
                 }
-                if ($users->isUnique($data['username'])) {
+                if ($accounts->isUnique($data['username'])) {
                     $this->view->errorMessage = 'Name already taken. Please choose another one.';
                     return;
                 }
+                $ip = null;
+           		if ( isset($_SERVER["REMOTE_ADDR"]) ) { 
+					$ip = $_SERVER["REMOTE_ADDR"]; 
+				} else if ( isset($_SERVER["HTTP_X_FORWARDED_FOR"]) ) { 
+					$ip = $_SERVER["HTTP_X_FORWARDED_FOR"]; 
+				} else if ( isset($_SERVER["HTTP_CLIENT_IP"]) ) { 
+					$ip = $_SERVER["HTTP_CLIENT_IP"]; 
+				}
+                $data['password'] = md5($data['password']);
+                $data['ip'] = $ip;
                 unset($data['confirmPassword']);
-                $users->insert($data);
+                $accounts->insert($data);
                 $this->_redirect('auth/login');
             }
         }
@@ -63,6 +71,9 @@ class AuthController extends Zend_Controller_Action
         $storage = new Zend_Auth_Storage_Session();
         $storage->clear();
         $this->_redirect('auth/login');
+    }
+    
+	public function forgotAction() {
     }
     
     public function profileAction() {
