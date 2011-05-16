@@ -1,0 +1,22 @@
+<div class="main small_content">
+	<p class="selection_message wide">You have selected:</p>
+	<div class="results">
+	<?php foreach($this->results as $class => $text): ?>
+		<div class="selected_item">
+			<span class="selection_image <?php echo $class?>">.</span>
+			<div class="selection_text final"><?php echo str_replace('<br />', ' ', $text) ?></div>
+		</div>
+		<?php if($text !== end($this->results)): ?>
+			<div class="control arrow"></div>
+		<?php endif; ?>
+	<?php endforeach; ?>	
+	<div class="clearfix"></div>
+	</div>
+	
+	<div class="confirm_dialogue">
+		<a class="control reject_button small" href="<?php echo $this->baseUrl() ?>">Change this</a>
+		<a class="control selection_button small" href="/selection/confirm">Confirm</a>
+	</div>
+	
+	<div class="clearfix"></div>
+</div>

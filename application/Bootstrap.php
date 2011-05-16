@@ -5,7 +5,11 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
     protected function _initDoctype()
     {
         $this->bootstrap('view');
-        $this->getResource('view')->doctype('XHTML1_TRANSITIONAL');
+		$view = $this->getResource('view');
+		$view->doctype('XHTML1_TRANSITIONAL');
+		
+		$view->headTitle('TenBrain - Save your Brain, While saving Money!')
+             ->setSeparator(' - ');
 	}
 	
     protected function _initRoutes()
@@ -18,6 +22,7 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
 		)));
 		unset($front_controller);
     }
+	
     protected function _initAutoload()
 	{
 	    $this->options = $this->getOptions();

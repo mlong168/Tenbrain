@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<title><?php echo $this->page_title ?> - TenBrain - Save your Brain, While saving Money!</title>
+	<?php echo $this->headTitle() ?>
 	<?php echo $this->headLink()->appendStylesheet('/css/main.css') ?>
 	<?php echo $this->headLink()->appendStylesheet('/css/account.css') ?>
 	<?php echo $this->headScript()->appendFile('/js/jquery-1.4.4.min.js', $type = 'text/javascript') ?>
@@ -12,7 +12,7 @@
 <body>
 <div id="container">
 	<div id="header">
-		<a href="" id="logo">Home</a>
+		<a href="/" id="logo">Home</a>
 		
 		<div id="account_area">
 		<?php if(1): ?>
@@ -93,9 +93,9 @@
 		</div>
 		
 		<div id="menu">
-			<a class="item" href="<?php echo $this->baseUrl() ?>about">About us</a>
-			<a class="item" href="<?php echo $this->baseUrl() ?>about">Item 2</a>
-			<a class="item" href="<?php echo $this->baseUrl() ?>about">Item 3</a>
+			<a class="item" href="/about">About us</a>
+			<a class="item" href="/about">Item 2</a>
+			<a class="item" href="/about">Item 3</a>
 		</div>
 	</div>
 </div> <!-- end container -->
