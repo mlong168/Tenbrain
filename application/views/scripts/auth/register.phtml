@@ -1,55 +1,55 @@
-<?php echo $this->doctype() ?>
-<html xmlns="http://www.w3.org/1999/xhtml">
-<head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<title><?php //echo $title ?> - TenBrain - Save your Brain, While saving Money!</title>
-	<?php echo $this->headLink()->appendStylesheet('/css/global.css') ?>
-	<?php echo $this->headLink()->appendStylesheet('/css/main.css') ?>
-	<?php echo $this->headLink()->appendStylesheet('/css/account.css') ?>
-	<?php echo $this->headLink()->prependStylesheet('/css/global.css', 'all') ?> 
-    <?php echo $this->headScript()->appendFile('/js/jquery-1.4.4.min.js') ?>
-    <?php echo $this->headScript()->appendFile('jquery-ui-1.8.9.custom.min.js') ?>
-    <?php echo $this->headScript()->appendFile('main.js') ?>
-</head>
-<body>
-	<div class="main big_content">
-		<div class="reg_form">
-			<h2>Sign Up</h2>
-			<h3>Create your TenBrain Account</h3>
-			<form action="" method="post" accept-charset="utf-8" class="account_form signup">
-				<p class="input_wrapper">
-					<label for="username">Username</label>:
-					<?php echo $this->form->username; ?>
-				</p>
-	
-				<p class="input_wrapper">
-					<label for="password">Password</label>:	
-					<?php echo $this->form->password; ?>
-				</p>
-				
-				<p class="input_wrapper">
-					<label for="confirmPassword">Confirm</label>:
-					<?php echo $this->form->confirm_password; ?>
-				</p>
-	
-				<p class="input_wrapper">
-					<label for="email">Email</label>:
-					<?php echo $this->form->email; ?>
-				</p>
-				
-				<div class="input_wrapper">
-					<?php echo $this->form->ReCaptcha; ?>
-				</div>
-	
-				<p class="input_wrapper">
-					<?php echo $this->form->submit; ?>	
-				</p>
-			</form>
-			<p class="input_wrapper center">
-				Already have an account? 
-				<a href="/auth/login" class="blue underlined_dash">Sign in now</a>
+<div class="main big_content">
+	<div class="reg_form">
+		<h2>Sign Up</h2>
+		<h3>Create your TenBrain Account</h3>
+		<form action="" method="post" accept-charset="utf-8" class="account_form signup">
+			<p class="input_wrapper">
+				<label for="username">Username</label>:
+				<?php echo $this->form->username; ?>
 			</p>
-		</div>
+
+			<p class="input_wrapper">
+				<label for="password">Password</label>:	
+				<?php echo $this->form->password; ?>
+			</p>
+			
+			<p class="input_wrapper">
+				<label for="confirmPassword">Confirm</label>:
+				<?php echo $this->form->confirm_password; ?>
+			</p>
+
+			<p class="input_wrapper">
+				<label for="email">Email</label>:
+				<?php echo $this->form->email; ?>
+			</p>
+			
+			<div class="input_wrapper">
+				<?php echo $this->form->ReCaptcha; ?>
+			</div>
+
+			<p class="input_wrapper">
+				<?php echo $this->form->submit; ?>	
+			</p>
+		</form>
+		<p class="input_wrapper center">
+			Already have an account? 
+			<a href="/auth/login" class="blue underlined_dash">Sign in now</a>
+		</p>
 	</div>
-</body>
-</html>
+	
+	<h3>Sign up with your account from:</h3>
+	<ul class="third_parties">
+		<li class="control third_party big facebook">
+			<a href="http://alpha.tenbrain.com/account/connect_facebook" title="Sign Up with Facebook" class="social">Facebook</a>		
+		</li>
+	
+		<li class="control third_party big twitter">
+			<a href="http://alpha.tenbrain.com/account/connect_twitter" title="Sign Up with Twitter" class="social">Twitter</a>		
+		</li>
+	
+		<li class="control third_party big google">
+			<a href="http://alpha.tenbrain.com/account/connect_google" title="Sign Up with Google" class="social">Google</a>		
+		</li>
+	</ul>
+	<div class="clearfix"></div>
+</div>

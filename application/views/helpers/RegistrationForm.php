@@ -30,10 +30,9 @@ class Application_View_Helper_RegistrationForm extends Zend_Form {
                             'class' => 'login_submit underlined_dash'
         ))->setDecorators(array('ViewHelper'))->addDecorator('Errors')->setLabel('Create my account');
 
-		$pubKey = "6LcTaMQSAAAAAAO0DUjDPkY37wxF5oG4ncth29Bt";
-        $privKey = "6LcTaMQSAAAAAHS4o5iZQQ-D3aR1stxyYqIemh4i";
-        
-        $recaptcha = new Zend_Service_ReCaptcha($pubKey, $privKey);
+		$recaptchaKeys = Zend_Registry::get('config.recaptcha');
+		
+        $recaptcha = new Zend_Service_ReCaptcha($recaptchaKeys["pubkey"], $recaptchaKeys["privkey"]);
         $recaptcha->setParams(array(
 		    'xhtml'=>true
 		));
