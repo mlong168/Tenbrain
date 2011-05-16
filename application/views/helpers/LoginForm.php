@@ -8,22 +8,27 @@ class Application_View_Helper_LoginForm extends Zend_Form {
     public function init() {
 
         $username = $this->createElement('text', 'username', array(
-                            'label' => 'Username: *',
+        					'class'	=>	'control input',
                             'required' => TRUE
-        ));
+        ))->setDecorators(array('ViewHelper'))->addDecorator('Errors');
 
         $password = $this->createElement('password', 'password', array(
-                            'label' => 'Password',
+        					'class'	=>	'control input',
                             'required' => TRUE
-        ));
+        ))->setDecorators(array('ViewHelper'))->addDecorator('Errors');
+		
+        $rememberme = $this->createElement('checkbox','remember', array(
+        					'class'	=>	'checkbox'
+        ))->setDecorators(array('ViewHelper')); 
+		
+        $signin = $this->createElement('submit', 'submit', array(
+                            'class' => 'login_submit underlined_dash'
+        ))->setDecorators(array('ViewHelper'))->addDecorator('Errors')->setLabel('Sign In');
         
-        $signin = $this->createElement('submit', 'SignIn', array(
-                            'label' => 'Sign In'
-        ));
-
         $this->addElements(array(
                     $username,
                     $password,
+                    $rememberme,
                     $signin
         ));
 

@@ -25,6 +25,8 @@ class AuthController extends Zend_Controller_Action
                         ->setCredential(md5($data['password']));
                 $result = $auth->authenticate($authAdapter);
                 if ($result->isValid()) {
+                	if($data["remember"])
+                		Zend_Session::rememberMe();
                     $storage = new Zend_Auth_Storage_Session();
                     $storage->write($authAdapter->getResultRowObject());
                     $this->_redirect('auth/profile');
@@ -39,10 +41,13 @@ class AuthController extends Zend_Controller_Action
         $accounts = new Application_Model_DbTable_Accounts();
         $form = new Application_View_Helper_RegistrationForm();
         $this->view->form = $form;
+        
+        
         if ($this->getRequest()->isPost()) {
-            if ($form->isValid($_POST)) {
+        	
+			if ($form->isValid($_POST)) {
                 $data = $form->getValues();
-                if ($data['password'] != $data['confirmPassword']) {
+                if ($data['password'] != $data['confir_password']) {
                     $this->view->errorMessage = 'Password and confirm password dont \' match';
                     return;
                 }
@@ -60,10 +65,10 @@ class AuthController extends Zend_Controller_Action
 				}
                 $data['password'] = md5($data['password']);
                 $data['ip'] = $ip;
-                unset($data['confirmPassword']);
+                unset($data['confirm_password']);
                 $accounts->insert($data);
                 $this->_redirect('auth/login');
-            }
+	        }
         }
     }
     
