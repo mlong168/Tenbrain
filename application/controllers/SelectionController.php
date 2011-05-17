@@ -102,6 +102,22 @@ class SelectionController extends Zend_Controller_Action
 	public function init()
 	{
 		/* Initialize action controller here */
+		$auth = Zend_Auth::getInstance();
+		$logged_in = $auth->hasIdentity();
+		
+		$helper = $this->_helper->getHelper('Layout');
+		$layout = $helper->getLayoutInstance();
+		
+		$layout->logged_in = $logged_in;
+		if($logged_in)
+		{
+			$layout->username = $auth->getIdentity()->username;
+		}
+		else
+		{
+			$layout->third_party_auth_providers = array('google', 'twitter', 'facebook');
+		}
+		
 		$this->view->headTitle()->prepend('Welcome');
 		$this->selected = new Zend_Session_Namespace('selection');
 	}

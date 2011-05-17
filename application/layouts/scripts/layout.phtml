@@ -5,26 +5,27 @@
 	<?php echo $this->headTitle() ?>
 	<?php echo $this->headLink()->appendStylesheet('/css/main.css') ?>
 	<?php echo $this->headLink()->appendStylesheet('/css/account.css') ?>
-	<?php echo $this->headScript()->appendFile('/js/jquery-1.4.4.min.js', $type = 'text/javascript') ?>
-	<?php echo $this->headScript()->appendFile('/js/main.js', $type = 'text/javascript') ?>
+	<?php echo $this->headScript()->appendFile('/js/jquery-1.4.4.min.js', 'text/javascript') ?>
+	<?php echo $this->headScript()->appendFile('/js/main.js', 'text/javascript') ?>
 	
 </head>
 <body>
+<?php $lt = $this->layout() ?>
 <div id="container">
 	<div id="header">
 		<a href="/" id="logo">Home</a>
 		
 		<div id="account_area">
-		<?php if(1): ?>
+		<?php if($lt->logged_in): ?>
 			<div class="signed_in_controls">
 				<span class="welcome_message">Welcome, !</span><br />
 				<a class="blue underlined_dash" href="/auth/logout">Sign out</a>
 				<a class="blue underlined_dash" href="/control_panel">Profile</a>
 			</div>
 		<?php else: ?>
-			<a class="blue underlined_dash" href="/account/sign_up">Register</a>
+			<a class="blue underlined_dash" href="/account/register">Register</a>
 			<span class="login_submit" id="signin_opener">Sign in</span>
-			<?php echo form_open('/account/sign_in', array('id'	=> 'signin_controls')) ?>
+			<form action='/account/login' method="post" accept-charset="utf-8" id="signin_controls">
 				<p class="form_contents small">
 					<label for="username" class="login_label">Username/Email:</label>
 				</p>
@@ -49,38 +50,32 @@
 				</p>
 				<div class="form_contents">
 					<ul class="signin_social">
-						<?php $this->config->load('account/config') ?>
-						<?php foreach($this->config->item('third_party_auth_providers') as $provider) : ?>
+						<?php foreach($lt->third_party_auth_providers as $provider) : ?>
 						<li class="control third_party small <?php echo $provider; ?>">
-							<?php echo anchor('account/connect_'.$provider,
-								lang('connect_'.$provider), 
-								array(
-									'title' => sprintf(lang('sign_up_with'), lang('connect_'.$provider)),
-									'class'	=> 'social'
-								)
-							); ?>
+							<a href="auth/connect_<?php echo $provider ?>" class="social"
+								title="Sign in with your <?php echo $provider ?> account" >Connect <?php echo $provider ?></a>
 						</li>
 						<?php endforeach; ?>
 					</ul>				
 				</div>
-			<?php echo form_close() ?>
+			</form>
 		<?php endif; ?>
 		</div>
 		<div class="clearfix"></div>
 	</div>
 	
 	
-	<?php echo $this->layout()->content ?>
+	<?php echo $lt->content ?>
 	
 	<div id="helper">
-		<span class="help_header"><?php echo isset($short_title) ? $short_title : 'Tips' ?></span>
+		<span class="help_header"><?php echo isset($lt->short_title) ? $lt->short_title : 'Tips' ?></span>
 		<span class="help_message"><?php echo isset($short_message) ? $short_message : "This is a sample text for a TenBrain help system. Mind it's size - do not put too much text here. If you want to add more help, use the one that dispays in a shaded box. That will be viewed when clicking here." ?></span>
 	</div>
 	
 	<div class="overlay back"></div>
 	<div class="overlay front">
-		<span class="help_title"><?php echo isset($big_title) ? $big_title : 'Sample title for big help' ?></span>
-		<span class="help_message"><?php echo isset($big_message) ? $big_message : 'Sample text for big help' ?></span>
+		<span class="help_title"><?php echo isset($lt->big_title) ? $lt->big_title : 'Sample title for big help' ?></span>
+		<span class="help_message"><?php echo isset($lt->big_message) ? $lt->big_message : 'Sample text for big help' ?></span>
 	</div>
 	
 	<div id="footer_icon_hider"></div>
