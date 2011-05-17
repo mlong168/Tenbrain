@@ -192,5 +192,4 @@ class Zend_Auth_Adapter_Facebook implements Zend_Auth_Adapter_Interface
         // rebuild
         return $protocol . $parts['host'] . $port . $parts['path'] . $query;
     }
-
 }
