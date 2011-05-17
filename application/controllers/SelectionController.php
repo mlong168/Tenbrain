@@ -111,6 +111,11 @@ class SelectionController extends Zend_Controller_Action
 		$this->_forward('tenstack');
 	}
 	
+	public function errorAction()
+	{
+		// just show an error view
+	}
+	
 	public function tenstackAction()
 	{
 		unset($this->selected->tenstack);
@@ -140,7 +145,7 @@ class SelectionController extends Zend_Controller_Action
 		}
 		else
 		{
-			$this->view->render('error');
+			$this->_forward('error');
 		}
 	}
 	
@@ -159,50 +164,46 @@ class SelectionController extends Zend_Controller_Action
 		}
 		else
 		{
-			$this->load->view('error', array(
-				'message' => 'selection failed'
-			));
+			$this->_forward('error');
 		}
 	}
 	
 	public function resultsAction()
 	{
-		$deploy_aliases = array(
-			'desktop'	=> 'os',
-			'enterprise'=> 'vm',
-			'cloud'		=> 'providers'
-		);
-		
-		
-		$finals = $this->getRequest()->getParam('finals');
-		$deployment = $this->selected->deployment;
-		$dep = $deploy_aliases[$deployment];
-
-		if(in_array($finals, array_keys($this->selections[$dep])))
+		if(isset($this->selected->deployment))
 		{
-			$tenstack = $this->selected->tenstack;
-			
-			$this->selected->selection = array(
-				'tenstack'		=> $tenstack,
-				'deployment'	=> $deployment,
-				$dep			=> $finals // ????????????
+			$deployment = $this->selected->deployment;
+			$deploy_aliases = array(
+				'desktop'	=> 'os',
+				'enterprise'=> 'vm',
+				'cloud'		=> 'providers'
 			);
 			
-			$this->view->assign(array(
-				'results'	=> array(
-					'tenstack ' . $tenstack		=> $this->selections['tenstack'][$tenstack]['text'],
-					'deployment ' . $deployment	=> $this->selections['deployment'][$deployment]['text'],
-					$dep . ' ' . $finals		=> $this->selections[$dep][$finals]['text']
-				)
-			));
+			$dep = $deploy_aliases[$deployment];
+			$finals = $this->getRequest()->getParam('finals');
 			
+			if(in_array($finals, array_keys($this->selections[$dep])) && isset($this->selected->tenstack))
+			{
+				$tenstack = $this->selected->tenstack;
+				$this->selected->selection = array(
+					'tenstack'		=> $tenstack,
+					'deployment'	=> $deployment,
+					$dep			=> $finals // ????????????
+				);
+				
+				$this->view->assign(array(
+					'results'	=> array(
+						'tenstack ' . $tenstack		=> $this->selections['tenstack'][$tenstack]['text'],
+						'deployment ' . $deployment	=> $this->selections['deployment'][$deployment]['text'],
+						$dep . ' ' . $finals		=> $this->selections[$dep][$finals]['text']
+					)
+				));
+				return true;
+			}
 		}
-		else
-		{
-			$this->load->view('error', array(
-				'message' => 'selection failed'
-			));
-		}
+		
+		// being here means an error has occurred, so we just say that:
+		$this->_forward('error');
 	}
 	
 	public function confirmAction()
@@ -215,7 +216,7 @@ class SelectionController extends Zend_Controller_Action
 		if(!$auth->hasIdentity())
 		{
 			// $this->session->set_userdata('sign_in_redirect', '/selection/confirm');
-			$this->_redirect('auth/sign_in');
+			$this->_redirect('auth/login');
 		}
 		
 		if(!isset($this->selected->selection))
@@ -249,7 +250,7 @@ class SelectionController extends Zend_Controller_Action
 		}
 		unset($this->selected->selection);			
 		
-		redirect('/control_panel');
+		$this->_redirect('console');
 	}
 
 

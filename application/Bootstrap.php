@@ -16,10 +16,22 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
     {
 		$front_controller = Zend_Controller_Front::getInstance();
 		$router = $front_controller->getRouter();
+		
 		$router->addRoute('default_selection', new Zend_Controller_Router_Route('', array(
 			'controller'	=> 'selection',
 			'action'		=> 'index'
 		)));
+		
+		$router->addRoute('apology', new Zend_Controller_Router_Route('apology', array(
+			'controller'	=> 'misc',
+			'action'		=> 'apology'
+		)));
+		
+		$router->addRoute('about', new Zend_Controller_Router_Route('about', array(
+			'controller'	=> 'misc',
+			'action'		=> 'about'
+		)));
+		
 		unset($front_controller);
     }
 	
