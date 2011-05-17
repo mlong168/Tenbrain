@@ -3,6 +3,7 @@
 /**
  * LoginForm
  */
+
 class Application_View_Helper_LoginForm extends Zend_Form {
     
     public function init() {
