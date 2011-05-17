@@ -14,11 +14,11 @@ class ConsoleController extends Zend_Controller_Action
 		
 		$scripts = array(
 			'extjs4/ext-all-debug',
-			'cp/instances',
-			'cp/images',
-			'cp/snapshots',
-			'cp/profile',
-			'cp/transferer'
+			// 'cp/instances',
+			// 'cp/images',
+			// 'cp/snapshots',
+			// 'cp/profile',
+			// 'cp/transferer'
 		);
 		
 		// if($this->account_type === 'premium') $scripts = array_merge($scripts, array('cp/load_balancers', 'cp/elastic_ips'));

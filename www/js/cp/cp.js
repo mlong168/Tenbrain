@@ -13,13 +13,13 @@ Ext.onReady(function(){
 	var menu = function(){
 		var items = [ welcome,
 			// instances.js:
-			Instances.get_panel('running'), Instances.get_panel('terminated'), Instances.get_panel('stopped'),
+			// Instances.get_panel('running'), Instances.get_panel('terminated'), Instances.get_panel('stopped'),
 			// images.js:
-			Images.get_grid(),
+			// Images.get_grid(),
 			// snapshots.js:
-			Snapshots.get_panel(),
+			// Snapshots.get_panel(),
 			// profile.js:
-			account_profile, account_settings, account_password, account_linked
+			// account_profile, account_settings, account_password, account_linked
 		];
 		if(account_type === 'premium')
 		{
@@ -37,28 +37,28 @@ Ext.onReady(function(){
 			}
 		}
 	}();
-	
-	var tree_panel = Ext.create('Ext.tree.Panel', {
-    	id: 'tree-panel',
-    	title: 'Menu',
-        region: 'north',
-        split: true,
-        height: 300,
-        minSize: 150,
-        
-        // tree-specific configs:
-        rootVisible: false,
-        lines: false,
-        useArrows: true,
-        
-        store: Ext.create('Ext.data.TreeStore', {
-	    	proxy: {
-	    		type: 'ajax',
-	    		url: '/control_panel/menu'
-	    	}
-	    })
-    }),
-	help_panel = {
+// 	
+	// var tree_panel = Ext.create('Ext.tree.Panel', {
+    	// id: 'tree-panel',
+    	// title: 'Menu',
+        // region: 'north',
+        // split: true,
+        // height: 300,
+        // minSize: 150,
+//         
+        // // tree-specific configs:
+        // rootVisible: false,
+        // lines: false,
+        // useArrows: true,
+//         
+        // store: Ext.create('Ext.data.TreeStore', {
+	    	// proxy: {
+	    		// type: 'ajax',
+	    		// url: '/control_panel/menu'
+	    	// }
+	    // })
+    // }),
+	var help_panel = {
 		id: 'details-panel',
         title: 'Details',
         region: 'center',
@@ -67,20 +67,20 @@ Ext.onReady(function(){
     },
 	helper;
     
-    tree_panel.on('selectionchange', function(m, selections){
-    	if(selections.length){
-	    	var node = selections[0],
-	    		id = node.internalId;
-	    	if(node.isLeaf()){  // ignore clicks on folders
-	    		Ext.getCmp('content-panel').layout.setActiveItem(id + '-panel');
-	    		if(!helper){
-					// create default empty div
-	    			helper = Ext.getCmp('details-panel').body.update('').setStyle('background', '#fff').createChild();
-	    		}
-	    		helper.hide().update(Ext.getDom(id + '-details').innerHTML).slideIn('l', {stopFx: true, duration: .2});
-	    	}
-    	}
-    });
+    // tree_panel.on('selectionchange', function(m, selections){
+    	// if(selections.length){
+	    	// var node = selections[0],
+	    		// id = node.internalId;
+	    	// if(node.isLeaf()){  // ignore clicks on folders
+	    		// Ext.getCmp('content-panel').layout.setActiveItem(id + '-panel');
+	    		// if(!helper){
+					// // create default empty div
+	    			// helper = Ext.getCmp('details-panel').body.update('').setStyle('background', '#fff').createChild();
+	    		// }
+	    		// helper.hide().update(Ext.getDom(id + '-details').innerHTML).slideIn('l', {stopFx: true, duration: .2});
+	    	// }
+    	// }
+    // });
 	
     Ext.create('Ext.container.Viewport', {
 		layout: 'border',
@@ -99,7 +99,7 @@ Ext.onReady(function(){
 			width: 275,
 			minSize: 100,
 			maxSize: 500,
-			items: [tree_panel, help_panel]
+			items: [help_panel]
 		}, {
 			xtype: 'box',
 			region: 'south',
@@ -110,8 +110,8 @@ Ext.onReady(function(){
 			region: 'center',
 			layout: 'card',
 			margins: '2 5 5 0',
-			items: menu.get_items(),
-			activeItem: menu.get_active(),
+			// items: menu.get_items(),
+			// activeItem: menu.get_active(),
 			defaults: {
 				border: false
 			}
