@@ -1,0 +1,34 @@
+<?php echo $this->doctype() ?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<?php echo $this->headTitle() ?>
+	<?php echo $this->headLink()->appendStylesheet('/css/main.css') ?>
+	<?php echo $this->headLink()->appendStylesheet('/css/account.css') ?>
+	<?php echo $this->headLink()->appendStylesheet('/css/ext4/resources/css/ext-all.css') ?>
+	<?php echo $this->headLink()->appendStylesheet('/css/icons.css') ?>
+	
+	<script type="text/javascript">
+		var active_menu_item = '<?php echo $this->active_menu_item ?>';
+		var account_type = '<?php echo $this->account_type ?>';
+	</script>
+
+	<?php echo $this->headScript() ?>
+
+</head>
+<body>
+	<div id="header">
+		<a href="/" id="logo">Home</a>
+		<div id="account_area">
+			<div class="signed_in_controls">
+				<span class="welcome_message">Welcome, <?php echo $this->username ?>!</span>
+				<a class="blue underlined_dash" href="/account/sign_out">Sign out</a><br />
+				<span class="welcome_message">Account type: <?php echo $this->account_type ?></span>&nbsp;(<a href="#" class="blue underlined_dash" id="account_type_changer">change</a>)
+				
+				<a class="blue underlined_dash" href="#" id="cloud_account_manager">Manage your cloud account</a>
+			</div>
+		</div>
+	</div>
+	<div id="footnote" style="text-align:center"><p>All rights reserved &copy; <?php echo date('Y') ?>, TenBrain</p></div>
+</body>
+</html>
