@@ -21,7 +21,7 @@
 		<a href="/" id="logo">Home</a>
 		<div id="account_area">
 			<div class="signed_in_controls">
-				<span class="welcome_message">Welcome, <?php echo $this->username ?>!</span>
+				<span class="welcome_message">Welcome, <?php echo $this->layout()->username ?>!</span>
 				<a class="blue underlined_dash" href="/account/sign_out">Sign out</a><br />
 				<span class="welcome_message">Account type: <?php echo $this->account_type ?></span>&nbsp;(<a href="#" class="blue underlined_dash" id="account_type_changer">change</a>)
 				
@@ -30,6 +30,6 @@
 		</div>
 	</div>
 	<?php echo $this->layout()->content ?>
-	<div id="footnote">All rights reserved &copy; <?php echo date('Y') ?>, TenBrain</div>
+	<h3 id="footnote">All rights reserved &copy; <?php echo date('Y') ?>, TenBrain</h3>
 </body>
 </html>

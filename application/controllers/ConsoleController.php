@@ -15,7 +15,7 @@ class ConsoleController extends Zend_Controller_Action
 	{
 		/* set alternate layout */
 		
-		$this->layout->setLayout('control_panel');
+		$this->layout->setLayout('console');
 		$this->view->headTitle()->prepend('Tenbrain Control Panel');
 		
 		$scripts = array(
@@ -24,7 +24,7 @@ class ConsoleController extends Zend_Controller_Action
 			// 'cp/images',
 			// 'cp/snapshots',
 			// 'cp/profile',
-			// 'cp/transferer'
+			'cp/transferer'
 		);
 		
 		// if($this->account_type === 'premium') $scripts = array_merge($scripts, array('cp/load_balancers', 'cp/elastic_ips'));

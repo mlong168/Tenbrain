@@ -40,4 +40,24 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
 	    $this->options = $this->getOptions();
 	    Zend_Registry::set('config.recaptcha', $this->options['recaptcha']);
 	}
+	
+	protected function _initAuth()
+	{
+        $this->bootstrap('layout');
+		$layout = $this->getResource('layout');
+		
+
+		$auth = Zend_Auth::getInstance();
+		$logged_in = $auth->hasIdentity();
+		
+		$layout->logged_in = $logged_in;
+		if($logged_in)
+		{
+			$layout->username = $auth->getIdentity()->username;
+		}
+		else
+		{
+			$layout->third_party_auth_providers = array('google', 'twitter', 'facebook');
+		}
+	}
 }

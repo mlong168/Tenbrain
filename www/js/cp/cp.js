@@ -114,7 +114,7 @@ Ext.onReady(function(){
 		}, {
 			xtype: 'box',
 			region: 'south',
-			height: 25,
+			height: 20,
 			contentEl: 'footnote'
 		}]
     });

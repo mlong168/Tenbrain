@@ -109,11 +109,6 @@ h2, h3 {
 	margin: 1em 2em;
 }
 
-#footnote {
-	position: absolute;
-	text-align: center;
-}
-
 #details-panel p, #details-panel h2 {
 	padding: 0.5em;
 }
