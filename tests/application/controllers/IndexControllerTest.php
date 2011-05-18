@@ -7,7 +7,7 @@ class IndexControllerTest extends ControllerTestCase
 	{
         $this->dispatch("/");
         $this->assertController("selection");
-        $this->assertAction("tenstack");	
+        $this->assertAction("tenstack");
 		$this->assertResponseCode(200);
 	}
 	

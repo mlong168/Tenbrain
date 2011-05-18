@@ -8,7 +8,7 @@ class AuthControllerTest extends ControllerTestCase
         $this->dispatch("/auth/register");
         $this->assertController("auth");
         $this->assertAction("register");	
-		$this->assertResponseCode(200);
+		$this->assertResponseCode(404);
     }
 
 
