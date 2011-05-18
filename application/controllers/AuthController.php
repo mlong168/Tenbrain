@@ -91,12 +91,9 @@ class AuthController extends Zend_Controller_Action
     }
     public function facebookconnectAction ()
     {
-    	$api_url = "https://graph.facebook.com/me?access_token=";
-    	
+        $api_url = "https://graph.facebook.com/me?access_token=";
         $auth = Zend_Auth::getInstance();
-        //if ($auth->hasIdentity()) {
-        //    $this->_helper->redirector('index', 'profile');
-        //}
+
         $bootstrap = $this->getInvokeArg('bootstrap');
         $array = $bootstrap->getOption('facebook');
         $adapter = new Zend_Auth_Adapter_Facebook($array);
@@ -106,19 +103,20 @@ class AuthController extends Zend_Controller_Action
             $result = $auth->authenticate($adapter);
             if ($result->isValid()) {
                 $access_token = $auth->getIdentity();
-                print_r($access_token);
-                
-                $config = array(
-				    'adapter'      => 'Zend_Http_Client_Adapter_Socket',
-				    'ssltransport' => 'tls'
-				);
-				 
-				// Instantiate a client object
-				//$client = new Zend_Http_Client($api_url.$access_token, $config);
-				//$response = $client->request();
-				//print_r($response);
-                die();
-                
+                $fb_info = file_get_contents($api_url . $access_token);
+                $fb_info = Zend_Json_Decoder::decode($fb_info);
+                //$facebook = new Application_Model_DbTable_FacebookAccounts();
+                //$user = $facebook->get_user_by_id($fb_info->id);
+                //Session
+                $this->session->user_data = array(
+                array('provider' => 'facebook', 'provider_id' => $fb_info["id"]), 
+                array('fullname' => $fb_info["name"], 
+                'firstname' => $fb_info["first_name"], 
+                'lastname' => $fb_info["last_name"], 
+                'gender' => $fb_info["gender"], 
+                'dateofbirth' => $fb_info["birthday"], 
+                'picture' => 'http://graph.facebook.com/' . $fb_info["id"] .
+                 '/picture'));
                 $this->_redirect('auth/connectcreate');
             } else {
                 print $result->getMessages();
@@ -126,19 +124,6 @@ class AuthController extends Zend_Controller_Action
         } else {
             $adapter->redirect();
         }
-    }
-    public function facebookcallbackAction ()
-    {
-        $this->session = array(
-        array('provider' => 'facebook', 
-        'provider_id' => $this->facebook_lib->user['id']), 
-        array('fullname' => $this->facebook_lib->user['name'], 
-        'firstname' => $this->facebook_lib->user['first_name'], 
-        'lastname' => $this->facebook_lib->user['last_name'], 
-        'gender' => $this->facebook_lib->user['gender'], 
-        'dateofbirth' => $this->facebook_lib->user['birthday'], 
-        'picture' => 'http://graph.facebook.com/' .
-         $this->facebook_lib->user['id'] . '/picture'));
     }
     public function twitterconnectAction ()
     {
@@ -174,23 +159,54 @@ class AuthController extends Zend_Controller_Action
     }
     public function openidconnectAction ()
     {
+	    $consumer = new Zend_OpenId_Consumer();
+	    if (!$consumer->login("andrey.tsok@gmail.com")) {
+	        echo "OpenID login failed.";
+	    }
         die();
     }
+    
+    private function isUniqueProviderUser($provider,$provider_id)
+    {
+    	$providers["facebook"] = new Application_Model_DbTable_FacebookAccounts();
+        $providers["twitter"] = new Application_Model_DbTable_TwitterAccounts();
+        
+        return $providers[$provider]->isUnique($provider_id);
+    }
+    
+    public function facebookloginAction ()
+    {
+    	
+    	die;
+    }
+    
+	public function twitterloginAction ()
+    {
+    	
+    	die;
+    }
+    
     public function connectcreateAction ()
     {
-    	$accounts = new Application_Model_DbTable_Accounts();
-    	$twitter = new Application_Model_DbTable_TwitterAccounts();
-    	if(!$this->session->user_data) $this->_redirect('auth/login');
+        $accounts = new Application_Model_DbTable_Accounts();
+        $facebook = new Application_Model_DbTable_FacebookAccounts();
+        $twitter = new Application_Model_DbTable_TwitterAccounts();
+        
+        if (! $this->session->user_data)
+            $this->_redirect('auth/login');
         $form = new Application_View_Helper_Connect();
         $this->view->form = $form;
         $user_data = $this->session->user_data[0];
-        //$this->view->form->username = $user_data->username;
+        $isUnique = $this->isUniqueProviderUser($user_data["provider"],$user_data["provider_id"]);
+        if(!$isUnique)
+        	$this->_redirect('auth/'.$user_data["provider"].'login');
         if ($this->getRequest()->isPost()) {
             if ($form->isValid($_POST)) {
-            	unset($this->session->user_data);
-            	//Create user
-            	$data = $form->getValues();
-            	if ($accounts->isUnique($data['username'])) {
+                unset($this->session->user_data);
+                //Create user
+                
+                $data = $form->getValues();
+                if ($accounts->isUnique($data['username'])) {
                     $this->view->errorMessage = 'Name already taken. Please choose another one.';
                     return;
                 }
@@ -207,13 +223,28 @@ class AuthController extends Zend_Controller_Action
                 $data['password'] = "";
                 $data['ip'] = $ip;
                 $account_id = $accounts->insert($data);
-                //print_r($user_data);die;
-                $twitter_data["account_id"] = $account_id;
-                $twitter_data["twitter_id"] = $user_data["provider_id"];
-                $twitter_data["oauth_token"] = $user_data["token"];
-                $twitter_data["oauth_token_secret"] = $user_data["secret"];
-                $twitter->insert($twitter_data);
-                
+                //Add to auth provider table
+                switch ($user_data["provider"]) {
+                    case "facebook":
+                        $provider_data["account_id"] = $account_id;
+                        $provider_data["facebook_id"] = $user_data["provider_id"];
+                        $facebook->insert($provider_data);
+                        break;
+                    case "twitter":
+                        $provider_data["account_id"] = $account_id;
+                        $provider_data["twitter_id"] = $user_data["provider_id"];
+                        $provider_data["oauth_token"] = $user_data["token"];
+                        $provider_data["oauth_token_secret"] = $user_data["secret"];
+                        $twitter->insert($provider_data);
+                        break;
+                    case "openid":
+                        //$twitter->insert($provider_data);
+                        break;
+                    default:
+                    	$this->_redirect('auth/register');
+                    	break;
+                }
+                //Auth
                 $auth = Zend_Auth::getInstance();
                 $authAdapter = new Zend_Auth_Adapter_DbTable(
                 $accounts->getAdapter(), 'accounts');
@@ -231,9 +262,6 @@ class AuthController extends Zend_Controller_Action
                 }
             }
         }
-        
-        
-        //die();
     }
 }
 

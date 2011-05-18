@@ -30,6 +30,7 @@ class Zend_Auth_Adapter_Facebook implements Zend_Auth_Adapter_Interface
 {
     private $_appId;
     private $_secret;
+    private $_redirect_uri;
     private $_permissions;
     private $_token;
     private $_url           = 'https://graph.facebook.com/oauth/access_token';
@@ -57,6 +58,13 @@ class Zend_Auth_Adapter_Facebook implements Zend_Auth_Adapter_Interface
             unset($config['appId']);
         } else {
             throw new Zend_Auth_Exception('Required param "appId" is missing param in config');
+        }
+        
+   		if (isset($config['redirect_uri'])) {
+            $this->_redirect_uri = $config['redirect_uri'];
+            unset($config['redirect_uri']);
+        } else {
+            throw new Zend_Auth_Exception('Required param "redirect_uri" is missing param in config');
         }
 
         if (isset($config['secret'])) {
@@ -99,11 +107,10 @@ class Zend_Auth_Adapter_Facebook implements Zend_Auth_Adapter_Interface
         $args = array(
             'client_id'     => $this->_appId,
             'client_secret' => $this->_secret,
-            'type'          => 'client_cred',
-            'redirect_uri'  => $this->getCurrentUrl(),
+            'redirect_uri'  => $this->_redirect_uri,
             'code'          => $this->_token,
         );
-
+        
         $response = $this->_apiCall($this->_url, $args);
         if (isset($response['error'])) {
             $code = Zend_Auth_Result::FAILURE;
@@ -127,9 +134,8 @@ class Zend_Auth_Adapter_Facebook implements Zend_Auth_Adapter_Interface
     protected function _apiCall($url, $params)
     {
         $r = new Zend_Http_Client($url);
-        $r->setParameterPost($params);
-        $response = $r->request(Zend_Http_Client::POST);
-        
+        $r->setParameterGet($params);
+        $response = $r->request(Zend_Http_Client::GET);
         $res = json_decode($response->getBody(), true);
         if(is_array($res)) {
             return $res;
@@ -147,49 +153,11 @@ class Zend_Auth_Adapter_Facebook implements Zend_Auth_Adapter_Interface
         $params = array(
             'scope'         => $this->_permissions,
             'client_id'     => $this->_appId,
-            'redirect_uri'  => $this->getCurrentUrl(),
+            'redirect_uri'  => $this->_redirect_uri,
         );
         $url = 'https://graph.facebook.com/oauth/authorize?';
         $url .= http_build_query($params, null, '&');
         header('Location: '.$url);
         exit();
-    }
-
-    /**
-    * Returns the Current URL, stripping it of known FB parameters that should
-    * not persist.
-    *
-    * @return String the current URL
-    */
-    protected function getCurrentUrl()
-    {
-        $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] == 'on'
-          ? 'https://'
-          : 'http://';
-        $currentUrl = $protocol . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-        $parts = parse_url($currentUrl);
-
-        // drop known fb params
-        $query = '';
-        if (!empty($parts['query'])) {
-          $params = array();
-          parse_str($parts['query'], $params);
-          foreach(self::$DROP_QUERY_PARAMS as $key) {
-            unset($params[$key]);
-          }
-          if (!empty($params)) {
-            $query = '?' . http_build_query($params, null, '&');
-          }
-        }
-
-        // use port if non default
-        $port =
-          isset($parts['port']) &&
-          (($protocol === 'http://' && $parts['port'] !== 80) ||
-           ($protocol === 'https://' && $parts['port'] !== 443))
-          ? ':' . $parts['port'] : '';
-
-        // rebuild
-        return $protocol . $parts['host'] . $port . $parts['path'] . $query;
     }
 }
