@@ -1,20 +1,15 @@
 <?php
 
-require_once 'PHPUnit/Framework/TestCase.php';
-
-class AuthControllerTest extends PHPUnit_Framework_TestCase
+class AuthControllerTest extends ControllerTestCase
 {
 
-    public function setUp()
+    public function testRegisterPageAvailable()
     {
-        /* Setup Routine */
-    }
-
-    public function tearDown()
-    {
-        /* Tear Down Routine */
+        $this->dispatch("/auth/register");
+        $this->assertController("auth");
+        $this->assertAction("register");	
+		$this->assertResponseCode(200);
     }
 
 
 }
-

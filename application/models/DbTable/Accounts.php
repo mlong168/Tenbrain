@@ -19,4 +19,13 @@ class Application_Model_DbTable_Accounts extends Zend_Db_Table_Abstract
             return FALSE;
         }
     }
+    
+	public function getUserName($account_id) {
+        $select = $this->_db->select()->from($this->_name)->where('account_id = ?', $account_id);
+        $result = $this->getAdapter()->fetchOne($select);
+        
+        print_r($result);
+        die();
+        //return $result ? $
+    }
 }
