@@ -47,10 +47,6 @@ class AuthController extends Zend_Controller_Action
         if ($this->getRequest()->isPost()) {
             if ($form->isValid($_POST)) {
                 $data = $form->getValues();
-                if ($data['password'] != $data['confir_password']) {
-                    $this->view->errorMessage = 'Password and confirm password dont \' match';
-                    return;
-                }
                 if ($accounts->isUnique($data['username'])) {
                     $this->view->errorMessage = 'Name already taken. Please choose another one.';
                     return;
@@ -65,11 +61,13 @@ class AuthController extends Zend_Controller_Action
                         if (isset($_SERVER["HTTP_CLIENT_IP"])) {
                             $ip = $_SERVER["HTTP_CLIENT_IP"];
                         }
-                $data['password'] = md5($data['password']);
-                $data['ip'] = $ip;
-                unset($data['confirm_password']);
-                $accounts->insert($data);
-                $this->_redirect('auth/login');
+                $userdata['password'] = md5($data['password']);
+                $userdata['ip'] = $ip;
+                $userdata['email'] = $data['email'];
+                $userdata['username'] = $data['username'];
+                
+                $accounts->insert($userdata);
+                $this->_redirect('auth/profile');
             }
         }
     }
