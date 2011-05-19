@@ -52,7 +52,7 @@
 					<ul class="signin_social">
 						<?php foreach($lt->third_party_auth_providers as $provider) : ?>
 						<li class="control third_party small <?php echo $provider; ?>">
-							<a href="auth/connect_<?php echo $provider ?>" class="social"
+							<a href="/auth/<?php echo $provider ?>connect" class="social"
 								title="Sign in with your <?php echo $provider ?> account" >Connect <?php echo $provider ?></a>
 						</li>
 						<?php endforeach; ?>
