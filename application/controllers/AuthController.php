@@ -32,7 +32,7 @@ class AuthController extends Zend_Controller_Action
                         Zend_Session::rememberMe();
                     $storage = new Zend_Auth_Storage_Session();
                     $storage->write($authAdapter->getResultRowObject());
-                    $this->_redirect('auth/profile');
+                    $this->_redirect('console');
                 } else {
                     $this->view->errorMessage = 'Invalid username or password. Please try again';
                 }
@@ -47,10 +47,6 @@ class AuthController extends Zend_Controller_Action
         if ($this->getRequest()->isPost()) {
             if ($form->isValid($_POST)) {
                 $data = $form->getValues();
-                if ($data['password'] != $data['confir_password']) {
-                    $this->view->errorMessage = 'Password and confirm password dont \' match';
-                    return;
-                }
                 if ($accounts->isUnique($data['username'])) {
                     $this->view->errorMessage = 'Name already taken. Please choose another one.';
                     return;
@@ -65,11 +61,13 @@ class AuthController extends Zend_Controller_Action
                         if (isset($_SERVER["HTTP_CLIENT_IP"])) {
                             $ip = $_SERVER["HTTP_CLIENT_IP"];
                         }
-                $data['password'] = md5($data['password']);
-                $data['ip'] = $ip;
-                unset($data['confirm_password']);
-                $accounts->insert($data);
-                $this->_redirect('auth/login');
+                $userdata['password'] = md5($data['password']);
+                $userdata['ip'] = $ip;
+                $userdata['email'] = $data['email'];
+                $userdata['username'] = $data['username'];
+                
+                $accounts->insert($userdata);
+                $this->_redirect('console');
             }
         }
     }
@@ -128,12 +126,12 @@ class AuthController extends Zend_Controller_Action
 		                if ($result->isValid()) {
 		                    $storage = new Zend_Auth_Storage_Session();
 		                    $storage->write($authAdapter->getResultRowObject());
-		                    $this->_redirect('auth/profile');
+		                    $this->_redirect('console');
 		                } else {
 		                    $this->view->errorMessage = 'Invalid username or password. Please try again';
 		                }
 					}
-					$this->_redirect('auth/profile');
+					$this->_redirect('console');
 					//Link to account
 				}
                 //Session
@@ -193,12 +191,12 @@ class AuthController extends Zend_Controller_Action
 		                if ($result->isValid()) {
 		                    $storage = new Zend_Auth_Storage_Session();
 		                    $storage->write($authAdapter->getResultRowObject());
-		                    $this->_redirect('auth/profile');
+		                    $this->_redirect('console');
 		                } else {
 		                    $this->view->errorMessage = 'Invalid username or password. Please try again';
 		                }
 					}
-					$this->_redirect('auth/profile');
+					$this->_redirect('console');
 					//Link to account
 				}
         if ($response) {
@@ -259,12 +257,12 @@ class AuthController extends Zend_Controller_Action
 		                if ($result->isValid()) {
 		                    $storage = new Zend_Auth_Storage_Session();
 		                    $storage->write($authAdapter->getResultRowObject());
-		                    $this->_redirect('auth/profile');
+		                    $this->_redirect('console');
 		                } else {
 		                    $this->view->errorMessage = 'Invalid username or password. Please try again';
 		                }
 					}
-					$this->_redirect('auth/profile');
+					$this->_redirect('console');
 					// LINK
 				}
 				// The user has not connect google
@@ -307,7 +305,7 @@ class AuthController extends Zend_Controller_Action
 						// Connect google
 						//$this->account_openid_model->insert($response->getDisplayIdentifier(), $this->session->userdata('account_id'));
 						//$this->session->set_flashdata('linked_info', sprintf(lang('linked_linked_with_your_account'), lang('connect_google')));
-						$this->_redirect('auth/profile');
+						$this->_redirect('console');
 					}
 				}
 			}
@@ -315,7 +313,7 @@ class AuthController extends Zend_Controller_Action
 			else
 			{
 				$auth->hasIdentity() ?
-					$this->_redirect('auth/profile') :   //LINK
+					$this->_redirect('console') :   //LINK
 						$this->_redirect('auth/register');
 			}
 		}
@@ -430,7 +428,7 @@ class AuthController extends Zend_Controller_Action
                 if ($result->isValid()) {
                     $storage = new Zend_Auth_Storage_Session();
                     $storage->write($authAdapter->getResultRowObject());
-                    $this->_redirect('auth/profile');
+                    $this->_redirect('console');
                 } else {
                     $this->view->errorMessage = 'Invalid username or password. Please try again';
                 }

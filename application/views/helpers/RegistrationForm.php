@@ -21,11 +21,6 @@ class Application_View_Helper_RegistrationForm extends Zend_Form {
         					'class'	=>	'control input'
         ))->setDecorators(array('ViewHelper'))->addDecorator('Errors');
         
-        $confirm_password = $this->createElement('password', 'confirm_password', array(
-                            'required' => TRUE,
-        					'class'	=>	'control input'
-        ))->setDecorators(array('ViewHelper'))->addDecorator('Errors');
-        
         $register = $this->createElement('submit', 'submit', array(
                             'class' => 'login_submit underlined_dash'
         ))->setDecorators(array('ViewHelper'))->addDecorator('Errors')->setLabel('Create my account');
