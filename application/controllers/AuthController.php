@@ -67,6 +67,23 @@ class AuthController extends Zend_Controller_Action
                 $userdata['username'] = $data['username'];
                 
                 $accounts->insert($userdata);
+                // LOGIN
+                $auth = Zend_Auth::getInstance();
+                $accounts = new Application_Model_DbTable_Accounts();
+                $authAdapter = new Zend_Auth_Adapter_DbTable(
+                $accounts->getAdapter(), 'accounts');
+                $authAdapter->setIdentityColumn('username')
+                    ->setCredentialColumn('password')
+                    ->setIdentity($userdata['username'])
+                    ->setCredential($userdata['password']);
+                $result = $auth->authenticate($authAdapter);
+                if ($result->isValid()) {
+                    $storage = new Zend_Auth_Storage_Session();
+                    $storage->write($authAdapter->getResultRowObject());
+                    $this->_redirect('console');
+                } else {
+                    $this->view->errorMessage = 'Invalid username or password. Please try again';
+                }
                 $this->_redirect('auth/login');
             }
         }
