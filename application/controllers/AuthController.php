@@ -213,7 +213,7 @@ class AuthController extends Zend_Controller_Action
         //die();
         die();
     }
-    public function openidconnectAction ()
+    public function googleconnectAction ()
     {
     	require_once "Auth/OpenID/AX.php";
     	$auth = Zend_Auth::getInstance();
@@ -231,7 +231,7 @@ class AuthController extends Zend_Controller_Action
 		if ($this->getRequest()->getParam('janrain_nonce'))
 		{
 			// Complete authentication process using server response
-			$response = $consumer->complete("http://ten.com/auth/openidconnect");
+			$response = $consumer->complete("http://ten.com/auth/googleconnect");
 			
 			// Check the response status
 			if ($response->status == Auth_OpenID_SUCCESS) 
@@ -336,7 +336,7 @@ class AuthController extends Zend_Controller_Action
 		$auth_request->addExtension($ax_request);
 		
 		// Redirect to authorizate URL
-		header("Location: ".$auth_request->redirectURL("http://ten.com/", "http://ten.com/auth/openidconnect"));
+		header("Location: ".$auth_request->redirectURL("http://ten.com/", "http://ten.com/auth/googleconnect"));
         die();
     }
     private function get_user_by_provider ($provider, $provider_id)
