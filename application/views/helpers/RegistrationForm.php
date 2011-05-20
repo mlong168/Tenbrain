@@ -9,8 +9,7 @@ class Application_View_Helper_RegistrationForm extends Zend_Form {
         $email = $this->createElement('text', 'email', array(
                             'required' => TRUE,
         					'class'	=>	'control input'
-        ))->addValidator('EmailAddress',true)->setDecorators(array('ViewHelper'))->addDecorator('Errors')->addFilters(array('StringTrim', 'StripTags'))
-->addErrorMessage('The Email address is invalid.');
+        ))->addValidator('EmailAddress',true)->setDecorators(array('ViewHelper'))->addDecorator('Errors')->addErrorMessage('The Email address is invalid.');
          
         $username = $this->createElement('text', 'username', array(
                             'required' => TRUE,
@@ -30,7 +29,7 @@ class Application_View_Helper_RegistrationForm extends Zend_Form {
 					                'messages' => array('isEmpty' => 'The Password field is required.')
 					            )),
 					        )
-        ))->setDecorators(array('ViewHelper'))->addDecorator('Errors')->addValidator('StringLength', false,array(6,20));
+        ))->setDecorators(array('ViewHelper'))->addDecorator('Errors');
         
         $register = $this->createElement('submit', 'submit', array(
                             'class' => 'login_submit underlined_dash'
@@ -55,7 +54,6 @@ class Application_View_Helper_RegistrationForm extends Zend_Form {
                     $email,
                     $username,
                     $password,
-                    $confirm_password,
                     $captcha,
                     $register
         ));

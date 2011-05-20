@@ -14,9 +14,9 @@ class Application_Model_DbTable_Accounts extends Zend_Db_Table_Abstract
         $select = $this->_db->select()->from($this->_name)->where('username = ?', $username);
         $result = $this->getAdapter()->fetchOne($select);
         if ($result) {
-            return FALSE;
-        } else {
             return TRUE;
+        } else {
+            return FALSE;
         }
     }
     

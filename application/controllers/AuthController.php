@@ -67,7 +67,7 @@ class AuthController extends Zend_Controller_Action
                 $userdata['username'] = $data['username'];
                 
                 $accounts->insert($userdata);
-                $this->_redirect('console');
+                $this->_redirect('auth/login');
             }
         }
     }
@@ -232,8 +232,8 @@ class AuthController extends Zend_Controller_Action
 		{
 			// Complete authentication process using server response
 			$domain = $_SERVER['SERVER_NAME'];
-			$response = $consumer->complete("http://"+$domain+"/auth/googleconnect");
-			
+			$response = $consumer->complete("http://".$domain."/auth/googleconnect");
+
 			// Check the response status
 			if ($response->status == Auth_OpenID_SUCCESS) 
 			{
