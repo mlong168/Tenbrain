@@ -67,7 +67,24 @@ class AuthController extends Zend_Controller_Action
                 $userdata['username'] = $data['username'];
                 
                 $accounts->insert($userdata);
-                $this->_redirect('console');
+                // LOGIN
+                $auth = Zend_Auth::getInstance();
+                $accounts = new Application_Model_DbTable_Accounts();
+                $authAdapter = new Zend_Auth_Adapter_DbTable(
+                $accounts->getAdapter(), 'accounts');
+                $authAdapter->setIdentityColumn('username')
+                    ->setCredentialColumn('password')
+                    ->setIdentity($userdata['username'])
+                    ->setCredential($userdata['password']);
+                $result = $auth->authenticate($authAdapter);
+                if ($result->isValid()) {
+                    $storage = new Zend_Auth_Storage_Session();
+                    $storage->write($authAdapter->getResultRowObject());
+                    $this->_redirect('console');
+                } else {
+                    $this->view->errorMessage = 'Invalid username or password. Please try again';
+                }
+                $this->_redirect('auth/login');
             }
         }
     }
@@ -213,7 +230,7 @@ class AuthController extends Zend_Controller_Action
         //die();
         die();
     }
-    public function openidconnectAction ()
+    public function googleconnectAction ()
     {
     	require_once "Auth/OpenID/AX.php";
     	$auth = Zend_Auth::getInstance();
@@ -231,8 +248,9 @@ class AuthController extends Zend_Controller_Action
 		if ($this->getRequest()->getParam('janrain_nonce'))
 		{
 			// Complete authentication process using server response
-			$response = $consumer->complete("http://ten.com/auth/openidconnect");
-			
+			$domain = $_SERVER['SERVER_NAME'];
+			$response = $consumer->complete("http://".$domain."/auth/googleconnect");
+
 			// Check the response status
 			if ($response->status == Auth_OpenID_SUCCESS) 
 			{
@@ -336,7 +354,7 @@ class AuthController extends Zend_Controller_Action
 		$auth_request->addExtension($ax_request);
 		
 		// Redirect to authorizate URL
-		header("Location: ".$auth_request->redirectURL("http://ten.com/", "http://ten.com/auth/openidconnect"));
+		header("Location: ".$auth_request->redirectURL("http://ten.com/", "http://ten.com/auth/googleconnect"));
         die();
     }
     private function get_user_by_provider ($provider, $provider_id)

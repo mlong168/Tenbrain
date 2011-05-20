@@ -18,9 +18,9 @@
 		<div id="account_area">
 		<?php if($lt->logged_in): ?>
 			<div class="signed_in_controls">
-				<span class="welcome_message">Welcome, !</span><br />
+				<span class="welcome_message">Welcome, <?php echo $lt->username ?>!</span><br />
 				<a class="blue underlined_dash" href="/auth/logout">Sign out</a>
-				<a class="blue underlined_dash" href="/control_panel">Profile</a>
+				<a class="blue underlined_dash" href="/console">Your console</a>
 			</div>
 		<?php else: ?>
 			<a class="blue underlined_dash" href="/auth/register">Register</a>
@@ -30,13 +30,13 @@
 					<label for="username" class="login_label">Username/Email:</label>
 				</p>
 				<p class="form_contents">
-					<input id="username" name="sign_in_username_email" class="signin_control" type="text" size="25" />
+					<input id="username" name="username" class="signin_control" type="text" size="25" />
 				</p>
 				<p class="form_contents small">
 					<label for="password" class="login_label">Password:</label>
 				</p>
 				<p class="form_contents">
-					<input id="password" name="sign_in_password" class="signin_control" type="password" size="25" />
+					<input id="password" name="password" class="signin_control" type="password" size="25" />
 				</p>
 				<p class="form_contents">
 					<span class="centered">

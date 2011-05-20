@@ -9,16 +9,26 @@ class Application_View_Helper_RegistrationForm extends Zend_Form {
         $email = $this->createElement('text', 'email', array(
                             'required' => TRUE,
         					'class'	=>	'control input'
-        ))->setDecorators(array('ViewHelper'))->addDecorator('Errors');
-        
+        ))->addValidator('EmailAddress',true)->setDecorators(array('ViewHelper'))->addDecorator('Errors')->addErrorMessage('The Email address is invalid.');
+         
         $username = $this->createElement('text', 'username', array(
                             'required' => TRUE,
-        					'class'	=>	'control input'
+        					'class'	=>	'control input',
+					        'validators' => array(
+					            array('NotEmpty', false, array(
+					                'messages' => array('isEmpty' => 'The Username field is required.')
+					            )),
+					        )
         ))->setDecorators(array('ViewHelper'))->addDecorator('Errors');
 
         $password = $this->createElement('password', 'password', array(
                             'required' => TRUE,
-        					'class'	=>	'control input'
+        					'class'	=>	'control input',
+        					'validators' => array(
+					            array('NotEmpty', false, array(
+					                'messages' => array('isEmpty' => 'The Password field is required.')
+					            )),
+					        )
         ))->setDecorators(array('ViewHelper'))->addDecorator('Errors');
         
         $register = $this->createElement('submit', 'submit', array(
@@ -38,13 +48,12 @@ class Application_View_Helper_RegistrationForm extends Zend_Form {
         $captcha = $this->createElement('Captcha', 'ReCaptcha',
                 array('captcha'=>array('captcha'=>'ReCaptcha',
                                         'service'=>$recaptcha)
-                ));
+                ))->removeDecorator('Errors') ;
 		
         $this->addElements(array(
                     $email,
                     $username,
                     $password,
-                    $confirm_password,
                     $captcha,
                     $register
         ));
