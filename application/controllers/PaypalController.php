@@ -12,14 +12,8 @@ class PaypalController extends Zend_Controller_Action
      */
     public function indexAction ()
     {
-    	$paypal = new Application_Model_Paypal();
-    	$page = $this->view->url();
-
-    	$buttonReturn = $paypal->CryptedBuyButton($page);
-    	if(!$buttonReturn["status"]) {
-			$this->_redirect('error');
-		}
-    	$this->view->CryptedBuyButton = $buttonReturn["encryptedButton"];
+    	$paypal = new Paypal_DoDirectPayment();
+    	$this->view->message = $paypal->doDirectPayment();
     }
     
     public function successAction()
