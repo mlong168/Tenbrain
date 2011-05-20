@@ -231,7 +231,8 @@ class AuthController extends Zend_Controller_Action
 		if ($this->getRequest()->getParam('janrain_nonce'))
 		{
 			// Complete authentication process using server response
-			$response = $consumer->complete("http://ten.com/auth/googleconnect");
+			$domain = $_SERVER['SERVER_NAME'];
+			$response = $consumer->complete("http://"+$domain+"/auth/googleconnect");
 			
 			// Check the response status
 			if ($response->status == Auth_OpenID_SUCCESS) 
