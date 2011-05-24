@@ -156,4 +156,9 @@ class ConsoleController extends Zend_Controller_Action
 		echo Zend_Json_Encoder::encode($menu);
 	}
 
+	public function cassietestAction()
+	{
+		$cassie  = new ZendExt_Cassandra();
+	}
+
 }
