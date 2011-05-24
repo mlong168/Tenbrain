@@ -1,17 +1,58 @@
 <?php
-class AuthController extends Zend_Controller_Action
+class AccountController extends Zend_Controller_Action
 {
     protected $session;
     public function init ()
     {
-        $this->session = new Zend_Session_Namespace('Auth');
+        $this->session = new Zend_Session_Namespace('Account');
     }
+	
+	private function get_user_ip()
+	{
+		$ip = null;
+            if (isset($_SERVER["REMOTE_ADDR"])) {
+                $ip = $_SERVER["REMOTE_ADDR"];
+            } else 
+                if (isset($_SERVER["HTTP_X_FORWARDED_FOR"])) {
+                    $ip = $_SERVER["HTTP_X_FORWARDED_FOR"];
+                } else 
+                    if (isset($_SERVER["HTTP_CLIENT_IP"])) {
+                        $ip = $_SERVER["HTTP_CLIENT_IP"];
+                    }
+		return $ip;
+	}
+	
     public function indexAction ()
     {
-        $this->_redirect('auth/login');
+        $this->_redirect('account/sign_in');
     }
-
-    public function loginAction ()
+	
+	private function send_welcome_email($email)
+	{
+    	$settings = new Application_Model_DbTable_Settings();
+		$mail = $settings->getSetting('email');
+		$mail_subject = $settings->getSetting('email_subject');
+		mail($email,$mail_subject,$mail);
+	}
+	
+	private function send_forgot_email($email)
+	{
+    	$settings = new Application_Model_DbTable_Settings();
+		$mail = $settings->getSetting('forgot');
+		$mail_subject = $settings->getSetting('forgot_email_subject');
+		mail($email,$mail_subject,$mail);
+	}
+	
+	private function send_password_mail($email,$pass)
+	{
+		$settings = new Application_Model_DbTable_Settings();
+		$mail = $settings->getSetting('new_pass');
+		//insert pass
+		$mail_subject = $settings->getSetting('new_pass_email_subject');
+		mail($email,$mail_subject,$mail);
+	}
+	
+    public function signInAction ()
     {
         $accounts = new Application_Model_DbTable_Accounts();
         $form = new Application_View_Helper_LoginForm();
@@ -20,11 +61,12 @@ class AuthController extends Zend_Controller_Action
             if ($form->isValid($_POST)) {
                 $data = $form->getValues();
                 $auth = Zend_Auth::getInstance();
-		        $authAdapter = new Zend_Auth_Adapter_DbTable($accounts->getAdapter(), 
+		        $authAdapter = new ZendExt_Auth_Adapter_MultiColumnDbTable($accounts->getAdapter(), 
 		        'accounts');
 		        $authAdapter->setIdentityColumn('username')
+		        	->setAlternativeIdentityColumn('email')
 		            ->setCredentialColumn('password')
-		            ->setIdentity($data['username'])
+		            ->setIdentity($data['login'])
 		            ->setCredential(md5($data['password']));
 		        $result = $auth->authenticate($authAdapter);
                 if ($result->isValid()) {
@@ -39,38 +81,29 @@ class AuthController extends Zend_Controller_Action
             }
         }
     }
-    public function registerAction ()
-    {
+    public function signUpAction ()
+    {		
         $accounts = new Application_Model_DbTable_Accounts();
         $form = new Application_View_Helper_RegistrationForm();
         $this->view->form = $form;
         if ($this->getRequest()->isPost()) {
             if ($form->isValid($_POST)) {
                 $data = $form->getValues();
-                if ($accounts->isUnique($data['username'])) {
-                    $this->view->errorMessage = 'Name already taken. Please choose another one.';
+                if (!$accounts->isUnique($data['username']) || !$accounts->isUniqueEmail($data['email'])) {
+                    $this->view->errorMessage = 'Name or Email already taken. Please choose another one.';
                     return;
                 }
-                $ip = null;
-                if (isset($_SERVER["REMOTE_ADDR"])) {
-                    $ip = $_SERVER["REMOTE_ADDR"];
-                } else 
-                    if (isset($_SERVER["HTTP_X_FORWARDED_FOR"])) {
-                        $ip = $_SERVER["HTTP_X_FORWARDED_FOR"];
-                    } else 
-                        if (isset($_SERVER["HTTP_CLIENT_IP"])) {
-                            $ip = $_SERVER["HTTP_CLIENT_IP"];
-                        }
+
                 $userdata['password'] = md5($data['password']);
-                $userdata['ip'] = $ip;
+                $userdata['ip'] = $this->get_user_ip();
                 $userdata['email'] = $data['email'];
                 $userdata['username'] = $data['username'];
                 
                 $accounts->insert($userdata);
+				//$this->send_welcome_email($userdata['email']);
                 // LOGIN
                 $auth = Zend_Auth::getInstance();
-                $accounts = new Application_Model_DbTable_Accounts();
-                $authAdapter = new Zend_Auth_Adapter_DbTable(
+                $authAdapter = new ZendExt_Auth_Adapter_MultiColumnDbTable(
                 $accounts->getAdapter(), 'accounts');
                 $authAdapter->setIdentityColumn('username')
                     ->setCredentialColumn('password')
@@ -81,24 +114,20 @@ class AuthController extends Zend_Controller_Action
                     $storage = new Zend_Auth_Storage_Session();
                     $storage->write($authAdapter->getResultRowObject());
                     $this->_redirect('console');
-                } else {
-                    $this->view->errorMessage = 'Invalid username or password. Please try again';
                 }
-                $this->_redirect('auth/login');
+                $this->_redirect('account/sign_in');
             }
         }
     }
-    public function logoutAction ()
+    public function signOutAction ()
     {
         $storage = new Zend_Auth_Storage_Session();
         $storage->clear();
         $auth = Zend_Auth::getInstance();
         $auth->clearIdentity();
         
-        $this->_redirect('auth/login');
+        $this->_redirect('account/sign_in');
     }
-    public function forgotAction ()
-    {}
     public function profileAction ()
     {
         $auth = Zend_Auth::getInstance();
@@ -107,7 +136,7 @@ class AuthController extends Zend_Controller_Action
         	echo "ONLINE";
         }
     }
-    public function facebookconnectAction ()
+    public function facebookConnectAction ()
     {
         $api_url = "https://graph.facebook.com/me?access_token=";
         $auth = Zend_Auth::getInstance();
@@ -125,13 +154,10 @@ class AuthController extends Zend_Controller_Action
                 $fb_info = Zend_Json_Decoder::decode($fb_info);
                 //LOGIN
 				$facebook = new Application_Model_DbTable_FacebookAccounts();
-
 				if($userid = $facebook->get_user($fb_info["id"]))
 				{
-					// Check if user is not signed in on a3m
 					if ( ! $auth->hasIdentity())
 					{
-						// LOGIN
 						$accounts = new Application_Model_DbTable_Accounts();
 				        $authAdapter = new Zend_Auth_Adapter_DbTable($accounts->getAdapter(), 
 				        'accounts');
@@ -149,7 +175,6 @@ class AuthController extends Zend_Controller_Action
 		                }
 					}
 					$this->_redirect('console');
-					//Link to account
 				}
                 //Session
                 $this->session->user_data = array(
@@ -161,7 +186,7 @@ class AuthController extends Zend_Controller_Action
                 'dateofbirth' => $fb_info["birthday"], 
                 'picture' => 'http://graph.facebook.com/' . $fb_info["id"] .
                  '/picture'));
-                $this->_redirect('auth/connectcreate');
+                $this->_redirect('account/connect_create');
             } else {
                 print $result->getMessages();
             }
@@ -169,7 +194,8 @@ class AuthController extends Zend_Controller_Action
             $adapter->redirect();
         }
     }
-    public function twitterconnectAction ()
+
+	public function twitterConnectAction ()
     {
         $config = $this->getInvokeArg('bootstrap')->getOption('twitter');
         $consumer = new Zend_Oauth_Consumer($config);
@@ -177,7 +203,44 @@ class AuthController extends Zend_Controller_Action
         $this->session->request_token = serialize($token);
         $consumer->redirect();
     }
-    public function twittercallbackAction ()
+	
+    public function forgotPasswordAction ()
+    {
+    	$form = new Application_View_Helper_Forgot();
+        $this->view->form = $form;
+		
+        if ($this->getRequest()->isPost()) {
+            if ($form->isValid($_POST)) {
+        		$accounts = new Application_Model_DbTable_Accounts();
+				$secure_key = $accounts->generate_forgot_key($email);
+				$this->send_forgot_email($email,$key);
+				$this->view->message = "Please view email box";
+			}
+		}
+    }
+	
+	public function generateNewPasswordAction ()
+	{
+		$data = $this->_request->getQuery();
+		if(isset($data["email"]) && isset($data["secure_key"]))
+		{
+			$accounts = new Application_Model_DbTable_Accounts();
+			$isValid = $accounts->isValidSecure($data);
+			if($isValid)
+			{
+				$pass = $account->change_new_password($data["email"]);
+				$this->send_password_mail($email, $pass);
+				$this->view->message = "Password sended";
+			}
+			else
+			{
+				$this->view->message = "Invalide secure key";
+			}
+		}
+			
+	}
+	
+    public function twitterCallbackAction ()
     {
     	$auth = Zend_Auth::getInstance();
         $config = $this->getInvokeArg('bootstrap')->getOption('twitter');
@@ -186,13 +249,11 @@ class AuthController extends Zend_Controller_Action
         unserialize($this->session->request_token));
         $twitter_service = new Zend_Service_Twitter(
         array('accessToken' => $access_token));
-        // verify user's credentials with Twitter
         $response = $twitter_service->account->verifyCredentials();
         // LOGIN
     			$twitter = new Application_Model_DbTable_TwitterAccounts();
 				if($userid = $twitter->get_user($response->id))
 				{
-					// Check if user is not signed in on a3m
 					if ( ! $auth->hasIdentity())
 					{
 						// LOGIN
@@ -214,7 +275,6 @@ class AuthController extends Zend_Controller_Action
 		                }
 					}
 					$this->_redirect('console');
-					//Link to account
 				}
         if ($response) {
             $this->session->user_data = array(
@@ -224,38 +284,28 @@ class AuthController extends Zend_Controller_Action
             'secret' => (string) $access_token->oauth_token_secret), 
             array('fullname' => $access_token->name, 
             'picture' => $access_token->profile_image_url));
-            //
-            $this->_redirect('auth/connectcreate');
+            $this->_redirect('account/connect_create');
         }
-        //die();
-        die();
     }
-    public function googleconnectAction ()
+    public function googleConnectAction ()
     {
     	require_once "Auth/OpenID/AX.php";
     	$auth = Zend_Auth::getInstance();
-        // create file storage area for OpenID data
         $store = new Auth_OpenID_FileStore('./oid_store');
-        // create OpenID consumer
         $consumer = new Auth_OpenID_Consumer($store);
 
         if (! $auth) {
             die("ERROR: Please enter a valid OpenID.");
         }
-    	// Get OpenID consumer object
 		$consumer = new Auth_OpenID_Consumer($store);
 		
 		if ($this->getRequest()->getParam('janrain_nonce'))
 		{
-			// Complete authentication process using server response
 			$domain = $_SERVER['SERVER_NAME'];
-			$response = $consumer->complete("http://".$domain."/auth/googleconnect");
-
-			// Check the response status
+			$response = $consumer->complete("http://".$domain."/account/google_connect");
 			if ($response->status == Auth_OpenID_SUCCESS) 
 			{
 				print_r($response->getDisplayIdentifier());
-				//die;
 				$openid = new Application_Model_DbTable_OpenIdAccounts();
 				
 				if ($userid = $openid->get_user($response->getDisplayIdentifier()))
@@ -281,12 +331,9 @@ class AuthController extends Zend_Controller_Action
 		                }
 					}
 					$this->_redirect('console');
-					// LINK
 				}
-				// The user has not connect google
 				else
 				{
-					// Check if user is signed in
 					if ( ! $auth->hasIdentity())
 					{
 						$openid_google = array();
@@ -315,27 +362,21 @@ class AuthController extends Zend_Controller_Action
 								'email' => isset($email) ? $email : NULL
 							), $openid_google);
 						
-						// Create account
-						$this->_redirect('auth/connectcreate');
+						$this->_redirect('account/connect_create');
 					}
 					else
 					{
-						// Connect google
-						//$this->account_openid_model->insert($response->getDisplayIdentifier(), $this->session->userdata('account_id'));
-						//$this->session->set_flashdata('linked_info', sprintf(lang('linked_linked_with_your_account'), lang('connect_google')));
 						$this->_redirect('console');
 					}
 				}
 			}
-			// Auth_OpenID_CANCEL or Auth_OpenID_FAILURE or anything else
 			else
 			{
 				$auth->hasIdentity() ?
 					$this->_redirect('console') :   //LINK
-						$this->_redirect('auth/register');
+						$this->_redirect('account/sign_up');
 			}
 		}
-        // Begin OpenID authentication process
 		$auth_request = $consumer->begin("https://www.google.com/accounts/o8/id");
 		
 		// Create ax request (Attribute Exchange)
@@ -354,7 +395,7 @@ class AuthController extends Zend_Controller_Action
 		$auth_request->addExtension($ax_request);
 		
 		// Redirect to authorizate URL
-		header("Location: ".$auth_request->redirectURL("http://ten.com/", "http://ten.com/auth/googleconnect"));
+		header("Location: ".$auth_request->redirectURL("http://".$domain."/", "http://".$domain."/account/google_connect"));
         die();
     }
     private function get_user_by_provider ($provider, $provider_id)
@@ -364,15 +405,7 @@ class AuthController extends Zend_Controller_Action
         $providers["openid"] = new Application_Model_DbTable_OpenIdAccounts();
         return $providers[$provider]->get_user($provider_id);
     }
-    public function facebookloginAction ()
-    {
-        die();
-    }
-    public function twitterloginAction ()
-    {
-        die();
-    }
-    public function connectcreateAction ()
+    public function connectCreateAction ()
     {
         $accounts = new Application_Model_DbTable_Accounts();
         $facebook = new Application_Model_DbTable_FacebookAccounts();
@@ -380,41 +413,33 @@ class AuthController extends Zend_Controller_Action
         $openid = new Application_Model_DbTable_OpenIdAccounts();
         
         if (! $this->session->user_data)
-            $this->_redirect('auth/login');
+            $this->_redirect('account/sign_in');
         $form = new Application_View_Helper_Connect();
         $this->view->form = $form;
         $user_data = $this->session->user_data[0];
         $user = $this->get_user_by_provider($user_data["provider"], 
         $user_data["provider_id"]);
         if ($user)
-            $this->_redirect('auth/' . $user_data["provider"] . 'login');
+            $this->_redirect('account/' . $user_data["provider"] . '_connect');
         if ($this->getRequest()->isPost()) {
             if ($form->isValid($_POST)) {
                 unset($this->session->user_data);
                 //Create user
                 $data = $form->getValues();
-                if ($accounts->isUnique($data['username'])) {
-                    $this->view->errorMessage = 'Name already taken. Please choose another one.';
+                if (!$accounts->isUnique($data['username']) || !$accounts->isUnique($data['email'])) {
+                    $this->view->errorMessage = 'Name or Email already taken. Please choose another one.';
                     return;
                 }
-                $ip = null;
-                if (isset($_SERVER["REMOTE_ADDR"])) {
-                    $ip = $_SERVER["REMOTE_ADDR"];
-                } else 
-                    if (isset($_SERVER["HTTP_X_FORWARDED_FOR"])) {
-                        $ip = $_SERVER["HTTP_X_FORWARDED_FOR"];
-                    } else 
-                        if (isset($_SERVER["HTTP_CLIENT_IP"])) {
-                            $ip = $_SERVER["HTTP_CLIENT_IP"];
-                        }
+
                 $data['password'] = "";
-                $data['ip'] = $ip;
+                $data['ip'] = $this->get_user_ip();
                 $account_id = $accounts->insert($data);
                 //Add to auth provider table
                 switch ($user_data["provider"]) {
                     case "facebook":
                         $provider_data["account_id"] = $account_id;
                         $provider_data["facebook_id"] = $user_data["provider_id"];
+						$provider_data["linkedon"] = date();
                         $facebook->insert($provider_data);
                         break;
                     case "twitter":
@@ -422,15 +447,17 @@ class AuthController extends Zend_Controller_Action
                         $provider_data["twitter_id"] = $user_data["provider_id"];
                         $provider_data["oauth_token"] = $user_data["token"];
                         $provider_data["oauth_token_secret"] = $user_data["secret"];
+						$provider_data["linkedon"] = date();
                         $twitter->insert($provider_data);
                         break;
                     case "openid":
                     	$provider_data["account_id"] = $account_id;
                         $provider_data["openid"] = $user_data["provider_id"];
+						$provider_data["linkedon"] = date();
                         $openid->insert($provider_data);
                         break;
                     default:
-                        $this->_redirect('auth/register');
+                        $this->_redirect('account/sign_up');
                         break;
                 }
                 //Auth

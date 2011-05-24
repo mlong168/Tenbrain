@@ -19,18 +19,18 @@
 		<?php if($lt->logged_in): ?>
 			<div class="signed_in_controls">
 				<span class="welcome_message">Welcome, <?php echo $lt->username ?>!</span><br />
-				<a class="blue underlined_dash" href="/auth/logout">Sign out</a>
+				<a class="blue underlined_dash" href="/account/sign_out">Sign out</a>
 				<a class="blue underlined_dash" href="/console">Your console</a>
 			</div>
 		<?php else: ?>
-			<a class="blue underlined_dash" href="/auth/register">Register</a>
+			<a class="blue underlined_dash" href="/account/sign_up">Register</a>
 			<span class="login_submit" id="signin_opener">Sign in</span>
-			<form action='/auth/login' method="post" accept-charset="utf-8" id="signin_controls">
+			<form action='/account/sign_in' method="post" accept-charset="utf-8" id="signin_controls">
 				<p class="form_contents small">
-					<label for="username" class="login_label">Username/Email:</label>
+					<label for="login" class="login_label">Username/Email:</label>
 				</p>
 				<p class="form_contents">
-					<input id="username" name="username" class="signin_control" type="text" size="25" />
+					<input id="login" name="login" class="signin_control" type="text" size="25" />
 				</p>
 				<p class="form_contents small">
 					<label for="password" class="login_label">Password:</label>
@@ -52,7 +52,7 @@
 					<ul class="signin_social">
 						<?php foreach($lt->third_party_auth_providers as $provider) : ?>
 						<li class="control third_party small <?php echo $provider; ?>">
-							<a href="/auth/<?php echo $provider ?>connect" class="social"
+							<a href="/account/<?php echo $provider ?>_connect" class="social"
 								title="Sign in with your <?php echo $provider ?> account" >Connect <?php echo $provider ?></a>
 						</li>
 						<?php endforeach; ?>

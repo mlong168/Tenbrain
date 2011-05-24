@@ -1,22 +1,12 @@
 <?php
 
 /**
- * LoginForm
+ * Forgot
  */
 
-class Application_View_Helper_Connect extends Zend_Form {
+class Application_View_Helper_Forgot extends Zend_Form {
     
     public function init() {
-
-        $username = $this->createElement('text', 'username', array(
-        					'class'	=>	'control input',
-                            'required' => TRUE,
-        					'validators' => array(
-					            array('NotEmpty', false, array(
-					                'messages' => array('isEmpty' => 'The Username field is required.')
-					            )),
-					        )
-        ))->setDecorators(array('ViewHelper'))->addDecorator('Errors');
         
         $email = $this->createElement('text', 'email', array(
         					'class'	=>	'control input',
@@ -32,8 +22,24 @@ class Application_View_Helper_Connect extends Zend_Form {
                             'class' => 'login_submit underlined_dash'
         ))->setDecorators(array('ViewHelper'))->addDecorator('Errors')->setLabel('Sign In');
         
+		$recaptchaKeys = Zend_Registry::get('config.recaptcha');
+		
+        $recaptcha = new Zend_Service_ReCaptcha($recaptchaKeys["pubkey"], $recaptchaKeys["privkey"]);
+        $recaptcha->setParams(array(
+		    'xhtml'=>true
+		));
+		$recaptcha->setOptions(array(
+		    'theme'=>'white',
+		    'tabindex'=>2
+		));
+        $captcha = $this->createElement('Captcha', 'ReCaptcha',
+                array('captcha'=>array('captcha'=>'ReCaptcha',
+                                        'service'=>$recaptcha)
+                ))->removeDecorator('Errors') ;
+		
+		
         $this->addElements(array(
-                    $username,
+                    $captcha,
                     $email,
                     $signup
         ));

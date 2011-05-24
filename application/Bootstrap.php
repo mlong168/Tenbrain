@@ -10,6 +10,12 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
 		
 		$view->headTitle('TenBrain - Save your Brain, While saving Money!')
              ->setSeparator(' - ');
+		
+		$front_controller = Zend_Controller_Front::getInstance();
+		$dispatcher = $front_controller->getDispatcher();
+		$dispatcher->setWordDelimiter(array('-', '.', '_'));
+		
+		unset($front_controller);
 	}
 	
     protected function _initRoutes()
