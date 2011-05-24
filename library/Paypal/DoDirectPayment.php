@@ -13,6 +13,7 @@ class Paypal_DoDirectPayment
 	private $environment = 'sandbox';	// or 'beta-sandbox' or 'live'
 
 	private $API = array( 
+			//Website Payments Pro account
 			'UserName' => 'kkorni_1304690763_biz_api1.softjourn.com',
 			'Password' => '1304690787',
 			'Signature' => 'AFcWxV21C7fd0v3bYYYRCpSSRl31A9poMo9ShDVamqD2WQCv-il9oeci',
@@ -43,8 +44,8 @@ class Paypal_DoDirectPayment
 	{
 		// Set request-specific fields.
 		$paymentType = urlencode('Sale');				// 'Authorization' or 'Sale'
-		$firstName = urlencode('Bob');
-		$lastName = urlencode('Marley');
+//		$firstName = urlencode('Bob');
+//		$lastName = urlencode('Marley');
 		$creditCardType = urlencode('VISA');
 		$creditCardNumber = urlencode('4834612755548993');
 		$expDateMonth = '05';
@@ -72,11 +73,12 @@ class Paypal_DoDirectPayment
 		// Execute the API operation; see the PPHttpPost function above.
 		$httpParsedResponseAr = $this->httpPost('DoDirectPayment', $nvpStr);
 		
-		if("SUCCESS" == strtoupper($httpParsedResponseAr["ACK"]) || "SUCCESSWITHWARNING" == strtoupper($httpParsedResponseAr["ACK"])) {
-			return ('Direct Payment Completed Successfully: '.print_r($httpParsedResponseAr, true));
-		} else  {
-			return ('DoDirectPayment failed: ' . print_r($httpParsedResponseAr, true));
-		}
+//		if("SUCCESS" == strtoupper($httpParsedResponseAr["ACK"]) || "SUCCESSWITHWARNING" == strtoupper($httpParsedResponseAr["ACK"])) {
+//			return ('Direct Payment Completed Successfully: '.print_r($httpParsedResponseAr, true));
+//		} else  {
+//			return ('DoDirectPayment failed: ' . print_r($httpParsedResponseAr, true));
+//		}
+		return $httpParsedResponseAr;
 	}
 	
 	/**
@@ -116,7 +118,10 @@ class Paypal_DoDirectPayment
 		$httpResponse = curl_exec($ch);
 	
 		if(!$httpResponse) {
-			exit("$methodName_ failed: ".curl_error($ch).'('.curl_errno($ch).')');
+			return array(
+				'ACK' => 'Failure',
+				'L_LONGMESSAGE0' => "$methodName_ failed: ".curl_error($ch).'('.curl_errno($ch).')'
+			);
 		}
 	
 		// Extract the response details.
@@ -131,7 +136,10 @@ class Paypal_DoDirectPayment
 		}
 	
 		if((0 == sizeof($httpParsedResponseAr)) || !array_key_exists('ACK', $httpParsedResponseAr)) {
-			exit("Invalid HTTP Response for POST request($nvpreq) to $API_Endpoint.");
+			return array(
+				'ACK' => 'Failure',
+				'L_LONGMESSAGE0' => "Invalid HTTP Response for POST request($nvpreq) to $API_Endpoint."
+			);
 		}
 	
 		return $httpParsedResponseAr;
@@ -139,3 +147,33 @@ class Paypal_DoDirectPayment
 
 }
 
+//success:
+//Array
+//(
+//    [TIMESTAMP] => 2011%2d05%2d24T08%3a40%3a41Z
+//    [CORRELATIONID] => e904b5db76401
+//    [ACK] => Success
+//    [VERSION] => 51%2e0
+//    [BUILD] => 1863577
+//    [AMT] => 0%2e99
+//    [CURRENCYCODE] => USD
+//    [AVSCODE] => X
+//    [CVV2MATCH] => M
+//    [TRANSACTIONID] => 6XX64287PX509163E
+//)
+
+//Failure
+//Array
+//(
+//    [TIMESTAMP] => 2011%2d05%2d24T08%3a42%3a48Z
+//    [CORRELATIONID] => 34aad0572fdf
+//    [ACK] => Failure
+//    [VERSION] => 51%2e0
+//    [BUILD] => 1863577
+//    [L_ERRORCODE0] => 10561
+//    [L_SHORTMESSAGE0] => Invalid%20Data
+//    [L_LONGMESSAGE0] => There%27s%20an%20error%20with%20this%20transaction%2e%20Please%20enter%20a%20complete%20billing%20address%2e
+//    [L_SEVERITYCODE0] => Error
+//    [AMT] => 0%2e99
+//    [CURRENCYCODE] => USD
+//)

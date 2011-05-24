@@ -12,12 +12,15 @@ class PaypalController extends Zend_Controller_Action
      */
     public function indexAction ()
     {
-    	$paypal = new Paypal_DoDirectPayment();
-    	$this->view->message = $paypal->doDirectPayment();
+
     }
     
     public function successAction()
     {
+    	$paypal = new Application_Model_Paypal();
+    	$details = $paypal->doDirectPayment();
+    	
+    	$this->view->form = $details;
     }
     
     public function cancelAction()
