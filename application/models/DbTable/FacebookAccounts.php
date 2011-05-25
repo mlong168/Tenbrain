@@ -10,6 +10,8 @@ class Application_Model_DbTable_FacebookAccounts extends Zend_Db_Table_Abstract
      */
     protected $_name = 'facebook_accounts';
 	
+	protected $_primary = array("account_id","facebook_id");
+	
     public function isUnique($id) {
         $select = $this->_db->select()->from($this->_name)->where('facebook_id = ?', (int)$id);
         $result = $this->getAdapter()->fetchOne($select);
