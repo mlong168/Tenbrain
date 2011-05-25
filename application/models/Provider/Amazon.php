@@ -4,10 +4,12 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 {
 	
 	private $ec2;
+	private $cassie;
 	
 	function __construct(){
 		parent::__construct();
 		
+		$this->cassie = new Application_Model_Servers();
 		// $this->ec2 = new AmazonEC2()
 	}
 	
@@ -23,7 +25,7 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 	
 	public function list_servers($ids)
 	{
-		
+		print_r($this->cassie->get($ids));
 	}
 
 	public function start_servers(array $ids)
