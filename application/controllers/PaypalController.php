@@ -17,14 +17,20 @@ class PaypalController extends Zend_Controller_Action
      */
     public function indexAction ()
     {
+    	
+    	
 		$form = new Paypal_Form_Creditcard();
 		$this->view->form = $form;
 		
 		if ($this->getRequest()->isPost())
 		{
-			if(!$this->view->form->isValid($this->getRequest()->getParams()))
+			$params = $this->getRequest()->getParams();
+			if($this->view->form->isValid($params))
 			{
-				
+				$paypal = new Application_Model_Paypal();
+    			$details = $paypal->doDirectPayment();
+    			
+				$this->_helper->Redirector->gotoUrl('paypal/success/');
 			}
 			else
 			{
@@ -48,6 +54,12 @@ class PaypalController extends Zend_Controller_Action
     
     public function notifyAction()
     {
-    	
+    	//bad credit card info !
+    }
+    
+    private function isAutorized()
+    {
+    	$auth = Zend_Auth::getInstance();
+  		return $auth->hasIdentity();
     }
 }

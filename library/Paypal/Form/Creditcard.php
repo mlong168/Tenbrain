@@ -4,9 +4,9 @@ class Paypal_Form_Creditcard extends Zend_Form
 	private $inputClassName = 'control paypal';
 	private $labelClassName = 'text paypal';
 	private $cc_type = array(
-							'Visa',
-							'Master Card',
-							'American Express'
+							'Visa' => 'Visa',
+							'Master Card' => 'Master Card',
+							'American Express' => 'American Express'
 	);
 	
 	public function init()
@@ -24,6 +24,7 @@ class Paypal_Form_Creditcard extends Zend_Form
 								new Zend_Validate_CreditCard()
 		)));
 		$this->setLabelDecorator($number);
+		$number->setErrorMessages(array('Bad credit card number.'));
         
         $type = $this->createElement('select', 'type', array(
 							'label' => 'Credit Card Type',
@@ -47,15 +48,15 @@ class Paypal_Form_Creditcard extends Zend_Form
         					'multioptions' => $this->genYears()
         ));
         
-        $cvv = $this->createElement('text', 'cvv', array(
-							'label' => 'CVV',
+        $cvv2 = $this->createElement('text', 'cvv', array(
+							'label' => 'CVV2',
         					'maxlength' => 4,
         					'size' => 4,
         					'class'	=>	$this->inputClassName,
                             'required' => TRUE,
 							'validators' => array(new Zend_Validate_StringLength(array('max' => 4)))
         ));
-		$this->setLabelDecorator($cvv);
+		$this->setLabelDecorator($cvv2);
 		
         $signup = $this->createElement('submit', 'submit', array(
                             'class' => 'login_submit underlined_dash',
@@ -68,7 +69,7 @@ class Paypal_Form_Creditcard extends Zend_Form
                     $type,
                     $expMonth,
                     $expYear,
-                    $cvv,
+                    $cvv2,
                     $signup,
         );
         
@@ -87,7 +88,7 @@ class Paypal_Form_Creditcard extends Zend_Form
 	{
 		$monthList = array();
 		foreach (range(1, 12) as $value) {
-			array_push($monthList, $value);
+			$monthList[$value]= $value;
 		}
 		return $monthList;
 	}
@@ -97,7 +98,7 @@ class Paypal_Form_Creditcard extends Zend_Form
 		$currentYear = date('Y');
 		$yearsList = array();
 		foreach (range($currentYear, $currentYear + 10) as $value) {
-			array_push($yearsList, $value);
+			$yearsList[$value]= $value;
 		}
 		return $yearsList;
 	}
