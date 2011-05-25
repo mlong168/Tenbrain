@@ -1,6 +1,34 @@
+form#payment {
+	display: block;
+	margin: 0 auto;
+	width: 450px;
+	text-align: left;
+}
+form#payment input,
+form#payment select{
+	display: inline-block;
+}
+form#payment ul.errors{
+	padding: 0;
+	margin: 0.2em 0;
+}
 .control.paypal {
 	display: block;
 	background: none;
 	outline: none;
 }
-
+.text.paypal {
+	display: block;
+	padding: 0.2em 40px;
+}
+#month-element {
+	float: left;
+}
+#year-label {
+	display: none;
+}
+#year-element {
+	display: inline-block;
+	margin: 0 10px;
+	clear: both;
+}

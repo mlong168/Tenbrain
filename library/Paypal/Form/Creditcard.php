@@ -2,6 +2,7 @@
 class Paypal_Form_Creditcard extends Zend_Form
 {
 	private $inputClassName = 'control paypal';
+	private $labelClassName = 'text paypal';
 	private $cc_type = array(
 							'Visa',
 							'Master Card',
@@ -11,32 +12,36 @@ class Paypal_Form_Creditcard extends Zend_Form
 	public function init()
 	{
 		$this->setMethod('post');
-		$this->setAttrib('id', 'add');
+		$this->setAttrib('id', 'payment');
 		
 		$number = $this->createElement('text', 'number', array(
 							'label' => 'Credit Card Number',
         					'class'	=>	$this->inputClassName,
                             'required' => TRUE,
+							'maxlength' => 16,
+        					'size' => 16,
 							'validators' => array(
-								new Zend_Validate_Digits(),
-								new Zend_Validate_StringLength(array('max' => 16))
+								new Zend_Validate_CreditCard()
 		)));
+		$this->setLabelDecorator($number);
         
-        $type = $this->createElement('text', 'type', array(
+        $type = $this->createElement('select', 'type', array(
 							'label' => 'Credit Card Type',
         					'class'	=>	$this->inputClassName,
-                            'required' => TRUE
+                            'required' => TRUE,
+        					'multioptions' => $this->cc_type
         ));
+		$this->setLabelDecorator($type);
         
         $expMonth = $this->createElement('select', 'month', array(
-							'label' => 'expiration month',
+							'label' => 'Expiration month/year',
         					'class'	=>	$this->inputClassName,
                             'required' => TRUE,
         					'multioptions' => $this->genMonth()
         ));
+		$this->setLabelDecorator($expMonth);
         
         $expYear = $this->createElement('select', 'year', array(
-							'label' => 'expiration year',
         					'class'	=>	$this->inputClassName,
                             'required' => TRUE,
         					'multioptions' => $this->genYears()
@@ -44,17 +49,21 @@ class Paypal_Form_Creditcard extends Zend_Form
         
         $cvv = $this->createElement('text', 'cvv', array(
 							'label' => 'CVV',
+        					'maxlength' => 4,
+        					'size' => 4,
         					'class'	=>	$this->inputClassName,
                             'required' => TRUE,
 							'validators' => array(new Zend_Validate_StringLength(array('max' => 4)))
         ));
+		$this->setLabelDecorator($cvv);
 		
         $signup = $this->createElement('submit', 'submit', array(
-                            'class' => 'login_submit underlined_dash'
+                            'class' => 'login_submit underlined_dash',
         ))
-        					->setLabel('Sign In');
+        					->setLabel('Make payment');
 
-        $elements = array(
+
+		$elements = array(
                     $number,
                     $type,
                     $expMonth,
@@ -63,11 +72,15 @@ class Paypal_Form_Creditcard extends Zend_Form
                     $signup,
         );
         
-//        foreach ($elements as $element) {
-//        	$element = $element->setDecorators(array('ViewHelper'));
-//        }
-        
         $this->addElements($elements);
+        
+        $this->setDecorators(array(
+            'FormElements',
+            array('HtmlTag', array('tag' => 'dl',
+                                   'class' => 'payment_form')),
+            'Form',
+        ));
+        
 	}
 	
 	private function genMonth()
@@ -87,6 +100,14 @@ class Paypal_Form_Creditcard extends Zend_Form
 			array_push($yearsList, $value);
 		}
 		return $yearsList;
+	}
+	
+	private function setLabelDecorator($element, $class = null)
+	{
+		if($class == null)
+			$class = $this->labelClassName;
+		$element->getDecorator('Label')
+				->setOptions(array('tag' => 'dt', 'class' => $class));
 	}
 	
 	
