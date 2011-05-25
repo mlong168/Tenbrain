@@ -158,17 +158,48 @@ class ConsoleController extends Zend_Controller_Action
 
 	public function cassietestAction()
 	{
-		$cassie  = new ZendExt_Cassandra("Servers");
-		
 		// $this->_helper->viewRenderer->setNoRender();
 		// $this->layout->disableLayout();
+		
+		$auth = Zend_Auth::getInstance();
+		$user_id = $auth->getIdentity()->id;
+		
+		include_once('ZendExt/Cassandra/columnfamily.php');
+		$ids = array(CassandraUtil::uuid1(), CassandraUtil::uuid1(), CassandraUtil::uuid1());
+		
+		$cassie  = new ZendExt_Cassandra("SERVERS");
+		
+		$sample_servers = array(
+			$ids[0]	=> array('provider' => 'Amazon', 'id' => '23456'),
+			$ids[1]	=> array('provider' => 'Rackspace', 'id' => '12335'),
+			$ids[2]	=> array('provider' => 'Gogrid', 'id' => '32145')
+		);
+		
+		$cassie->batch_insert($sample_servers);
+		
+		$cassie->set_column_family('USER_SERVERS');
+		// $cassie->insert($user_id, array(
+			// 'server_ids' => implode(',', array($ids[0], $ids[1]))
+		// ));
+		
+		$my_server_ids = $cassie->get($user_id);
+		$my_server_ids = explode(',', $my_server_ids['server_ids']);
+		$my_server_ids = array_merge($my_server_ids, array($ids[2]));
+		
+		$cassie->insert($user_id, array(
+			'server_ids' => implode(',', $my_server_ids)
+		));
+		
+		
+		// $cassie->set_column_family('SERVERS');
+		// $my_servers = $cassie->multiget(explode(',', $my_server_ids['server_ids']));
 		
 		// header('Content-type: text/plain');
 		
 		// $inserted = $cassie->get('test_key', array('123'));
-		
 		echo '<pre>';
-		// print_r($inserted);
+		print_r($cassie->get($user_id));
+		// print_r(explode(',', $my_server_ids));
 		die;
 	}
 

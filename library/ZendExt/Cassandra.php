@@ -3,16 +3,20 @@ require_once 'ZendExt/Cassandra/columnfamily.php';
 
 class ZendExt_Cassandra 
 {
+	private $servers = array("50.19.88.0:9160");
+	private $key_space = "Tenbrain_dev";
 	private $column_family;
 	
 	function __construct($column_family) 
 	{
-		//Settings
-		$servers = array("50.19.88.0:9160");
-		$key_space = "Tenbrain_dev";
-		
-		$pool = new ConnectionPool($key_space, $servers);
-		$this->column_family =  new ColumnFamily($pool, $column_family);
+		$pool = new ConnectionPool($this->key_space, $this->servers);
+		$this->column_family = new ColumnFamily($pool, $column_family);
+   }
+   
+   public function set_column_family($column_family)
+   {
+		$pool = new ConnectionPool($this->key_space, $this->servers);
+   		$this->column_family = new ColumnFamily($pool, $column_family);
    }
    
    public function insert($key, array $row)
@@ -25,7 +29,7 @@ class ZendExt_Cassandra
    		$this->column_family->batch_insert($rows);
    }
    
-   public function get($key, $column)
+   public function get($key, $column = NULL)
    {
    		return (array)$this->column_family->get($key, $column);
    }
