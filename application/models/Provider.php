@@ -1,0 +1,55 @@
+<?php
+
+abstract class Application_Model_Provider
+{
+	
+	protected $account_server_count_limits = array();
+	
+	protected function __construct()
+	{
+		$this->account_server_count_limits = $this->load_account_server_count_limits();
+	}
+	
+	private function load_account_server_count_limits()
+	{
+		return 1;
+	}
+	
+	protected function get_deployed_server_count()
+	{
+
+	}
+	
+	protected function get_provider_instance_id($id)
+	{
+
+	}
+	
+	protected function view_backups($provider, $instance_id)
+	{
+
+	}
+	
+	protected function die_with_error($error_message)
+	{
+		header('Content-type: application/json');
+		echo json_encode(array(
+			'error'			=> true,
+			'error_message'	=> $error_message
+		));
+		die; // how can you proceed if things failed? ;)
+	}
+	
+	abstract public function launch_server(array $params);
+	
+	abstract public function list_images();
+	abstract public function list_servers($ids);
+
+	abstract public function start_servers(array $ids);
+	abstract public function stop_servers(array $ids);
+	abstract public function reboot_servers(array $ids);
+	abstract public function terminate_servers(array $ids);
+	
+	abstract public function create_load_balancer($name, array $instances, $gogrid_lb_address);
+	abstract public function delete_load_balancer($id);
+}

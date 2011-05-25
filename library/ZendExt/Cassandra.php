@@ -25,9 +25,9 @@ class ZendExt_Cassandra
    		$this->column_family->batch_insert($rows);
    }
    
-   public function get($key)
+   public function get($key, $column)
    {
-   		return (array)$this->column_family->get($key);
+   		return (array)$this->column_family->get($key, $column);
    }
    
    public function multiget($keys)

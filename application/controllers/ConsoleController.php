@@ -158,7 +158,17 @@ class ConsoleController extends Zend_Controller_Action
 
 	public function cassietestAction()
 	{
-		$cassie  = new ZendExt_Cassandra("Tenbrain");
+		$cassie  = new ZendExt_Cassandra("Servers");
+		
+		// $this->_helper->viewRenderer->setNoRender();
+		// $this->layout->disableLayout();
+		
+		// header('Content-type: text/plain');
+		
+		// $inserted = $cassie->get('test_key', array('123'));
+		
+		echo '<pre>';
+		// print_r($inserted);
 		die;
 	}
 
