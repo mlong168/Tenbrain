@@ -5,8 +5,8 @@ class Paypal_Form_Creditcard extends Zend_Form
 	private $labelClassName = 'text paypal';
 	private $cc_type = array(
 							'Visa' => 'Visa',
-							'Master Card' => 'Master Card',
-							'American Express' => 'American Express'
+//							'Master Card' => 'Master Card',
+//							'American Express' => 'American Express'
 	);
 	
 	public function init()
