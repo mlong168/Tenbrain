@@ -20,7 +20,16 @@ class AmazonController extends Zend_Controller_Action
 	
 	public function indexAction()
 	{
-		
+		$this->amazon->create_user_key_pair();
+	}
+	
+	public function launchInstance()
+	{
+		// $cassie->column_families['USER_SERVERS']->INSERT();
+		$params = array(
+			''
+		);
+		$this->amazon->launch_server($params);
 	}
 
 }
