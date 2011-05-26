@@ -10,59 +10,66 @@ class Application_Model_Paypal extends Zend_Db_Table_Abstract
     /**
      * The default table name 
      */
-    protected $_name = 'paypal';
-    protected $paypal;
-    protected $details = false;
-    protected $db_table = 'payment_details';
+    protected $_name = 'payment_details';
     
-    public function __construct()
-    {
-    	$this->paypal = new Paypal_DoDirectPayment();
-    }
+    /**
+     * 
+     * details of transaction
+     * @var array
+     */
+    protected $details;
     
-    public function doDirectPayment() 
+    public function db_save($data) 
     {
-    	$this->details = $this->paypal->doDirectPayment();
+    	$this->details = $data;
     	
-    	#TODO: save datails to db
+    	$auth = Zend_Auth::getInstance();
+    	
     	$bind = array(
-    		'userid' 		=> 0,
-    		'ack' 			=> urlencode($this->details['ACK']),
-    		'amount' 		=> urlencode($this->details['AMT']),
-    		'timestamp' 	=> urlencode($this->details['TIMESTAMP']),
-    		'transactionid'	=> urlencode($this->details['TRANSACTIONID']),
-    		'error_short' 	=> urlencode($this->details['L_SHORTMESSAGE0']),
-    		'error_long' 	=> urlencode($this->details['L_LONGMESSAGE0']),
-    		'details' 		=> urlencode(print_r($this->details, true)),
+    		'userid' 		=> $auth->getIdentity()->id,
+    		'ack' 			=> urldecode($data['ACK']),
+    		'amount' 		=> urldecode($data['AMT']),
+    		'timestamp' 	=> urldecode($data['TIMESTAMP']),
+    		'transactionid'	=> $this->urldecode_save('TRANSACTIONID'),
+    		'error_short' 	=> $this->urldecode_save('L_SHORTMESSAGE0'),
+    		'error_long' 	=> $this->urldecode_save('L_LONGMESSAGE0'),
+    		'details' 		=> urldecode(print_r($data, true)),
     	);
-    	return $this->db_save($bind);
+    	return $this->insert($bind);
     }
     
-    public function isPaymentSuccessful()
+    private function urldecode_save($name, $saveAs = null)
     {
-    	if ($this->details)
-	    	if("SUCCESS" == strtoupper($this->details["ACK"]) || "SUCCESSWITHWARNING" == strtoupper($this->details["ACK"])) 
+    	if (isset($this->details[$name]))
+    	{
+    		return urldecode($this->details[$name]);
+    	}
+   		return $saveAs;
+    }
+    
+    public function db_load($id)
+    {
+		$result = $this->find($id);
+		if (count($result) > 0)
+		{
+    		$this->details = $result->getRow(0)->toArray();
+    		return $this->details;
+		}
+    	return false;
+    }
+    
+    
+    public function isPaymentSuccessful($ack)
+    {
+    	if (isset($ack))
+	    	if(	"SUCCESS" == strtoupper($ack) || 
+	    		"SUCCESSWITHWARNING" == strtoupper($ack)) 
 			{
 				return true;
 			} 
 		return false;
     }
     
-    private function db_save($bind)
-    {    	
-    	$sql = $this->_db->insert($this->db_table, $bind);
-    	$result = $this->getAdapter()->fetchOne($sql);
-    	return $this->_db->lastInsertId();
-    }
     
-    private function db_load()
-    {
-    	$select = $this->_db->select()->from($this->db_table)->where('username = ?', $username);
-        $result = $this->getAdapter()->fetchOne($select);
-        if ($result) {
-            return TRUE;
-        } else {
-            return FALSE;
-        }
-    }
+    
 }

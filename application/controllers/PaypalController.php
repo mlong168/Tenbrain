@@ -7,18 +7,14 @@
  */
 class PaypalController extends Zend_Controller_Action
 {
-//	public function preDispatch()
-//	{
-//		$this->session = new Zend_Session_Namespace('paypal');
-//	}
 	
 	/**
      * The default action - show the home page
      */
+	
     public function indexAction ()
     {
-    	
-    	
+    	$this->isAutorized();
 		$form = new Paypal_Form_Creditcard();
 		$this->view->form = $form;
 		
@@ -27,10 +23,10 @@ class PaypalController extends Zend_Controller_Action
 			$params = $this->getRequest()->getParams();
 			if($this->view->form->isValid($params))
 			{
-				$paypal = new Application_Model_Paypal();
-    			$details = $paypal->doDirectPayment();
+				$paypal = new Paypal_DoDirectPayment();
+    			$page = $paypal->doDirectPayment($params);
     			
-				$this->_helper->Redirector->gotoUrl('paypal/success/');
+				$this->_helper->Redirector->gotoUrl('paypal/details/'.$page);
 			}
 			else
 			{
@@ -39,27 +35,21 @@ class PaypalController extends Zend_Controller_Action
 		}
     }
     
-    public function successAction()
+    public function detailsAction()
     {
-    	$paypal = new Application_Model_Paypal();
-    	$details = $paypal->doDirectPayment();
-    	
-    	$this->view->form = $details;
-    }
-    
-    public function cancelAction()
-    {
-    	$this->_redirect('paypal');
-    }
-    
-    public function notifyAction()
-    {
-    	//bad credit card info !
+    	$this->isAutorized();
+    	$payment = new Application_Model_Paypal();
+    	$this->view->id = $this->getRequest()->getParam('id');
+    	$details = $payment->db_load($this->view->id);
+		$this->view->details = $payment->isPaymentSuccessful($details['ack']);
     }
     
     private function isAutorized()
     {
     	$auth = Zend_Auth::getInstance();
-  		return $auth->hasIdentity();
+  		if (!$auth->hasIdentity())
+  		{
+  			$this->_helper->Redirector->gotoUrl('account/sign_in');
+  		}
     }
 }

@@ -45,7 +45,7 @@ var Instances = function(){
 				model: 'Server',
 				proxy: {
 					type: 'ajax',
-					url: '/common/list_instances/' + states[i],
+					url: '/common/list_instances/state/' + states[i],
 					reader: {
 						type: 'json',
 						root: 'instances'

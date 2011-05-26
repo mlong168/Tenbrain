@@ -1,4 +1,4 @@
-<?php
+ <?php
 
 class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
 {
@@ -36,6 +36,13 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
 		$router->addRoute('about', new Zend_Controller_Router_Route('about', array(
 			'controller'	=> 'misc',
 			'action'		=> 'about'
+		)));
+		
+		$router->addRoute('paypal_save', new Zend_Controller_Router_Route(
+			'/paypal/details/:id', 
+			array(
+				'controller'	=> 'paypal',
+				'action'		=> 'details'
 		)));
 		
 		unset($front_controller);
