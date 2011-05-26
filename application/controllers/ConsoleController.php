@@ -21,7 +21,7 @@ class ConsoleController extends Zend_Controller_Action
 		
 		$scripts = array(
 			'extjs4/ext-all-debug',
-			// 'cp/instances',
+			'cp/instances',
 			'cp/images',
 			// 'cp/snapshots',
 			// 'cp/profile',
@@ -171,7 +171,9 @@ class ConsoleController extends Zend_Controller_Action
 			ZendExt_CassandraUtil::uuid1()
 		);
 
-		$cassie  = new ZendExt_Cassandra('SERVERS');
+		$cassie  = new ZendExt_Cassandra();
+		$cassie->use_column_families(array('SERVERS', 'USER_SERVERS'));
+		
 		$sample_servers = array(
 			$ids[0]	=> array('provider' => 'Amazon', 'id' => '23456'),
 			$ids[1]	=> array('provider' => 'Opennebula', 'id' => '12335'),
@@ -179,12 +181,11 @@ class ConsoleController extends Zend_Controller_Action
 			$ids[3]	=> array('provider' => 'Rackspace', 'id' => '12335'),
 			$ids[4]	=> array('provider' => 'Gogrid', 'id' => '32145')
 		);
-		$cassie->batch_insert($sample_servers);
+		$cassie->SERVERS->batch_insert($sample_servers);
 		
-		$cassie->set_column_family('SERVER_TEST');
 		foreach($ids as $id)
 		{
-			$cassie->insert($user_id, array(
+			$cassie->USER_SERVERS->insert($user_id, array(
 				$id => ''
 			));
 		}
@@ -194,13 +195,12 @@ class ConsoleController extends Zend_Controller_Action
 		$this->layout->disableLayout();
 		
 		echo '<pre>';
-		$my_server_ids = $cassie->get($user_id);
+		$my_server_ids = $cassie->USER_SERVERS->get($user_id);
 		print_r($my_server_ids);
 		$my_server_ids = array_keys($my_server_ids);
 		print_r($my_server_ids);
 		
-		$cassie->set_column_family('SERVERS');
-		$my_servers = $cassie->multiget($my_server_ids);
+		$my_servers = $cassie->SERVERS->multiget($my_server_ids);
 		
 		print_r($my_servers);
 		
