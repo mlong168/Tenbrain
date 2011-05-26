@@ -24,7 +24,7 @@ class PaypalController extends Zend_Controller_Action
 			if($this->view->form->isValid($params))
 			{
 				$paypal = new Paypal_DoDirectPayment();
-    			$page = $paypal->doDirectPayment();
+    			$page = $paypal->doDirectPayment($params);
     			
 				$this->_helper->Redirector->gotoUrl('paypal/details/'.$page);
 			}

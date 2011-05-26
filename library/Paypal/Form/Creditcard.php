@@ -48,7 +48,7 @@ class Paypal_Form_Creditcard extends Zend_Form
         					'multioptions' => $this->genYears()
         ));
         
-        $cvv2 = $this->createElement('text', 'cvv', array(
+        $cvv2 = $this->createElement('text', 'cvv2', array(
 							'label' => 'CVV2',
         					'maxlength' => 4,
         					'size' => 4,
