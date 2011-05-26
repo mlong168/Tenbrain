@@ -7,14 +7,15 @@
 	<?php echo $this->headLink()->appendStylesheet('/css/account.css') ?>
 	<?php echo $this->headLink()->appendStylesheet('/css/ext4/resources/css/ext-all.css') ?>
 	<?php echo $this->headLink()->appendStylesheet('/css/icons.css') ?>
+
+	<?php $lt = $this->layout() ?>
 	
 	<script type="text/javascript">
-		var active_menu_item = '<?php echo $this->active_menu_item ?>';
-		var account_type = '<?php echo $this->account_type ?>';
+		var active_menu_item = '<?php echo $lt->active_menu_item ?>';
+		var account_type = '<?php echo $lt->account_type ?>';
 	</script>
 
 	<?php echo $this->headScript() ?>
-	<?php $lt = $this->layout() ?>
 
 </head>
 <body>
