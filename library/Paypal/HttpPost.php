@@ -1,4 +1,10 @@
 <?php
+/**
+ * 
+ * Send HTTP POST Request.
+ * @author Kostik
+ *
+ */
 class Paypal_HttpPost
 {
 	// Set up your API credentials, PayPal end point, and API version.

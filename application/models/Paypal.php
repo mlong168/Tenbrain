@@ -38,7 +38,7 @@ class Application_Model_Paypal extends Zend_Db_Table_Abstract
     	return $this->insert($bind);
     }
     
-    private function urldecode_save($name, $saveAs = '')
+    private function urldecode_save($name, $saveAs = null)
     {
     	if (isset($this->details[$name]))
     	{
