@@ -71,9 +71,38 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 		
 	}
 	
-	public function list_servers($ids)
+	public function list_servers($ids = array())
 	{
-		print_r($this->cassie->get($ids));
+		// print_r($this->cassie->get($ids));
+		$input_ary = array();	// temporary, to be extracted from db
+		$response = $this->ec2->describe_instances(array(
+			'InstanceId' => array_keys($input_ary)
+		));
+		// $this->test_response($response);
+
+		$instances = array();
+		$list = $response->body->query("descendant-or-self::instanceId")->map(function($node){
+			return $node->parent();
+		})->each(function($node) use(&$instances, $input_ary){
+			$name = $node->tagSet->xpath("descendant-or-self::item[key='Name']/value");
+			$name = $name ? (string) $name[0] : '<i>not set</i>';
+			$id = (string) $node->instanceId;
+			$instances[] = array(
+				// 'id'				=> $input_ary[$id],
+				'name'				=> $name,
+				'dns_name'			=> (string) $node->dnsName,
+				'ip_address'		=> (string) $node->ipAddress,
+				'image_id'			=> (string) $node->imageId,
+				'state'				=> (string) $node->instanceState->name,
+				'type'				=> (string) $node->instanceType,
+				'provider'			=> 'Amazon'
+				// 'virtualization'	=> (string) $node->virtualizationType,
+				// 'root_device'	=> (string) $node->rootDeviceType,
+				// ''				=> (string) $node->,
+			);
+		});
+		
+		return $instances;
 	}
 
 	public function start_servers(array $ids)

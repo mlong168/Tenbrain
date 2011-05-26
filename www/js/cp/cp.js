@@ -13,7 +13,7 @@ Ext.onReady(function(){
 	var menu = function(){
 		var items = [ welcome,
 			// instances.js:
-			// Instances.get_panel('running'), Instances.get_panel('terminated'), Instances.get_panel('stopped'),
+			Instances.get_panel('running'), Instances.get_panel('terminated'), Instances.get_panel('stopped'),
 			// images.js:
 			Images.get_grid(),
 			// snapshots.js:
