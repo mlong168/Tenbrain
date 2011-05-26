@@ -1,4 +1,8 @@
-<div>Please wait for paypal confirmation</div>
-<?php 
-echo $this->id.'<br>';
-echo '<pre>'.print_r($this->details,true).'</pre>';
+<?php echo $this->headLink()->appendStylesheet('/css/paypal.css') ?>
+<h2>Thanks for using tenbrain</h2>
+
+<?php if ($this->details){?>
+	<div class="payment finished">Payment operation successfuly finished !</div>
+<?php }else{?>
+	<div class="payment finished">Payment operation faild. Pleace check your credit card details and try again.</div>
+<?php }?>

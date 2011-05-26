@@ -12,6 +12,13 @@ class Application_Model_Paypal extends Zend_Db_Table_Abstract
      */
     protected $_name = 'payment_details';
     
+    /**
+     * 
+     * details of transaction
+     * @var array
+     */
+    protected $details;
+    
     public function db_save($data) 
     {
     	$this->details = $data;
@@ -40,22 +47,26 @@ class Application_Model_Paypal extends Zend_Db_Table_Abstract
     
     public function db_load($id)
     {
-    	$select = $this->_db->select()->from($this->_name)->where('id = ?', $id);
-        $result = $this->getAdapter()->fetchAll($select);
-    	return $result;
+		$result = $this->find($id);
+		if (count($result) > 0)
+		{
+    		$this->details = $result->getRow(0)->toArray();
+    		return $this->details;
+		}
+    	return false;
     }
     
     
-//    public function isPaymentSuccessful()
-//    {
-//    	if ($this->details)
-//	    	if(	"SUCCESS" == strtoupper($this->details["ACK"]) || 
-//	    		"SUCCESSWITHWARNING" == strtoupper($this->details["ACK"])) 
-//			{
-//				return true;
-//			} 
-//		return false;
-//    }
+    public function isPaymentSuccessful($ack)
+    {
+    	if (isset($ack))
+	    	if(	"SUCCESS" == strtoupper($ack) || 
+	    		"SUCCESSWITHWARNING" == strtoupper($ack)) 
+			{
+				return true;
+			} 
+		return false;
+    }
     
     
     

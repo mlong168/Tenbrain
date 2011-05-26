@@ -7,14 +7,11 @@
  */
 class PaypalController extends Zend_Controller_Action
 {
-//	public function preDispatch()
-//	{
-//		$this->session = new Zend_Session_Namespace('paypal');
-//	}
 	
 	/**
      * The default action - show the home page
      */
+	
     public function indexAction ()
     {
     	
@@ -41,13 +38,10 @@ class PaypalController extends Zend_Controller_Action
     
     public function detailsAction()
     {
-    	$table = new Application_Model_Paypal();
+    	$payment = new Application_Model_Paypal();
     	$this->view->id = $this->getRequest()->getParam('id');
-    	$this->view->details = $table->db_load($this->view->id);
-    	if (empty($this->view->details))
-    	{
-    		$this->view->details = '';
-    	}
+    	$details = $payment->db_load($this->view->id);
+		$this->view->details = $payment->isPaymentSuccessful($details['ack']);
     }
     
     private function isAutorized()
