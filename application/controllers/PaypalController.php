@@ -27,10 +27,10 @@ class PaypalController extends Zend_Controller_Action
 			$params = $this->getRequest()->getParams();
 			if($this->view->form->isValid($params))
 			{
-				$paypal = new Application_Model_Paypal();
-    			$details = $paypal->doDirectPayment();
+				$paypal = new Paypal_DoDirectPayment();
+    			$page = $paypal->doDirectPayment();
     			
-				$this->_helper->Redirector->gotoUrl('paypal/success/');
+				$this->_helper->Redirector->gotoUrl('paypal/details/'.$page);
 			}
 			else
 			{
@@ -39,22 +39,15 @@ class PaypalController extends Zend_Controller_Action
 		}
     }
     
-    public function successAction()
+    public function detailsAction()
     {
-    	$paypal = new Application_Model_Paypal();
-    	$details = $paypal->doDirectPayment();
-    	
-    	$this->view->form = $details;
-    }
-    
-    public function cancelAction()
-    {
-    	$this->_redirect('paypal');
-    }
-    
-    public function notifyAction()
-    {
-    	//bad credit card info !
+    	$table = new Application_Model_Paypal();
+    	$this->view->id = $this->getRequest()->getParam('id');
+    	$this->view->details = $table->db_load($this->view->id);
+    	if (empty($this->view->details))
+    	{
+    		$this->view->details = '';
+    	}
     }
     
     private function isAutorized()

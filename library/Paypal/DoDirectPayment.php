@@ -20,8 +20,6 @@ class Paypal_DoDirectPayment
 			'Version' => '51.0',
 	);
 	
-	private $fields;
-	
 	public function __construct()
 	{
 		$this->massUrlencode($this->API);
@@ -134,15 +132,23 @@ class Paypal_DoDirectPayment
 				$httpParsedResponseAr[$tmpAr[0]] = $tmpAr[1];
 			}
 		}
+		
+		$this->details = $httpParsedResponseAr;
 	
 		if((0 == sizeof($httpParsedResponseAr)) || !array_key_exists('ACK', $httpParsedResponseAr)) {
-			return array(
+			$this->details = array(
 				'ACK' => 'Failure',
 				'L_LONGMESSAGE0' => "Invalid HTTP Response for POST request($nvpreq) to $API_Endpoint."
 			);
 		}
 	
-		return $httpParsedResponseAr;
+		return $this->SaveToDB();
+	}
+	
+	private function SaveToDB()
+	{
+		$table = new Application_Model_Paypal();
+		return $table->db_save($this->details);
 	}
 
 }
