@@ -15,7 +15,7 @@ Ext.onReady(function(){
 			// instances.js:
 			// Instances.get_panel('running'), Instances.get_panel('terminated'), Instances.get_panel('stopped'),
 			// images.js:
-			// Images.get_grid(),
+			Images.get_grid(),
 			// snapshots.js:
 			// Snapshots.get_panel(),
 			// profile.js:
