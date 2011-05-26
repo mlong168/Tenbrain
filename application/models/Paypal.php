@@ -23,8 +23,10 @@ class Application_Model_Paypal extends Zend_Db_Table_Abstract
     {
     	$this->details = $data;
     	
+    	$auth = Zend_Auth::getInstance();
+    	
     	$bind = array(
-    		'userid' 		=> '0',
+    		'userid' 		=> $auth->getIdentity()->id,
     		'ack' 			=> urldecode($data['ACK']),
     		'amount' 		=> urldecode($data['AMT']),
     		'timestamp' 	=> urldecode($data['TIMESTAMP']),

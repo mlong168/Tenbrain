@@ -14,8 +14,7 @@ class PaypalController extends Zend_Controller_Action
 	
     public function indexAction ()
     {
-    	
-    	
+    	$this->isAutorized();
 		$form = new Paypal_Form_Creditcard();
 		$this->view->form = $form;
 		
@@ -38,6 +37,7 @@ class PaypalController extends Zend_Controller_Action
     
     public function detailsAction()
     {
+    	$this->isAutorized();
     	$payment = new Application_Model_Paypal();
     	$this->view->id = $this->getRequest()->getParam('id');
     	$details = $payment->db_load($this->view->id);
@@ -47,6 +47,9 @@ class PaypalController extends Zend_Controller_Action
     private function isAutorized()
     {
     	$auth = Zend_Auth::getInstance();
-  		return $auth->hasIdentity();
+  		if (!$auth->hasIdentity())
+  		{
+  			$this->_helper->Redirector->gotoUrl('account/sign_in');
+  		}
     }
 }
