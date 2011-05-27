@@ -17,7 +17,7 @@ class ConsoleController extends Zend_Controller_Action
 		$this->layout->setLayout('console');
 		$this->view->headTitle()->prepend('Tenbrain Control Panel');
 		
-		$this->layout->active_menu_item = 'available_images';	//temporary, should be instances
+		$this->layout->active_menu_item = 'running_instances';	//temporary, should be instances
 		
 		$scripts = array(
 			'extjs4/ext-all-debug',
@@ -165,14 +165,15 @@ class ConsoleController extends Zend_Controller_Action
 		
 		$ids = array(
 			ZendExt_CassandraUtil::uuid1(),
-			ZendExt_CassandraUtil::uuid1(),
-			ZendExt_CassandraUtil::uuid1(),
-			ZendExt_CassandraUtil::uuid1(),
-			ZendExt_CassandraUtil::uuid1()
+			// ZendExt_CassandraUtil::uuid3('name'),
+			ZendExt_CassandraUtil::uuid4(),
+			uniqid('tralala')
+			// ZendExt_CassandraUtil::uuid5('name')
 		);
+		print_r($ids);die;
 
 		$cassie  = new ZendExt_Cassandra();
-		$cassie->useColumnFamilies(array('SERVERS', 'USER_SERVERS'));
+		$cassie->use_column_families(array('SERVERS', 'USER_SERVERS'));
 		
 		$sample_servers = array(
 			$ids[0]	=> array('provider' => 'Amazon', 'id' => '23456'),
@@ -205,5 +206,18 @@ class ConsoleController extends Zend_Controller_Action
 		print_r($my_servers);
 		
 	}
-
+	
+	public function testrackAction()
+	{
+		$rack = new Application_Model_Provider_Rackspace();
+		print_r($rack->list_images());
+		die('end');
+	}
+	
+	public function testggAction()
+	{
+		$gg = new Application_Model_Provider_GoGrid();
+		print_r($gg->list_images());
+		die('end');
+	}
 }

@@ -11,22 +11,41 @@ class Application_Model_Backups
 		$this->cassie = new ZendExt_Cassandra();
 	}
 	
-	public function addBackups(array $backups)
+	public function add_backup(array $details)
 	{
-		$this->cassie->useColumnFamilies(array('BACKUPS', 'USER_BACKUPS'));
+		$this->cassie->use_column_families(array('BACKUPS', 'USER_BACKUPS'));
+		
+		$uuid = uniqid('tb-');
+		$this->cassie->BACKUPS->insert($uuid, $details);
+		$this->cassie->USER_BACKUPS->insert($this->user_id, 
+		array($uuid => ''));
+	}
+	
+	public function add_backups(array $backups)
+	{
+		$this->cassie->use_column_families(array('BACKUPS', 'USER_BACKUPS'));
 		
 		foreach ($backups as $backup) {
-			$uuid = ZendExt_CassandraUtil::uuid1();
-			$data['server_id'] = $uuid;
+			$uuid = uniqid('tb-');
 			$this->cassie->BACKUPS->insert($uuid, $backup);
 			$this->cassie->USER_BACKUPS->insert($this->user_id, 
 			array($uuid => ''));
 		}
 	}
 	
-	public function removeBackups(array $backup_ids)
+	public function remove_backup(array $backup_id)
 	{
-		$this->cassie->useColumnFamilies('USER_BACKUPS', 'USER_DELETED_BACKUPS');
+		$this->cassie->use_column_families('USER_BACKUPS', 'USER_DELETED_BACKUPS');
+		
+		$this->cassie->USER_DELETED_BACKUPS->insert($this->user_id, 
+			array($backup_id => ''));
+		
+		$this->cassie->USER_BACKUPS->remove($this->user_id, array($backup_id));
+	}
+	
+	public function remove_backups(array $backup_ids)
+	{
+		$this->cassie->use_column_families('USER_BACKUPS', 'USER_DELETED_BACKUPS');
 		
 		foreach ($backup_ids as $id)
 			$this->cassie->USER_DELETED_BACKUPS->insert($this->user_id, 
@@ -35,32 +54,28 @@ class Application_Model_Backups
 		$this->cassie->USER_BACKUPS->remove($this->user_id, $server_ids);
 	}
 	
-	public function getUserBackups ()
+	public function get_user_backups ()
 	{
 		$backups = array();
-		$this->cassie->useColumnFamilies(array('BACKUPS', 'USER_BACKUPS'));
+		$this->cassie->use_column_families(array('BACKUPS', 'USER_BACKUPS'));
 		
 		$backup_ids = $this->cassie->USER_BACKUPS->get($this->user_id);
-		foreach ($backup_ids as $id) {
-			$backups[] = $this->cassie->BACKUPS->get($id);
-		}
-		return $backups;
+		$backup_ids = array_keys($backup_ids);
+		return $this->cassie->BACKUPS->get($backup_ids);
 	}
 	
-	public function getUserBackupsById ($backup_ids)
+	public function get_user_backups_by_id ($backup_ids)
 	{
 		$backups = array();
-		$this->cassie->useColumnFamilies(array('BACKUPS'));
+		$this->cassie->use_column_families(array('BACKUPS'));
 		
-		foreach ($backup_ids as $id) {
-			$backups[] = $this->cassie->BACKUPS->get($id);
-		}
+		$this->cassie->BACKUPS->multiget($backup_ids);
 		return $backups;
 	}
 	
-	public function getBackupByProviderId($provider_backup_id)
+	public function get_backup_by_provider_id($provider_backup_id)
 	{
-		$this->cassie->useColumnFamilies('BACKUPS', 'USER_BACKUPS', 'USER_DELETED_BACKUPS');
+		$this->cassie->use_column_families('BACKUPS', 'USER_BACKUPS', 'USER_DELETED_BACKUPS');
 
 		$user_deleted_backup_ids = $server_ids = $this->cassie->USER_DELETED_BACKUPS->get($this->user_id);
 		$user_backup_ids = $server_ids = $this->cassie->USER_BACKUPS->get($this->user_id);
@@ -74,24 +89,24 @@ class Application_Model_Backups
 		return NULL;
 	}
 	
-	public function getBackupById($backup_id)
+	public function get_backup_by_id($backup_id)
 	{
-		$this->cassie->useColumnFamilies(array('USER_BACKUPS', 'BACKUPS'));
+		$this->cassie->use_column_families(array('USER_BACKUPS', 'BACKUPS'));
 		$bk = $this->cassie->USER_BACKUPS->get($this->user_id, $backup_id); // Check if user have this Backup
 		if($bk)
 			return $this->cassie->BACKUPS->get($backup_id);
 	}
 	
-	public function getAvailableBackups($provider = "ALL", $server_id = FALSE)
+	public function get_available_backups($provider = "ALL", $server_id = FALSE)
 	{
-		$this->cassie->useColumnFamilies(array('BACKUPS', 'USER_BACKUPS', 'USER_DELETED_BACKUPS'));
+		$this->cassie->use_column_families(array('BACKUPS', 'USER_BACKUPS', 'USER_DELETED_BACKUPS'));
 		$bk_deleted = $this->cassie->USER_DELETED_BACKUPS->get($this->user_id);
 		$bk = $this->cassie->USER_BACKUPS->get($this->user_id);
 		$backup_ids = array_diff($bk, $bk_deleted);
 		if(!$backup_ids)
 			return array();
 		
-		$user_backups = $this->getUserBackupsById($backup_ids);
+		$user_backups = $this->get_user_backups_by_id($backup_ids);
 		
 		$backups = $server_backups = array();
 		if($user_backups)
@@ -131,7 +146,7 @@ class Application_Model_Backups
 		return array();
 	}
 	
-	public function getBackupDetails($backup_ids, $fields = array('backup_name'))
+	public function get_backup_details($backup_ids, $fields = array('backup_name'))
 	{
 		$backups = array();
 		$possible_fields = array('backup_id', 'provider_backup_id', 'backup_name', 'description', 'server_id', 'provider', 'created_on');
@@ -143,7 +158,7 @@ class Application_Model_Backups
 		if ($fields === array('*')) $fields_to_retrieve = $possible_fields;
 		$columns = implode(',', $fields_to_retrieve);
 		
-		$this->cassie->useColumnFamilies(array('BACKUPS'));
+		$this->cassie->use_column_families(array('BACKUPS'));
 		
 		foreach ($backup_ids as $id) {
 			$backups[] = $this->cassie->BACKUPS->get($id, $columns);

@@ -2,7 +2,7 @@
 
 abstract class Application_Model_Provider
 {
-	
+	public $name;
 	protected $account_server_count_limits = array();
 	
 	protected function __construct()
@@ -38,6 +38,12 @@ abstract class Application_Model_Provider
 			'error_message'	=> $error_message
 		));
 		die; // how can you proceed if things failed? ;)
+	}
+	
+	protected function get_db_connection()
+	{
+		$config = new Zend_Config_Ini(APPLICATION_PATH . '/configs/application.ini', 'production');
+		return Zend_Db::factory($config->get('resources')->get('db'));
 	}
 	
 	abstract public function launch_server(array $params);
