@@ -96,29 +96,29 @@ class Application_Model_Servers
 	
 	public function remove_servers_in_lb($load_balancer_id, $server_ids)
 	{
-		$this->cassie->useColumnFamilies(array('USER_LOADBALLANCERS', 'USER_LOADBALLANCER_SERVERS'));
-		$lb = $this->cassie->USER_LOADBALLANCERS->get($this->user_id, $load_balancer_id); // Check if user have this LB
+		$this->cassie->useColumnFamilies(array('USER_LOADBALANCERS', 'USER_LOADBALANCER_SERVERS'));
+		$lb = $this->cassie->USER_LOADBALANCERS->get($this->user_id, $load_balancer_id); // Check if user have this LB
 		if($lb)
-			$this->cassie->USER_LOADBALLANCER_SERVERS->remove($load_balancer_id, $server_ids);
+			$this->cassie->USER_LOADBALANCER_SERVERS->remove($load_balancer_id, $server_ids);
 	}
 	
 	public function add_servers_in_lb($load_balancer_id, $server_ids)
 	{
-		$this->cassie->useColumnFamilies(array('USER_LOADBALLANCERS', 'USER_LOADBALLANCER_SERVERS'));
-		$lb = $this->cassie->USER_LOADBALLANCERS->get($this->user_id, $load_balancer_id); // Check if user have this LB
+		$this->cassie->useColumnFamilies(array('USER_LOADBALANCERS', 'USER_LOADBALANCER_SERVERS'));
+		$lb = $this->cassie->USER_LOADBALANCERS->get($this->user_id, $load_balancer_id); // Check if user have this LB
 		if($lb)
-			$this->cassie->USER_LOADBALLANCER_SERVERS->insert($load_balancer_id, $server_ids);
+			$this->cassie->USER_LOADBALANCER_SERVERS->insert($load_balancer_id, $server_ids);
 	}
 	
 	public function get_servers_available_for_lb($provider, $load_balancer_id)
 	{
-		$this->cassie->useColumnFamilies(array('USER_LOADBALLANCERS, USER_LOADBALLANCER_SERVERS'));
+		$this->cassie->useColumnFamilies(array('USER_LOADBALANCERS, USER_LOADBALANCER_SERVERS'));
 		
-		$lb = $this->cassie->USER_LOADBALLANCERS->get($this->user_id, $load_balancer_id);
+		$lb = $this->cassie->USER_LOADBALANCERS->get($this->user_id, $load_balancer_id);
 		if(!$lb)
 			return array();
 		
-		$lb_servers = (array) $this->cassie->USER_LOADBALLANCER_SERVERS->get($load_balancer_id);
+		$lb_servers = (array) $this->cassie->USER_LOADBALANCER_SERVERS->get($load_balancer_id);
 		$user_servers = $this->getUserServers();
 
 		$servers = array();
