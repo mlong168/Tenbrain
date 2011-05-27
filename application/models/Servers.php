@@ -24,7 +24,7 @@ class Application_Model_Servers
 	{
 		$this->cassie->use_column_families(array('SERVERS', 'USER_SERVERS'));
 		
-		$uuid = uniqid('tb_server');
+		$uuid = uniqid('tb');
 		$details['server_id'] = $uuid;
 		$this->cassie->SERVERS->insert($uuid, $details);
 		$this->cassie->USER_SERVERS->insert($this->user_id, array($uuid => ''));
@@ -37,7 +37,7 @@ class Application_Model_Servers
 		$this->cassie->use_column_families(array('SERVERS', 'USER_SERVERS'));
 		
 		foreach ($servers as $server) {
-			$uuid = uniqid('tb_server');
+			$uuid = uniqid('tb');
 			$server['server_id'] = $uuid;
 			$this->cassie->SERVERS->insert($uuid, $server);
 			$this->cassie->USER_SERVERS->insert($this->user_id, 
