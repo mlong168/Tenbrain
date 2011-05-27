@@ -17,7 +17,7 @@ class ConsoleController extends Zend_Controller_Action
 		$this->layout->setLayout('console');
 		$this->view->headTitle()->prepend('Tenbrain Control Panel');
 		
-		$this->layout->active_menu_item = 'available_images';	//temporary, should be instances
+		$this->layout->active_menu_item = 'running_instances';	//temporary, should be instances
 		
 		$scripts = array(
 			'extjs4/ext-all-debug',
@@ -165,11 +165,12 @@ class ConsoleController extends Zend_Controller_Action
 		
 		$ids = array(
 			ZendExt_CassandraUtil::uuid1(),
-			ZendExt_CassandraUtil::uuid1(),
-			ZendExt_CassandraUtil::uuid1(),
-			ZendExt_CassandraUtil::uuid1(),
-			ZendExt_CassandraUtil::uuid1()
+			// ZendExt_CassandraUtil::uuid3('name'),
+			ZendExt_CassandraUtil::uuid4(),
+			uniqid('tralala')
+			// ZendExt_CassandraUtil::uuid5('name')
 		);
+		print_r($ids);die;
 
 		$cassie  = new ZendExt_Cassandra();
 		$cassie->use_column_families(array('SERVERS', 'USER_SERVERS'));

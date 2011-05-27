@@ -236,22 +236,32 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 
 	public function start_servers(array $ids)
 	{
-		
+		$response = $this->ec2->start_instances($ids);
+		$this->test_response($response);
+		return true;
 	}
 	
 	public function stop_servers(array $ids)
 	{
-		
+		$response = $this->ec2->stop_instances($ids);
+		$this->test_response($response);
+		return true;
 	}
 	
 	public function reboot_servers(array $ids)
 	{
-		
+		$response = $this->ec2->reboot_instances($ids);
+		$this->test_response($response);
+		return true;
 	}
 	
 	public function terminate_servers(array $ids)
 	{
+		$response = $this->ec2->terminate_instances($ids);
+		$this->test_response($response);
 		
+		$this->storage->remove_servers($ids);
+		return true;
 	}
 	
 	public function create_load_balancer($name, array $instances, $gogrid_lb_address)

@@ -19,6 +19,30 @@ class Application_Model_Servers
 		if($user_server)
 			return $this->cassie->SERVERS->get($server_id);
 	}
+
+	public function get_user_servers($ids = null)
+	{
+		$this->cassie->use_column_families(array('SERVERS', 'USER_SERVERS'));
+		
+		$server_ids = $this->cassie->USER_SERVERS->get($this->user_id, empty($ids) ? null : $ids);
+		$server_ids = array_keys($server_ids);
+		
+		return $this->cassie->SERVERS->multiget($server_ids);
+	}
+	
+	public function get_user_server_provider_ids($server_ids)
+	{
+		$servers = $this->get_user_servers($server_ids);
+		$out = array();
+		
+		foreach($servers as $server)
+		{
+			if(!array_key_exists($server['provider'], $out)) $out[$server['provider']] = array();
+			$out[$server['provider']][] = $server['server_id'];
+		}
+		
+		return $out;
+	}
 	
 	public function add_server(array $details)
 	{
@@ -61,16 +85,6 @@ class Application_Model_Servers
 			array($id => ''));
 		
 		$this->cassie->USER_SERVERS->remove($this->user_id, $server_ids);
-	}
-
-	public function get_user_servers()
-	{
-		$this->cassie->use_column_families(array('SERVERS', 'USER_SERVERS'));
-		
-		$server_ids = $this->cassie->USER_SERVERS->get($this->user_id);
-		$server_ids = array_keys($server_ids);
-		
-		return $this->cassie->SERVERS->multiget($server_ids);
 	}
 
 	public function get_user_terminated_servers ()

@@ -29,7 +29,7 @@ var Instances = function(){
 		Ext.define('Server', {
 			extend: 'Ext.data.Model',
 			fields: [
-				{name: 'id',			type: 'int'},
+				{name: 'id',			type: 'string'},
 				{name: 'name',			type: 'string'},
 				{name: 'dns_name',		type: 'string'},
 				{name: 'ip_address',	type: 'string'},
@@ -90,8 +90,8 @@ var Instances = function(){
 	// menus:
 	var instances_menu_handler = function(item){
 		var id = item.id, action = id.substr(0, id.indexOf('_')),
-			parent_menu = item.parentMenu.findParentByType('menu'),
-			record = parent_menu.ref_grid.getStore().getAt(parent_menu.selected_record_id),
+			parent_menu = item.up('menu').parentMenu,
+			record = parent_menu.selected_record,
 			instance_id = record.get('id'),
 			titles = {
 				reboot: 'Reboot Server',
@@ -104,7 +104,6 @@ var Instances = function(){
 			
 		Ext.MessageBox.confirm(title, 'Are you sure you want to proceed?', function(button){
 			if(button !== 'yes') return false;
-		
 			Ext.Msg.wait('Processing your request', title);
 			Ext.Ajax.request({
 				url: 'common/' + action + '_instances',
@@ -239,7 +238,7 @@ var Instances = function(){
 				items: [{
 					text: 'View connection info',
 					handler: function(){
-						var record = instances_menu.ref_grid.getStore().getAt(instances_menu.selected_record_id),
+						var record = instances_menu.selected_record,
 							instance_id = record.get('id'),
 							provider = record.get('provider').toLowerCase(),
 							title = 'Server connection information',
@@ -349,8 +348,7 @@ var Instances = function(){
 				}]
 			}
 		}],
-		ref_grid: null,
-		selected_record_id: null
+		selected_record: null
 	});
 
 	// layouts:
@@ -367,11 +365,10 @@ var Instances = function(){
 		},
 		columnLines: true,
 		listeners: {
-			rowcontextmenu: function (grid, id, e) {
+			itemcontextmenu: function (view, record, item, index, e) {
 				var menu = instances_menu;
 				e.preventDefault();
-				if(menu.ref_grid === null) menu.ref_grid = grid;
-				menu.selected_record_id = id;
+				menu.selected_record = record;
 				menu.showAt(e.getXY());
 			}
 		},
