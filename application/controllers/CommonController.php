@@ -4,7 +4,7 @@ class CommonController extends Zend_Controller_Action
 {
 	
 	// private $supported_providers = array('Amazon', 'GoGrid', 'Rackspace');
-	private $supported_providers = array('Amazon');
+	private $supported_providers = array('Amazon', 'Rackspace');
 	private $providers;
 	
 	public function init()
@@ -166,7 +166,7 @@ class CommonController extends Zend_Controller_Action
 		$instance_ids = Zend_Json_Decoder::decode($instance_ids);
 		
 		$storage = new Application_Model_Servers();
-		$servers = $storage->get_user_server_provider_ids($instance_ids);
+		$servers = $storage->get_user_server_provider_ids($instance_ids, true);
 
 		foreach($this->providers as $provider)
 		{

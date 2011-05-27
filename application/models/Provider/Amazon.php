@@ -9,8 +9,6 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 	const TENBRAIN_API_SECRET = 'ykTiKMOYg0kKGFTgrHhUsfRTo5eWZMYY6YVGHAfx';
 	const TENBRAIN_API_USER_ID = '528233608018';
 
-	public $name = 'Amazon';
-	
 	private $ec2;
 	private $storage;
 	
@@ -33,8 +31,8 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 	{
 		parent::__construct();
 		
+		$this->name = basename(__FILE__, '.php');
 		$this->storage = new Application_Model_Servers();
-			
 		$this->ec2 = new AmazonEC2(self::TENBRAIN_API_KEY, self::TENBRAIN_API_SECRET);
 	}
 
@@ -257,10 +255,10 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 	
 	public function terminate_servers(array $ids)
 	{
-		$response = $this->ec2->terminate_instances($ids);
+		$response = $this->ec2->terminate_instances(array_values($ids));
 		$this->test_response($response);
-		
-		$this->storage->remove_servers($ids);
+
+		$this->storage->remove_servers(array_keys($ids));
 		return true;
 	}
 	
