@@ -2,7 +2,7 @@
 
 abstract class Application_Model_Provider
 {
-	
+	public $name;
 	protected $account_server_count_limits = array();
 	
 	protected function __construct()

@@ -30,15 +30,25 @@ class Application_Model_Servers
 		return $this->cassie->SERVERS->multiget($server_ids);
 	}
 	
-	public function get_user_server_provider_ids($server_ids)
+	/**
+	*	@param $return_tb_ids - if true - returns tenbrain ids also
+	*/
+	public function get_user_server_provider_ids($server_ids, $return_tb_ids = false)
 	{
 		$servers = $this->get_user_servers($server_ids);
 		$out = array();
 		
-		foreach($servers as $server)
+		foreach($servers as $tb_id => $server)
 		{
 			if(!array_key_exists($server['provider'], $out)) $out[$server['provider']] = array();
-			$out[$server['provider']][] = $server['server_id'];
+			if($return_tb_ids)
+			{
+				$out[$server['provider']][$tb_id] = $server['server_id'];
+			}
+			else
+			{
+				$out[$server['provider']][] = $server['server_id'];
+			}
 		}
 		
 		return $out;
@@ -69,7 +79,7 @@ class Application_Model_Servers
 
 	public function remove_server ($server_id)
 	{
-		$this->cassie->use_column_families('USER_SERVERS', 'USER_DELETED_SERVERS');
+		$this->cassie->use_column_families(array('USER_SERVERS', 'USER_DELETED_SERVERS'));
 		
 		$this->cassie->USER_DELETED_SERVERS->insert($this->user_id, 
 			array($server_id => ''));
@@ -78,7 +88,7 @@ class Application_Model_Servers
 	
 	public function remove_servers (array $server_ids)
 	{
-		$this->cassie->use_column_families('USER_SERVERS', 'USER_DELETED_SERVERS');
+		$this->cassie->use_column_families(array('USER_SERVERS', 'USER_DELETED_SERVERS'));
 		
 		foreach ($server_ids as $id)
 			$this->cassie->USER_DELETED_SERVERS->insert($this->user_id, 
@@ -90,8 +100,7 @@ class Application_Model_Servers
 	public function get_user_terminated_servers ()
 	{
 		$servers = array();
-		$this->cassie->use_column_families(
-		array('SERVERS', 'USER_DELETED_SERVERS'));
+		$this->cassie->use_column_families(array('SERVERS', 'USER_DELETED_SERVERS'));
 		
 		$server_ids = $this->cassie->USER_DELETED_SERVERS->get($this->user_id);
 		$server_ids = array_keys($server_ids);
