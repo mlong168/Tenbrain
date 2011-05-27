@@ -11,11 +11,21 @@ class Application_Model_Servers
 		$this->cassie = new ZendExt_Cassandra();
 	}
 	
+	public function get_user_server($server_id)
+	{
+		$this->cassie->use_column_families(array('SERVERS', 'USER_SERVERS'));
+
+		$user_server = $this->cassie->USER_SERVERS->get($this->user_id, array($server_id));
+		if($user_server)
+			return $this->cassie->SERVERS->get($server_id);
+	}
+	
 	public function add_server(array $details)
 	{
 		$this->cassie->use_column_families(array('SERVERS', 'USER_SERVERS'));
 		
 		$uuid = ZendExt_CassandraUtil::uuid1();
+		$details['server_id'] = $uuid;
 		$this->cassie->SERVERS->insert($uuid, $details);
 		$this->cassie->USER_SERVERS->insert($this->user_id, array($uuid => ''));
 		
@@ -107,58 +117,5 @@ class Application_Model_Servers
 				$server_ids[] = $server['server_id'];
 		}
 		return $server_ids;
-	}
-	
-	public function remove_servers_in_lb($load_balancer_id, $server_ids)
-	{
-		$this->cassie->use_column_families(array('USER_LOADBALANCERS', 'USER_LOADBALANCER_SERVERS'));
-		$lb = $this->cassie->USER_LOADBALANCERS->get($this->user_id, $load_balancer_id); // Check if user have this LB
-		if($lb)
-			$this->cassie->USER_LOADBALANCER_SERVERS->remove($load_balancer_id, $server_ids);
-	}
-	
-	public function add_servers_in_lb($load_balancer_id, $server_ids)
-	{
-		$this->cassie->use_column_families(array('USER_LOADBALANCERS', 'USER_LOADBALANCER_SERVERS'));
-		$lb = $this->cassie->USER_LOADBALANCERS->get($this->user_id, $load_balancer_id); // Check if user have this LB
-		if($lb)
-			$this->cassie->USER_LOADBALANCER_SERVERS->insert($load_balancer_id, $server_ids);
-	}
-	
-	public function get_servers_available_fo_lb($provider = "ALL", $load_balancer_id)
-	{
-		$this->cassie->use_column_families(array('USER_LOADBALANCERS', 'USER_LOADBALANCER_SERVERS'));
-		
-		$lb = $this->cassie->USER_LOADBALANCERS->get($this->user_id, $load_balancer_id);
-		if(!$lb)
-			return array();
-		
-		$lb_servers = (array) $this->cassie->USER_LOADBALANCER_SERVERS->get($load_balancer_id);
-		$user_servers = $this->get_user_servers();
-
-		$user_provider_servers = array();
-		if($provider != "ALL")
-		{
-			foreach ($user_servers as $user_server)
-				if($user_server['provider'] == $provider)
-					$user_provider_servers[] = $user_server;
-			$user_servers = $user_provider_servers;
-		}
-		
-		$servers = array();
-		if($user_servers)
-		{
-			foreach($user_servers as $user_server)
-			{
-				if(!in_array($lb_servers, $user_servers))
-					$servers[] = array(
-						'server_id'				=> $user_server['server_id'],
-						'provider_server_id'	=> $user_server['provider_server_id'],
-						'server_name'			=> $user_server['server_name'],
-						'ip_address'			=> $user_server['public_ip']
-					);
-			}
-		}
-		return $servers;
 	}
 }

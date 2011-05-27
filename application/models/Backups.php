@@ -16,7 +16,7 @@ class Application_Model_Backups
 		$this->cassie->use_column_families(array('BACKUPS', 'USER_BACKUPS'));
 		
 		$uuid = ZendExt_CassandraUtil::uuid1();
-		$data['server_id'] = $uuid;
+		$details['backup_id'] = $uuid;
 		$this->cassie->BACKUPS->insert($uuid, $details);
 		$this->cassie->USER_BACKUPS->insert($this->user_id, 
 		array($uuid => ''));
@@ -28,7 +28,7 @@ class Application_Model_Backups
 		
 		foreach ($backups as $backup) {
 			$uuid = ZendExt_CassandraUtil::uuid1();
-			$data['server_id'] = $uuid;
+			$backup['server_id'] = $uuid;
 			$this->cassie->BACKUPS->insert($uuid, $backup);
 			$this->cassie->USER_BACKUPS->insert($this->user_id, 
 			array($uuid => ''));
