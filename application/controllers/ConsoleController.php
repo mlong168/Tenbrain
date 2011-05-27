@@ -213,5 +213,11 @@ class ConsoleController extends Zend_Controller_Action
 		print_r($rack->list_images());
 		die('end');
 	}
-
+	
+	public function testggAction()
+	{
+		$gg = new Application_Model_Provider_GoGrid();
+		print_r($gg->list_images());
+		die('end');
+	}
 }
