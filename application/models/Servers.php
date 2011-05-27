@@ -104,7 +104,7 @@ class Application_Model_Servers
 	
 	public function add_servers_in_lb($load_balancer_id, $server_ids)
 	{
-		$this->cassie->useColumnFamilies(array('USER_LOADBALLANCERS, USER_LOADBALLANCER_SERVERS'));
+		$this->cassie->useColumnFamilies(array('USER_LOADBALLANCERS', 'USER_LOADBALLANCER_SERVERS'));
 		$lb = $this->cassie->USER_LOADBALLANCERS->get($this->user_id, $load_balancer_id); // Check if user have this LB
 		if($lb)
 			$this->cassie->USER_LOADBALLANCER_SERVERS->insert($load_balancer_id, $server_ids);
@@ -112,7 +112,7 @@ class Application_Model_Servers
 	
 	public function get_servers_available_for_lb($provider, $load_balancer_id)
 	{
-		$this->cassie->useColumnFamilies(array('USER_LOADBALLANCERS, USER_SERVERS_LOADBALLANCER'));
+		$this->cassie->useColumnFamilies(array('USER_LOADBALLANCERS, USER_LOADBALLANCER_SERVERS'));
 		
 		$lb = $this->cassie->USER_LOADBALLANCERS->get($this->user_id, $load_balancer_id);
 		if(!$lb)
