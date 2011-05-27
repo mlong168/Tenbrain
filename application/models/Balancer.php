@@ -15,7 +15,7 @@ class Application_Model_Balancer
 	{
 		$this->cassie->use_column_families(array('LOADBALANCERS', 'USER_LOADBALANCERS'));
 		
-		$uuid = uniqid('tb');
+		$uuid = uniqid('tb-');
 		$details['balancer_id'] = $uuid;
 		$this->cassie->LOADBALANCERS->insert($uuid, $details);
 		$this->cassie->USER_LOADBALANCERS->insert($this->user_id, 
