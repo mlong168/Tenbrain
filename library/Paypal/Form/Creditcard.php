@@ -5,8 +5,9 @@ class Paypal_Form_Creditcard extends Zend_Form
 	private $labelClassName = 'text paypal';
 	private $cc_type = array(
 							'Visa' => 'Visa',
-//							'Master Card' => 'Master Card',
-//							'American Express' => 'American Express'
+							'Discover' => 'Discover',
+							'MasterCard' => 'Master Card',
+							'Amex' => 'American Express',
 	);
 	
 	public function init()
@@ -21,7 +22,12 @@ class Paypal_Form_Creditcard extends Zend_Form
 							'maxlength' => 16,
         					'size' => 16,
 							'validators' => array(
-								new Zend_Validate_CreditCard()
+								new Zend_Validate_CreditCard(array(
+									Zend_Validate_CreditCard::VISA,
+									Zend_Validate_CreditCard::MASTERCARD,
+									Zend_Validate_CreditCard::DISCOVER,
+									Zend_Validate_CreditCard::AMERICAN_EXPRESS,
+									))
 		)));
 		$this->setLabelDecorator($number);
 		$number->setErrorMessages(array('Bad credit card number.'));
