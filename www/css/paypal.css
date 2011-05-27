@@ -1,4 +1,4 @@
-form#payment {
+form#payment, .payment.container {
 	display: block;
 	margin: 0 auto;
 	width: 450px;
@@ -28,7 +28,7 @@ form#payment ul.errors{
 #month-element {
 	float: left;
 }
-#year-label {
+#year-label{
 	display: none;
 }
 #year-element {
@@ -42,4 +42,29 @@ form#payment ul.errors{
 }
 #submit-element{
 	text-align: center;
+}
+.selection.payment.type {
+	width:  612px;
+	margin: 0 auto;
+}
+.pay_cc {
+    background: url("/css/images/pay_cc.png") no-repeat scroll 0 0 transparent;
+    height: 53px;
+}
+.pay_cc.onetime {
+    background-position: 0 0;
+    width: 80px;
+}
+.pay_cc.monthly {
+    background-position: -112px 0;
+    width: 80px;
+}
+.payment.plan {
+	margin: 1em 40px;
+	text-align: center;
+}
+.payment.label {
+	font-size: 0.9em;
+	color: #098ED3;
+	margin: 0.3em 0
 }

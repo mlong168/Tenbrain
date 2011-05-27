@@ -1,0 +1,13 @@
+<div class="main small_content">
+	<p class="selection_message wide">Choose one of the options below:</p>
+	<div class="selection payment type">
+	<?php foreach($this->selections as $class => $data): ?>
+		<a class="selection_item<?php echo $data['disabled'] ? ' disabled' : '' ?>"
+			href="<?php echo '/' . ($data['disabled'] ? 'apology' : $this->next . '/' . $class) ?>">
+			<span class="selection_image <?php echo $this->type . ' ' . $class ?>">.</span>
+			<span class="control selection_button <?php echo $data['type'] ?>"><?php echo $data['text'] ?></span>
+		</a>
+	<?php endforeach; ?>
+	</div>
+	<div class="clearfix"></div>
+</div>

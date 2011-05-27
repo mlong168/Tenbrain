@@ -1,0 +1,14 @@
+<h3>Buy account</h3>
+
+<form>
+<div class="payment container">
+<div class="payment plan">Choose your payment plan: </div><br>
+<div class="payment label">Enter number of days: </div>
+	<?php echo $this->time_form;?><br><br>
+<div class="payment label">Or amount of money: </div>
+	<?php echo $this->amount_form;?>
+	<br><br>
+	<div class="payment label"> Minimum onetime payment is 10$ </div>
+	<?php echo $this->submit; ?>
+</div>
+</form>

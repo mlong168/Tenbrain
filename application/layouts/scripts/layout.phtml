@@ -3,10 +3,15 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<?php echo $this->headTitle() ?>
-	<?php echo $this->headLink()->appendStylesheet('/css/main.css') ?>
-	<?php echo $this->headLink()->appendStylesheet('/css/account.css') ?>
-	<?php echo $this->headScript()->appendFile('/js/jquery-1.4.4.min.js', 'text/javascript') ?>
-	<?php echo $this->headScript()->appendFile('/js/main.js', 'text/javascript') ?>
+	<?php $this->headLink()->appendStylesheet('/css/main.css') ?>
+	<?php $this->headLink()->appendStylesheet('/css/account.css') ?>
+	<?php $this->headLink()->appendStylesheet('/css/paypal.css') ?>
+	<?php echo $this->headLink() ?>
+	
+	<?php $this->headScript()->appendFile('/js/jquery-1.4.4.min.js', 'text/javascript') ?>
+	<?php $this->headScript()->appendFile('/js/main.js', 'text/javascript') ?>
+	<?php $this->headScript()->appendFile('/js/pay.js', 'text/javascript') ?>
+	<?php echo $this->headScript() ?>
 	
 </head>
 <body>
