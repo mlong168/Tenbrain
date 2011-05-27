@@ -35,7 +35,16 @@ class Application_Model_Servers
 		}
 	}
 
-	public function remov_servers (array $server_ids)
+	public function remove_server ($server_id)
+	{
+		$this->cassie->use_column_families('USER_SERVERS', 'USER_DELETED_SERVERS');
+		
+		$this->cassie->USER_DELETED_SERVERS->insert($this->user_id, 
+			array($server_id => ''));
+		$this->cassie->USER_SERVERS->remove($this->user_id, array($server_id));
+	}
+	
+	public function remove_servers (array $server_ids)
 	{
 		$this->cassie->use_column_families('USER_SERVERS', 'USER_DELETED_SERVERS');
 		

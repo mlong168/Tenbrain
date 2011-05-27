@@ -11,6 +11,17 @@ class Application_Model_Backups
 		$this->cassie = new ZendExt_Cassandra();
 	}
 	
+	public function add_backup(array $details)
+	{
+		$this->cassie->use_column_families(array('BACKUPS', 'USER_BACKUPS'));
+		
+		$uuid = ZendExt_CassandraUtil::uuid1();
+		$data['server_id'] = $uuid;
+		$this->cassie->BACKUPS->insert($uuid, $details);
+		$this->cassie->USER_BACKUPS->insert($this->user_id, 
+		array($uuid => ''));
+	}
+	
 	public function add_backups(array $backups)
 	{
 		$this->cassie->use_column_families(array('BACKUPS', 'USER_BACKUPS'));
@@ -22,6 +33,16 @@ class Application_Model_Backups
 			$this->cassie->USER_BACKUPS->insert($this->user_id, 
 			array($uuid => ''));
 		}
+	}
+	
+	public function remove_backup(array $backup_id)
+	{
+		$this->cassie->use_column_families('USER_BACKUPS', 'USER_DELETED_BACKUPS');
+		
+		$this->cassie->USER_DELETED_BACKUPS->insert($this->user_id, 
+			array($backup_id => ''));
+		
+		$this->cassie->USER_BACKUPS->remove($this->user_id, array($backup_id));
 	}
 	
 	public function remove_backups(array $backup_ids)
