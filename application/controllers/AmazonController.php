@@ -20,16 +20,27 @@ class AmazonController extends Zend_Controller_Action
 	
 	public function indexAction()
 	{
-		$this->amazon->create_user_key_pair();
+		// $this->amazon->create_user_key_pair();
 	}
 	
-	public function launchInstance()
+	public function launchInstanceAction()
 	{
-		// $cassie->column_families['USER_SERVERS']->INSERT();
 		$params = array(
-			''
+			'image_id'	=> $state = $this->getRequest()->getParam('image_id'),
+			'name'		=> $state = $this->getRequest()->getParam('instance_name'),
+			'type'		=> $state = $this->getRequest()->getParam('instance_type')
 		);
-		$this->amazon->launch_server($params);
+		echo Zend_Json_Encoder::encode(array(
+			'success'	=> $this->amazon->launch_server($params)
+		));
+	}
+	
+	public function getAvailableInstanceTypesAction()
+	{
+		echo Zend_Json_Encoder::encode(array(
+			'success'	=> true,
+			'types'		=> $this->amazon->get_available_instance_types()
+		));
 	}
 
 }

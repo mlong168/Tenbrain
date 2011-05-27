@@ -12,17 +12,17 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 	public $name = 'Amazon';
 	
 	private $ec2;
-	private $cassie;
+	private $storage;
 	
 	private $available_types = array(
-		't1.micro', 
-		'm1.small', 
-		'm1.large', 
-		'm1.xlarge', 
-		'm2.2xlarge', 
+		't1.micro',
+		'm1.small',
+		'm1.large',
+		'm1.xlarge',
+		'm2.2xlarge',
 		'm2.4xlarge', 
-		'c1.medium', 
-		'c1.xlarge', 
+		'c1.medium',
+		'c1.xlarge',
 		'cc1.4xlarge', 
 		'cg1.4xlarge'
 	);
@@ -33,9 +33,18 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 	{
 		parent::__construct();
 		
-		$this->cassie = new Application_Model_Servers();
+		$this->storage = new Application_Model_Servers();
 			
 		$this->ec2 = new AmazonEC2(self::TENBRAIN_API_KEY, self::TENBRAIN_API_SECRET);
+	}
+
+	private function test_response($response)
+	{
+		if(!$response->isOK())
+		{
+			$error = $response->body->Error();
+			$this->die_with_error((string) $error[0]->Message);
+		}
 	}
 	
 	public function list_images()
@@ -85,7 +94,8 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 	private function create_user_key_pair()
 	{
 		$auth = Zend_Auth::getInstance();
-		$username = $auth->getIdentity()->username;
+		$auth = $auth->getIdentity();
+		$username = $auth->username;
 		
 		// for security - move to /tmp folder
 		chdir('/tmp');
@@ -108,10 +118,11 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 		$this->test_response($response);
 		
 		// if we are here, that pretty much means we've succeeded to import public key to amazon, so let's write the private one to db
-		// $this->db->set('account_id', $this->session->userdata('account_id'));
-		// $this->db->set('key_pair_name', $this->username);
-		// $this->db->set('private_key', $private_key);
-		// $this->db->insert('account_key_pairs');
+		$this->get_db_connection()->insert('account_key_pairs', array(
+			'account_id'	=> $auth->id,
+			'key_pair_name'	=> $username,
+			'private_key'	=> $private_key
+		));
 		
 		return true;
 	}
@@ -131,6 +142,24 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 		}
 		
 		return true;
+	}
+	
+	public function get_available_instance_types()
+	{
+		$premium = false;
+		$reason = $premium ? '' : 'Not available in a free version';
+		$output = array();
+		
+		foreach($this->available_types as $type)
+		{
+			$output []= array(
+				'name'		=> $type,
+				'available'	=> $premium || $type === $this->default_type,
+				'reason'	=> $reason
+			);
+		}
+		
+		return $output;
 	}
 	
 	public function launch_server(array $params)
@@ -163,33 +192,32 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 		$this->tag_instance($instance_id, 'Name', $name);
 		
 		// write to db if things went fine
-		// $this->instance->add_user_instance(array(
-			// 'account_id' => $this->session->userdata('account_id'),
-			// 'provider_instance_id' => $instance_id,
-			// 'instance_name' => $name,
-			// 'provider' => 'Amazon'
-		// ));
+		$this->storage->add_server(array(
+			'name'		=> $name,
+			'server_id'	=> $instance_id,
+			'type'		=> $type,
+			'image_id'	=> $image_id,
+			'provider'	=> $this->name
+		));
 		return true;
 	}
 	
 	public function list_servers($ids = array())
 	{
-		// print_r($this->cassie->get($ids));
-		$input_ary = array();	// temporary, to be extracted from db
 		$response = $this->ec2->describe_instances(array(
-			'InstanceId' => array_keys($input_ary)
+			'InstanceId' => array_keys($ids)
 		));
 		// $this->test_response($response);
 
 		$instances = array();
 		$list = $response->body->query("descendant-or-self::instanceId")->map(function($node){
 			return $node->parent();
-		})->each(function($node) use(&$instances, $input_ary){
+		})->each(function($node) use(&$instances, $ids){
 			$name = $node->tagSet->xpath("descendant-or-self::item[key='Name']/value");
 			$name = $name ? (string) $name[0] : '<i>not set</i>';
 			$id = (string) $node->instanceId;
 			$instances[] = array(
-				// 'id'				=> $input_ary[$id],
+				'id'				=> $ids[$id],
 				'name'				=> $name,
 				'dns_name'			=> (string) $node->dnsName,
 				'ip_address'		=> (string) $node->ipAddress,

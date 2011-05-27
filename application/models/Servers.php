@@ -10,6 +10,17 @@ class Application_Model_Servers
 		$this->user_id = Zend_Auth::getInstance()->getIdentity()->id;
 		$this->cassie = new ZendExt_Cassandra();
 	}
+	
+	public function add_server(array $details)
+	{
+		$this->cassie->useColumnFamilies(array('SERVERS', 'USER_SERVERS'));
+		
+		$uuid = ZendExt_CassandraUtil::uuid1();
+		$this->cassie->SERVERS->insert($uuid, $details);
+		$this->cassie->USER_SERVERS->insert($this->user_id, array($uuid => ''));
+		
+		return true;
+	}
 
 	public function addServers (array $servers)
 	{
@@ -35,16 +46,14 @@ class Application_Model_Servers
 		$this->cassie->USER_SERVERS->remove($this->user_id, $server_ids);
 	}
 
-	public function getUserServers ()
+	public function get_user_servers()
 	{
-		$servers = array();
 		$this->cassie->useColumnFamilies(array('SERVERS', 'USER_SERVERS'));
 		
 		$server_ids = $this->cassie->USER_SERVERS->get($this->user_id);
-		foreach ($server_ids as $id) {
-			$servers[] = $this->cassie->SERVERS->get($id);
-		}
-		return $servers;
+		$server_ids = array_keys($server_ids);
+		
+		return $this->cassie->SERVERS->multiget($server_ids);
 	}
 
 	public function getUserTerminatedServers ()

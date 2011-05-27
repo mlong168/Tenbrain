@@ -40,6 +40,12 @@ abstract class Application_Model_Provider
 		die; // how can you proceed if things failed? ;)
 	}
 	
+	protected function get_db_connection()
+	{
+		$config = new Zend_Config_Ini(APPLICATION_PATH . '/configs/application.ini', 'production');
+		return Zend_Db::factory($config->get('resources')->get('db'));
+	}
+	
 	abstract public function launch_server(array $params);
 	
 	abstract public function list_images();
