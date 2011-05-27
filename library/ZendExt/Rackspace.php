@@ -27,7 +27,7 @@ class ZendExt_Rackspace
 		$this->server_url = $auth_params['server_management_url'];
 	}
 	
-	private function authenticate($username = null, $key = null)
+	public function authenticate($username = null, $key = null)
 	{
 		$curl_session = curl_init(self::AUTH_URL . '/' . self::VERSION);
 		
@@ -58,7 +58,7 @@ class ZendExt_Rackspace
 		);
 	}
 
-	private function GET_request($action, $success_response_codes = array(200, 203))
+	public function GET_request($action, $success_response_codes = array(200, 203))
 	{
 		$curl_session = curl_init($this->server_url . '/' . $action);
 		
@@ -80,7 +80,7 @@ class ZendExt_Rackspace
 		return json_decode($response->getBody());
 	}
 	
-	private function DELETE_request($action, $success_response_codes = array(202, 204))
+	public function DELETE_request($action, $success_response_codes = array(202, 204))
 	{
 		$curl_session = curl_init($this->server_url . '/' . $action);		
 		$headers = array(
@@ -99,7 +99,7 @@ class ZendExt_Rackspace
 		return in_array($response->getResponseCode(), $success_response_codes);	
 	}
 	
-	private function POST_request($action, $data, $success_response_codes = array(202))
+	public function POST_request($action, $data, $success_response_codes = array(202))
 	{
 		$curl_session = curl_init($this->server_url . '/' . $action);		
 		$headers = array(
@@ -123,7 +123,7 @@ class ZendExt_Rackspace
 		return $body ? json_decode($body) : true;	
 	}
 	
-	private function PUT_request($action, $data, $success_response_codes = array(204))
+	public function PUT_request($action, $data, $success_response_codes = array(204))
 	{
 		$curl_session = curl_init($this->server_url . '/' . $action);		
 		$headers = array(

@@ -21,7 +21,21 @@ class Application_Model_Provider_Rackspace extends Application_Model_Provider
 	
 	public function list_images()
 	{
+		$out = array();
+		$images = $this->rack->GET_request('images/detail');
+		if(!$images) return $out;
+		$images = $images->images;
+		foreach($images as $image)
+		{
+			$out []= array(
+				'image_id'	=> $image->id,
+				'name'		=> $image->name,
+				'provider'	=> $this->name,
+				'state'		=> $image->status
+			);
+		}
 		
+		return $out;
 	}
 	
 	public function list_servers($ids)

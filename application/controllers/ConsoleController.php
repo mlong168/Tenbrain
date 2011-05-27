@@ -206,5 +206,12 @@ class ConsoleController extends Zend_Controller_Action
 		print_r($my_servers);
 		
 	}
+	
+	public function testrackAction()
+	{
+		$rack = new Application_Model_Provider_Rackspace();
+		print_r($rack->list_images());
+		die('end');
+	}
 
 }
