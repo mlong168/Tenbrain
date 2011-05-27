@@ -15,10 +15,10 @@ class Application_Model_Servers
 	{
 		$this->cassie->useColumnFamilies(array('SERVERS', 'USER_SERVERS'));
 		
-		foreach ($servers as $data) {
+		foreach ($servers as $server) {
 			$uuid = ZendExt_CassandraUtil::uuid1();
 			$data['server_id'] = $uuid;
-			$this->cassie->SERVERS->insert($uuid, $data);
+			$this->cassie->SERVERS->insert($uuid, $server);
 			$this->cassie->USER_SERVERS->insert($this->user_id, 
 			array($uuid => ''));
 		}
@@ -26,7 +26,7 @@ class Application_Model_Servers
 
 	public function removeServers (array $server_ids)
 	{
-		$this->cassie->useColumnFamilies('USER_SERVERS', 'USER_SERVERS');
+		$this->cassie->useColumnFamilies('USER_SERVERS', 'USER_DELETED_SERVERS');
 		
 		foreach ($server_ids as $id)
 			$this->cassie->USER_DELETED_SERVERS->insert($this->user_id, 
@@ -60,7 +60,7 @@ class Application_Model_Servers
 		return $servers;
 	}
 
-	public function getServersDetails ($instance_ids, $fields = array('instance_name'))
+	public function getServersDetails ($server_ids, $fields = array('instance_name'))
 	{
 		$servers = array();
 		$possible_fields = array('server_id', 'provider_server_id', 'server_name', 'provider', 'public_ip', 'created_on');
@@ -72,16 +72,15 @@ class Application_Model_Servers
 		if ($fields === array('*')) $fields_to_retrieve = $possible_fields;
 		$columns = implode(',', $fields_to_retrieve);
 		
-		$this->cassie->useColumnFamilies(array('SERVERS', 'USER_SERVERS'));
+		$this->cassie->useColumnFamilies(array('SERVERS'));
 		
-		$server_ids = $this->cassie->USER_SERVERS->get($this->user_id);
 		foreach ($server_ids as $id) {
 			$servers[] = $this->cassie->SERVERS->get($id, $columns);
 		}
 		return $servers;
 	}
 	
-	public function get_server_ids($provider_server_ids)
+	public function getServerIds($provider_server_ids)
 	{
 		$server_ids = array();
 		if(!is_array($provider_instance_ids)) $provider_instance_ids = array($provider_instance_ids);
@@ -94,7 +93,7 @@ class Application_Model_Servers
 		return $server_ids;
 	}
 	
-	public function remove_servers_in_lb($load_balancer_id, $server_ids)
+	public function removeServersInLb($load_balancer_id, $server_ids)
 	{
 		$this->cassie->useColumnFamilies(array('USER_LOADBALANCERS', 'USER_LOADBALANCER_SERVERS'));
 		$lb = $this->cassie->USER_LOADBALANCERS->get($this->user_id, $load_balancer_id); // Check if user have this LB
@@ -102,7 +101,7 @@ class Application_Model_Servers
 			$this->cassie->USER_LOADBALANCER_SERVERS->remove($load_balancer_id, $server_ids);
 	}
 	
-	public function add_servers_in_lb($load_balancer_id, $server_ids)
+	public function addServersInLb($load_balancer_id, $server_ids)
 	{
 		$this->cassie->useColumnFamilies(array('USER_LOADBALANCERS', 'USER_LOADBALANCER_SERVERS'));
 		$lb = $this->cassie->USER_LOADBALANCERS->get($this->user_id, $load_balancer_id); // Check if user have this LB
@@ -110,9 +109,9 @@ class Application_Model_Servers
 			$this->cassie->USER_LOADBALANCER_SERVERS->insert($load_balancer_id, $server_ids);
 	}
 	
-	public function get_servers_available_for_lb($provider, $load_balancer_id)
+	public function getServersAvailableForLb($provider = "ALL", $load_balancer_id)
 	{
-		$this->cassie->useColumnFamilies(array('USER_LOADBALANCERS, USER_LOADBALANCER_SERVERS'));
+		$this->cassie->useColumnFamilies(array('USER_LOADBALANCERS', 'USER_LOADBALANCER_SERVERS'));
 		
 		$lb = $this->cassie->USER_LOADBALANCERS->get($this->user_id, $load_balancer_id);
 		if(!$lb)
@@ -121,6 +120,15 @@ class Application_Model_Servers
 		$lb_servers = (array) $this->cassie->USER_LOADBALANCER_SERVERS->get($load_balancer_id);
 		$user_servers = $this->getUserServers();
 
+		$user_provider_servers = array();
+		if($provider != "ALL")
+		{
+			foreach ($user_servers as $user_server)
+				if($user_server['provider'] == $provider)
+					$user_provider_servers[] = $user_server;
+			$user_servers = $user_provider_servers;
+		}
+		
 		$servers = array();
 		if($user_servers)
 		{
@@ -130,7 +138,7 @@ class Application_Model_Servers
 					$servers[] = array(
 						'server_id'				=> $user_server['server_id'],
 						'provider_server_id'	=> $user_server['provider_server_id'],
-						'name'					=> $user_server['server_name'],
+						'server_name'			=> $user_server['server_name'],
 						'ip_address'			=> $user_server['public_ip']
 					);
 			}
