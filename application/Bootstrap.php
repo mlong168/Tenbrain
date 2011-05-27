@@ -39,7 +39,7 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
 		)));
 		
 		$router->addRoute('paypal_save', new Zend_Controller_Router_Route(
-			'/paypal/details/:id', 
+			'/pay/details/:id', 
 			array(
 				'controller'	=> 'paypal',
 				'action'		=> 'details'

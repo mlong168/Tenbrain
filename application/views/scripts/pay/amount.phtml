@@ -1,14 +1,14 @@
 <h3>Buy account</h3>
 
-<form>
+<form action="" method="post" accept-charset="utf-8" >
 <div class="payment container">
 <div class="payment plan">Choose your payment plan: </div><br>
 <div class="payment label">Enter number of days: </div>
-	<?php echo $this->time_form;?><br><br>
+	<?php echo $this->form->time_amount;?><br><br>
 <div class="payment label">Or amount of money: </div>
-	<?php echo $this->amount_form;?>
+	<?php echo $this->form->money_amount;?>
 	<br><br>
 	<div class="payment label"> Minimum onetime payment is 10$ </div>
-	<?php echo $this->submit; ?>
+	<?php echo $this->form->submit; ?>
 </div>
 </form>

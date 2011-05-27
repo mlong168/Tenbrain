@@ -1,6 +1,6 @@
 $(function(){
 	
-	$('input#time').bind('keyup ', function(){
+	$('input#time_amount').bind('keyup', function(){
 		days = Number($(this).val());
 		minBaks = 10;
 		if (!isNaN(days))
@@ -8,12 +8,12 @@ $(function(){
 			baks = makeDaysToMoney(days);
 			if(baks < minBaks)
 			{
-				$('input#money').val(minBaks);
-				$('input#money').val(minBaks);
+				minDays = makeMoneyToDays(minBaks);
+				$('input#money_amount').val(minBaks);
 			}
 			else
 			{
-				$('input#money').val(baks);
+				$('input#money_amount').val(baks);
 			}
 		}
 		else
@@ -22,10 +22,61 @@ $(function(){
 		}
 	});
 	
+	$('input#money_amount').bind('keyup', function(){
+		baks = Number($(this).val());
+		minBaks = 10;
+		if (!isNaN(days))
+		{
+			days = makeMoneyToDays(baks);
+			if(baks < minBaks)
+			{
+				minDays = makeMoneyToDays(minBaks);
+				$('input#time_amount').val(minDays);
+			}
+			else
+			{
+				$('input#time_amount').val(days);
+			}
+		}
+		else
+		{
+			$(this).val(minBaks);
+		}
+	});
+	
+	$('input#money_amount').bind('change', function(){
+		baks = Number($(this).val());
+		minBaks = 10;
+		if (!isNaN(days))
+		{
+			days = makeMoneyToDays(baks);
+			if(baks < minBaks)
+			{
+				minDays = makeMoneyToDays(minBaks);
+				$('input#time_amount').val(minDays);
+				$('input#money_amount').val(minBaks);
+			}
+			else
+			{
+				$('input#time_amount').val(days);
+			}
+		}
+		else
+		{
+			$(this).val(minBaks);
+		}
+	});
+	
+	baksPerDay = 1;
+
 	function makeDaysToMoney(days)
 	{
-		baksPerDay = 1;
 		return days * baksPerDay;
+	}
+
+	function makeMoneyToDays(money)
+	{
+		return money / baksPerDay;
 	}
 	
 });
