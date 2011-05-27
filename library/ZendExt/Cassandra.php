@@ -6,7 +6,7 @@ class ZendExt_Cassandra
 	const KEY_SPACE = 'Tenbrain_dev';
 	const SERVER = '50.19.88.0:9160';
 	
-	public function useColumnFamilies(array $families)
+	public function use_column_families(array $families)
 	{
 		$pool = new ConnectionPool(self::KEY_SPACE, array(self::SERVER));
 		foreach($families as $family)

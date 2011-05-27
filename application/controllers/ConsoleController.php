@@ -172,7 +172,7 @@ class ConsoleController extends Zend_Controller_Action
 		);
 
 		$cassie  = new ZendExt_Cassandra();
-		$cassie->useColumnFamilies(array('SERVERS', 'USER_SERVERS'));
+		$cassie->use_column_families(array('SERVERS', 'USER_SERVERS'));
 		
 		$sample_servers = array(
 			$ids[0]	=> array('provider' => 'Amazon', 'id' => '23456'),

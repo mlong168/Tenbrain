@@ -13,7 +13,7 @@ class Application_Model_Servers
 	
 	public function add_server(array $details)
 	{
-		$this->cassie->useColumnFamilies(array('SERVERS', 'USER_SERVERS'));
+		$this->cassie->use_column_families(array('SERVERS', 'USER_SERVERS'));
 		
 		$uuid = ZendExt_CassandraUtil::uuid1();
 		$this->cassie->SERVERS->insert($uuid, $details);
@@ -22,9 +22,9 @@ class Application_Model_Servers
 		return true;
 	}
 
-	public function addServers (array $servers)
+	public function add_servers (array $servers)
 	{
-		$this->cassie->useColumnFamilies(array('SERVERS', 'USER_SERVERS'));
+		$this->cassie->use_column_families(array('SERVERS', 'USER_SERVERS'));
 		
 		foreach ($servers as $server) {
 			$uuid = ZendExt_CassandraUtil::uuid1();
@@ -35,9 +35,9 @@ class Application_Model_Servers
 		}
 	}
 
-	public function removeServers (array $server_ids)
+	public function remov_servers (array $server_ids)
 	{
-		$this->cassie->useColumnFamilies('USER_SERVERS', 'USER_DELETED_SERVERS');
+		$this->cassie->use_column_families('USER_SERVERS', 'USER_DELETED_SERVERS');
 		
 		foreach ($server_ids as $id)
 			$this->cassie->USER_DELETED_SERVERS->insert($this->user_id, 
@@ -48,7 +48,7 @@ class Application_Model_Servers
 
 	public function get_user_servers()
 	{
-		$this->cassie->useColumnFamilies(array('SERVERS', 'USER_SERVERS'));
+		$this->cassie->use_column_families(array('SERVERS', 'USER_SERVERS'));
 		
 		$server_ids = $this->cassie->USER_SERVERS->get($this->user_id);
 		$server_ids = array_keys($server_ids);
@@ -56,20 +56,18 @@ class Application_Model_Servers
 		return $this->cassie->SERVERS->multiget($server_ids);
 	}
 
-	public function getUserTerminatedServers ()
+	public function get_user_terminated_servers ()
 	{
 		$servers = array();
-		$this->cassie->useColumnFamilies(
+		$this->cassie->use_column_families(
 		array('SERVERS', 'USER_DELETED_SERVERS'));
 		
 		$server_ids = $this->cassie->USER_DELETED_SERVERS->get($this->user_id);
-		foreach ($server_ids as $id) {
-			$servers[] = $this->cassie->SERVERS->get($id);
-		}
-		return $servers;
+		$server_ids = array_keys($server_ids);
+		return $this->cassie->SERVERS->get($server_ids);
 	}
 
-	public function getServersDetails ($server_ids, $fields = array('instance_name'))
+	public function get_servers_details ($server_ids, $fields = array('instance_name'))
 	{
 		$servers = array();
 		$possible_fields = array('server_id', 'provider_server_id', 'server_name', 'provider', 'public_ip', 'created_on');
@@ -81,7 +79,7 @@ class Application_Model_Servers
 		if ($fields === array('*')) $fields_to_retrieve = $possible_fields;
 		$columns = implode(',', $fields_to_retrieve);
 		
-		$this->cassie->useColumnFamilies(array('SERVERS'));
+		$this->cassie->use_column_families(array('SERVERS'));
 		
 		foreach ($server_ids as $id) {
 			$servers[] = $this->cassie->SERVERS->get($id, $columns);
@@ -89,7 +87,7 @@ class Application_Model_Servers
 		return $servers;
 	}
 	
-	public function getServerIds($provider_server_ids)
+	public function get_server_ids($provider_server_ids)
 	{
 		$server_ids = array();
 		if(!is_array($provider_instance_ids)) $provider_instance_ids = array($provider_instance_ids);
@@ -102,32 +100,32 @@ class Application_Model_Servers
 		return $server_ids;
 	}
 	
-	public function removeServersInLb($load_balancer_id, $server_ids)
+	public function remove_servers_in_lb($load_balancer_id, $server_ids)
 	{
-		$this->cassie->useColumnFamilies(array('USER_LOADBALANCERS', 'USER_LOADBALANCER_SERVERS'));
+		$this->cassie->use_column_families(array('USER_LOADBALANCERS', 'USER_LOADBALANCER_SERVERS'));
 		$lb = $this->cassie->USER_LOADBALANCERS->get($this->user_id, $load_balancer_id); // Check if user have this LB
 		if($lb)
 			$this->cassie->USER_LOADBALANCER_SERVERS->remove($load_balancer_id, $server_ids);
 	}
 	
-	public function addServersInLb($load_balancer_id, $server_ids)
+	public function add_servers_in_lb($load_balancer_id, $server_ids)
 	{
-		$this->cassie->useColumnFamilies(array('USER_LOADBALANCERS', 'USER_LOADBALANCER_SERVERS'));
+		$this->cassie->use_column_families(array('USER_LOADBALANCERS', 'USER_LOADBALANCER_SERVERS'));
 		$lb = $this->cassie->USER_LOADBALANCERS->get($this->user_id, $load_balancer_id); // Check if user have this LB
 		if($lb)
 			$this->cassie->USER_LOADBALANCER_SERVERS->insert($load_balancer_id, $server_ids);
 	}
 	
-	public function getServersAvailableForLb($provider = "ALL", $load_balancer_id)
+	public function get_servers_available_fo_lb($provider = "ALL", $load_balancer_id)
 	{
-		$this->cassie->useColumnFamilies(array('USER_LOADBALANCERS', 'USER_LOADBALANCER_SERVERS'));
+		$this->cassie->use_column_families(array('USER_LOADBALANCERS', 'USER_LOADBALANCER_SERVERS'));
 		
 		$lb = $this->cassie->USER_LOADBALANCERS->get($this->user_id, $load_balancer_id);
 		if(!$lb)
 			return array();
 		
 		$lb_servers = (array) $this->cassie->USER_LOADBALANCER_SERVERS->get($load_balancer_id);
-		$user_servers = $this->getUserServers();
+		$user_servers = $this->get_user_servers();
 
 		$user_provider_servers = array();
 		if($provider != "ALL")
