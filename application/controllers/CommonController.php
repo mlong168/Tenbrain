@@ -117,5 +117,68 @@ class CommonController extends Zend_Controller_Action
 			'instances'	=> $out
 		));
 	}
+
+	public function rebootInstancesAction()
+	{
+		$instance_ids = $this->getRequest()->getParam('instances');
+		$instance_ids = Zend_Json_Decoder::decode($instance_ids);
+		
+		$storage = new Application_Model_Servers();
+		$servers = $storage->get_user_server_provider_ids($instance_ids);
+
+		foreach($this->providers as $provider)
+		{
+			if(array_key_exists($provider->name, $servers))
+			{
+				$provider->reboot_servers($servers[$provider->name]);
+			}
+		}
+
+		echo Zend_Json_Encoder::encode(array(
+			'success'	=> true
+		));
+	}
+
+	public function stopInstancesAction()
+	{
+		$instance_ids = $this->getRequest()->getParam('instances');
+		$instance_ids = Zend_Json_Decoder::decode($instance_ids);
+		
+		$storage = new Application_Model_Servers();
+		$servers = $storage->get_user_server_provider_ids($instance_ids);
+
+		foreach($this->providers as $provider)
+		{
+			if(array_key_exists($provider->name, $servers))
+			{
+				$provider->stop_servers($servers[$provider->name]);
+			}
+		}
+
+		echo Zend_Json_Encoder::encode(array(
+			'success'	=> true
+		));
+	}
+
+	public function terminateInstancesAction()
+	{
+		$instance_ids = $this->getRequest()->getParam('instances');
+		$instance_ids = Zend_Json_Decoder::decode($instance_ids);
+		
+		$storage = new Application_Model_Servers();
+		$servers = $storage->get_user_server_provider_ids($instance_ids);
+
+		foreach($this->providers as $provider)
+		{
+			if(array_key_exists($provider->name, $servers))
+			{
+				$provider->terminate_servers($servers[$provider->name]);
+			}
+		}
+
+		echo Zend_Json_Encoder::encode(array(
+			'success'	=> true
+		));
+	}
 	
 }
