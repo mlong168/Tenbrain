@@ -37,7 +37,11 @@ form#payment ul.errors{
 	clear: both;
 }
 .payment.finished{
-	padding: 2em 2em;
+	padding: 2em 2em 0;
+	text-align: center;
+}
+.payment.finished.link{
+	padding: 1em 0 0;
 	text-align: center;
 }
 #submit-element{
@@ -67,4 +71,7 @@ form#payment ul.errors{
 	font-size: 0.9em;
 	color: #098ED3;
 	margin: 0.3em 0
+}
+#year-element ul{
+	display: inline-block;
 }

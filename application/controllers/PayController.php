@@ -89,16 +89,13 @@ class PayController extends Zend_Controller_Action
 		if ($this->getRequest()->isPost())
 		{
 			$params = $this->getRequest()->getParams();
-			if($this->view->form->isValid($params))
+			
+			if($this->view->form->isValid($params) & $this->isValidExpirationDate($params))
 			{
 				$paypal = new Paypal_DoDirectPayment();
     			$page = $paypal->doDirectPayment($params);
     			
 				$this->_helper->Redirector->gotoUrl('pay/details/'.$page);
-			}
-			else
-			{
-				$this->view->errorElements = $this->view->form->getMessages();
 			}
 		}
     }
@@ -119,5 +116,17 @@ class PayController extends Zend_Controller_Action
   		{
   			$this->_helper->Redirector->gotoUrl('account/sign_in');
   		}
+    }
+    
+    private function isValidExpirationDate($params)
+    {
+    	$month = $params['month'];
+    	$year = $params['year'];
+    	if(Paypal_Validate_ExpirationDate::isValid($month, $year))
+    	{
+    		return true;
+    	}
+    	$this->view->form->year->setErrors(array('isEmpty' => 'Expiration date is incorrect.'));
+    	return false;
     }
 }
