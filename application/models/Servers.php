@@ -92,6 +92,7 @@ class Application_Model_Servers
 		
 		$this->cassie->USER_DELETED_SERVERS->insert($this->user_id, 
 			array($server_id => ''));
+			
 		$this->cassie->USER_SERVERS->remove($this->user_id, array($server_id));
 	}
 	
@@ -110,10 +111,23 @@ class Application_Model_Servers
 	{
 		$servers = array();
 		$this->cassie->use_column_families(array('SERVERS', 'USER_DELETED_SERVERS'));
-		
+
 		$server_ids = $this->cassie->USER_DELETED_SERVERS->get($this->user_id);
 		$server_ids = array_keys($server_ids);
-		return $this->cassie->SERVERS->get($server_ids);
+		
+		$terminated = $this->cassie->SERVERS->multiget($server_ids);
+		$out = array();
+		foreach($terminated as $term)
+		{
+			$out[] = array(
+				'name'		=> $term['name'],
+				'provider'	=> $term['provider'],
+				'state'		=> 'terminated',
+				'type'		=> $term['type']
+			);
+		}
+		
+		return $out;
 	}
 
 	public function get_servers_details ($server_ids, $fields = array('instance_name'))
