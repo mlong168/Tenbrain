@@ -105,25 +105,41 @@ class Application_Model_Provider_Rackspace extends Application_Model_Provider
 		}
 		return $out;
 	}
-
+	
+	// no start or stop for rackspace
 	public function start_servers(array $ids)
 	{
-		
+		return false;
 	}
 	
 	public function stop_servers(array $ids)
 	{
-		
+		return false;
 	}
 	
 	public function reboot_servers(array $ids)
 	{
-		
+		$data = array(
+			'reboot' => array(
+				'type' => 'SOFT'
+			)
+		);
+		foreach($ids as $id)
+		{
+			$this->rack->POST_request('servers/' . $id . '/action', $data);
+		}
+		return true;
 	}
 	
 	public function terminate_servers(array $ids)
 	{
+		foreach($ids as $id)
+		{
+			$this->rack->DELETE_request('servers/' . $id);
+		}
 		
+		$this->storage->remove_servers(array_keys($ids));
+		return true;
 	}
 	
 	public function create_load_balancer($name, array $instances, $gogrid_lb_address)

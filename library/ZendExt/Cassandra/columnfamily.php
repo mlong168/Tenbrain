@@ -247,10 +247,10 @@ class ColumnFamily {
             $key, $column_parent, $predicate,
             $this->rcl($read_consistency_level));
 
-        if (count($resp) == 0)
-            throw new cassandra_NotFoundException();
+        // if (count($resp) == 0)
+            // throw new cassandra_NotFoundException();
 
-        return $this->supercolumns_or_columns_to_array($resp);
+        return count($resp) === 0 ? array() : $this->supercolumns_or_columns_to_array($resp);
     }
 
     /**

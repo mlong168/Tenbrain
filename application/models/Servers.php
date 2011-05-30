@@ -43,11 +43,11 @@ class Application_Model_Servers
 			if(!array_key_exists($server['provider'], $out)) $out[$server['provider']] = array();
 			if($return_tb_ids)
 			{
-				$out[$server['provider']][$tb_id] = $server['server_id'];
+				$out[$server['provider']][$tb_id] = $server['provider_server_id'];
 			}
 			else
 			{
-				$out[$server['provider']][] = $server['server_id'];
+				$out[$server['provider']][] = $server['provider_server_id'];
 			}
 		}
 		

@@ -77,7 +77,6 @@ class CommonController extends Zend_Controller_Action
 		$out = $provider_instances = array();
 		foreach($instances as $id => &$row)
 		{
-			if($id === 'tb-4ddfb4ea8dddc') continue;
 			$pid = $row['provider_server_id'];
 			$provider = $row['provider'];
 			
