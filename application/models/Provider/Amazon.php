@@ -31,7 +31,7 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 	{
 		parent::__construct();
 		
-		$this->name = basename(__FILE__, '.php');
+		$this->name = 'Amazon';
 		$this->storage = new Application_Model_Servers();
 		$this->ec2 = new AmazonEC2(self::TENBRAIN_API_KEY, self::TENBRAIN_API_SECRET);
 	}
@@ -191,11 +191,11 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 		
 		// write to db if things went fine
 		$this->storage->add_server(array(
-			'name'		=> $name,
-			'server_id'	=> $instance_id,
-			'type'		=> $type,
-			'image_id'	=> $image_id,
-			'provider'	=> $this->name
+			'name'				=> $name,
+			'provider_server_id'=> $instance_id,
+			'type'				=> $type,
+			'image_id'			=> $image_id,
+			'provider'			=> $this->name
 		));
 		return true;
 	}

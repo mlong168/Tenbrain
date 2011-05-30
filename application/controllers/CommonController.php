@@ -3,8 +3,7 @@
 class CommonController extends Zend_Controller_Action
 {
 	
-	// private $supported_providers = array('Amazon', 'GoGrid', 'Rackspace');
-	private $supported_providers = array('Amazon', 'Rackspace');
+	private $supported_providers = array('Amazon', 'Rackspace', 'GoGrid');
 	private $providers;
 	
 	public function init()
@@ -22,6 +21,20 @@ class CommonController extends Zend_Controller_Action
 		$this->layout->disableLayout();
 		header('Content-type: application/json');
 		
+	}
+	
+	private function successfull_response($out = '')
+	{
+		$return = is_array($out) ? $out : array('message' => (string) $out);
+		return Zend_Json_Encoder::encode(array_merge(array('success' => true), $return));
+	}
+	
+	private function failure_response($message, $additional_params = array())
+	{
+		return Zend_Json_Encoder::encode(array_merge(array(
+			'success'	=> false,
+			'message'	=> $message
+		), $additional_params));
 	}
 	
 	public function indexAction()
@@ -42,10 +55,7 @@ class CommonController extends Zend_Controller_Action
 			}
 		}
 		
-		echo Zend_Json_Encoder::encode(array(
-			'success'	=> true,
-			'images'	=> $images
-		));
+		echo $this->successfull_response(array('images' => $images));
 	}
 	
 	public function listInstancesAction()
@@ -67,7 +77,8 @@ class CommonController extends Zend_Controller_Action
 		$out = $provider_instances = array();
 		foreach($instances as $id => &$row)
 		{
-			$pid = $row['server_id'];
+			if($id === 'tb-4ddfb4ea8dddc') continue;
+			$pid = $row['provider_server_id'];
 			$provider = $row['provider'];
 			
 			// GoGrid-only exception - ids are not assigned immediately after creation, that sucks...
@@ -112,10 +123,7 @@ class CommonController extends Zend_Controller_Action
 				$instances['stopped'][] = $instance;
 		}
 
-		echo Zend_Json_Encoder::encode(array(
-			'success'	=> true,
-			'instances'	=> $out
-		));
+		echo $this->successfull_response(array('instances'	=> $out));
 	}
 
 	public function rebootInstancesAction()
@@ -134,9 +142,7 @@ class CommonController extends Zend_Controller_Action
 			}
 		}
 
-		echo Zend_Json_Encoder::encode(array(
-			'success'	=> true
-		));
+		echo $this->successfull_response();
 	}
 
 	public function stopInstancesAction()
@@ -155,9 +161,26 @@ class CommonController extends Zend_Controller_Action
 			}
 		}
 
-		echo Zend_Json_Encoder::encode(array(
-			'success'	=> true
-		));
+		echo $this->successfull_response();
+	}
+
+	public function startInstancesAction()
+	{
+		$instance_ids = $this->getRequest()->getParam('instances');
+		$instance_ids = Zend_Json_Decoder::decode($instance_ids);
+		
+		$storage = new Application_Model_Servers();
+		$servers = $storage->get_user_server_provider_ids($instance_ids);
+
+		foreach($this->providers as $provider)
+		{
+			if(array_key_exists($provider->name, $servers))
+			{
+				$provider->start_servers($servers[$provider->name]);
+			}
+		}
+
+		echo $this->successfull_response();
 	}
 
 	public function terminateInstancesAction()
@@ -176,9 +199,7 @@ class CommonController extends Zend_Controller_Action
 			}
 		}
 
-		echo Zend_Json_Encoder::encode(array(
-			'success'	=> true
-		));
+		echo $this->successfull_response();
 	}
 	
 }
