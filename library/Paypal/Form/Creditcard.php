@@ -9,11 +9,30 @@ class Paypal_Form_Creditcard extends Zend_Form
 							'MasterCard' => 'Master Card',
 							'Amex' => 'American Express',
 	);
+	protected $amount;
+	
+	public function __construct($amount = null)
+	{
+		parent::__construct(); 
+		$this->amount = $amount;
+		$this->init();
+	}
 	
 	public function init()
 	{
 		$this->setMethod('post');
 		$this->setAttrib('id', 'payment');
+		
+		$cc_amount = $this->createElement('text', 'cc_amount', array(
+							'label' => 'Money amount',
+        					'class'	=>	$this->inputClassName,
+                            'required' => TRUE,
+							'maxlength' => 16,
+        					'size' => 16,
+        					'readonly' => 'true',
+		));
+		$cc_amount->setValue($this->amount);
+		$this->setLabelDecorator($cc_amount);
 		
 		$number = $this->createElement('text', 'number', array(
 							'label' => 'Credit Card Number',
@@ -71,6 +90,7 @@ class Paypal_Form_Creditcard extends Zend_Form
 
 
 		$elements = array(
+					$cc_amount,
                     $number,
                     $type,
                     $expMonth,

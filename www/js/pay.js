@@ -1,8 +1,10 @@
 $(function(){
+
+	minBaks = 10;
+	baksPerDay = 1;
 	
 	$('input#time_amount').bind('keyup', function(){
 		days = Number($(this).val());
-		minBaks = 10;
 		if (!isNaN(days))
 		{
 			baks = makeDaysToMoney(days);
@@ -24,8 +26,7 @@ $(function(){
 	
 	$('input#money_amount').bind('keyup', function(){
 		baks = Number($(this).val());
-		minBaks = 10;
-		if (!isNaN(days))
+		if (!isNaN(baks))
 		{
 			days = makeMoneyToDays(baks);
 			if(baks < minBaks)
@@ -46,8 +47,7 @@ $(function(){
 	
 	$('input#money_amount').bind('change', function(){
 		baks = Number($(this).val());
-		minBaks = 10;
-		if (!isNaN(days))
+		if (!isNaN(baks))
 		{
 			days = makeMoneyToDays(baks);
 			if(baks < minBaks)
@@ -67,7 +67,6 @@ $(function(){
 		}
 	});
 	
-	baksPerDay = 1;
 
 	function makeDaysToMoney(days)
 	{

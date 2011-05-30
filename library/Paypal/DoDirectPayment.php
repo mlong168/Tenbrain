@@ -7,10 +7,11 @@
 
 class Paypal_DoDirectPayment
 {
-	private $price = '0.99';
+	private $minMoneyAmount = 10;
 	
 	public function doDirectPayment(array $cc_info)
 	{
+		$cc_amount = $this->CheckMoney($cc_info['cc_amount']);
 		$cc_number = $cc_info['number'];
 		$cc_type = $cc_info['type'];
 		$cc_month = $cc_info['month'];
@@ -22,7 +23,7 @@ class Paypal_DoDirectPayment
 		$creditCardType = urlencode(strtoupper($cc_type));
 		$creditCardNumber = urlencode($cc_number); //test num - 4834612755548993
 		$cvv2Number = urlencode($cc_cvv2);
-		$amount = urlencode($this->price);
+		$amount = urlencode($cc_amount);
 		$currencyID = urlencode('USD');
 		$expDateYear = urlencode($cc_year);
 		$expDateMonth = $cc_month;
@@ -46,6 +47,19 @@ class Paypal_DoDirectPayment
 	{
 		$table = new Application_Model_Paypal();
 		return $table->db_save($this->details);
+	}
+	
+	private function CheckMoney($amount)
+	{
+		if(is_int($amount))
+		{
+			if($amount < $this->minMoneyAmount)
+			{
+				return $this->minMoneyAmount;
+			}
+			return $amount;
+		}
+		return $this->minMoneyAmount;
 	}
 	
 
