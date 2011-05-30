@@ -49,7 +49,7 @@ abstract class Application_Model_Provider
 	abstract public function launch_server(array $params);
 	
 	abstract public function list_images();
-	abstract public function list_servers($ids);
+	abstract public function list_servers($ids, $state);
 
 	abstract public function start_servers(array $ids);
 	abstract public function stop_servers(array $ids);

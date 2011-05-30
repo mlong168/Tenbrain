@@ -73,8 +73,12 @@ class Application_Model_Provider_Rackspace extends Application_Model_Provider
 		return $out;
 	}
 	
-	public function list_servers($ids = array())
+	public function list_servers($ids = array(), $state = 'running')
 	{
+		// there is no ability to start/stop servers in Rackspace, and we take terminated from the db only,
+		// therefore this method can  be useful only for listing running servers here
+		if($state !== 'running') return array();
+		
 		$out = array();
 		// $av_types = $this->get_available_server_types();
 		foreach($ids as $pid => $db_id)
