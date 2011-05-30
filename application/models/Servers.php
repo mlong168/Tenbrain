@@ -11,6 +11,16 @@ class Application_Model_Servers
 		$this->cassie = new ZendExt_Cassandra();
 	}
 	
+	public function update_provider_id($server_id, $provider_server_id)
+	{
+		$this->cassie->use_column_families(array('SERVERS'));
+		
+		$server = $this->cassie->SERVERS->get($server_id);
+		$server['provider_server_id'] = $provider_server_id;
+		
+		$server = $this->cassie->SERVERS->insert($server_id, $server);
+	}
+	
 	public function get_user_server($server_id)
 	{
 		$this->cassie->use_column_families(array('SERVERS', 'USER_SERVERS'));
@@ -37,17 +47,16 @@ class Application_Model_Servers
 	{
 		$servers = $this->get_user_servers($server_ids);
 		$out = array();
-		
 		foreach($servers as $tb_id => $server)
 		{
 			if(!array_key_exists($server['provider'], $out)) $out[$server['provider']] = array();
 			if($return_tb_ids)
 			{
-				$out[$server['provider']][$tb_id] = $server['server_id'];
+				$out[$server['provider']][$tb_id] = $server['provider_server_id'];
 			}
 			else
 			{
-				$out[$server['provider']][] = $server['server_id'];
+				$out[$server['provider']][] = $server['provider_server_id'];
 			}
 		}
 		
@@ -83,6 +92,7 @@ class Application_Model_Servers
 		
 		$this->cassie->USER_DELETED_SERVERS->insert($this->user_id, 
 			array($server_id => ''));
+			
 		$this->cassie->USER_SERVERS->remove($this->user_id, array($server_id));
 	}
 	
@@ -101,10 +111,23 @@ class Application_Model_Servers
 	{
 		$servers = array();
 		$this->cassie->use_column_families(array('SERVERS', 'USER_DELETED_SERVERS'));
-		
+
 		$server_ids = $this->cassie->USER_DELETED_SERVERS->get($this->user_id);
 		$server_ids = array_keys($server_ids);
-		return $this->cassie->SERVERS->get($server_ids);
+		
+		$terminated = $this->cassie->SERVERS->multiget($server_ids);
+		$out = array();
+		foreach($terminated as $term)
+		{
+			$out[] = array(
+				'name'		=> $term['name'],
+				'provider'	=> $term['provider'],
+				'state'		=> 'terminated',
+				'type'		=> $term['type']
+			);
+		}
+		
+		return $out;
 	}
 
 	public function get_servers_details ($server_ids, $fields = array('instance_name'))

@@ -3,7 +3,7 @@
 class CommonController extends Zend_Controller_Action
 {
 	
-	// private $supported_providers = array('Amazon', 'GoGrid', 'Rackspace');
+	// private $supported_providers = array('Amazon', 'Rackspace', 'GoGrid');
 	private $supported_providers = array('Amazon', 'Rackspace');
 	private $providers;
 	
@@ -24,6 +24,20 @@ class CommonController extends Zend_Controller_Action
 		
 	}
 	
+	private function successfull_response($out = '')
+	{
+		$return = is_array($out) ? $out : array('message' => (string) $out);
+		return Zend_Json::encode(array_merge(array('success' => true), $return));
+	}
+	
+	private function failure_response($message, $additional_params = array())
+	{
+		return Zend_Json::encode(array_merge(array(
+			'success'	=> false,
+			'message'	=> $message
+		), $additional_params));
+	}
+	
 	public function indexAction()
 	{
 		print_r($this->providers['Amazon']->list_servers());
@@ -42,32 +56,29 @@ class CommonController extends Zend_Controller_Action
 			}
 		}
 		
-		echo Zend_Json_Encoder::encode(array(
-			'success'	=> true,
-			'images'	=> $images
-		));
+		echo $this->successfull_response(array('images' => $images));
 	}
 	
 	public function listInstancesAction()
 	{
 		$state = $this->getRequest()->getParam('state');
-		$servers = new Application_Model_Servers();
+		$servers_model = new Application_Model_Servers();
 		
 		if($state === 'terminated')
 		{
-			$terminated = $this->instance->get_user_terminated_instances();
-			echo Zend_Json_Encoder::encode(array(
-				'success'	=> true,
-				'instances'	=> isset($terminated) ? $terminated : array()
-			));
-			return;
+			$terminated = $servers_model->get_user_terminated_servers();
+			$out = count($terminated) ? $terminated : array();
+			echo $this->successfull_response(array('instances' => $out));
+			return false;
 		}
 		
-		$instances = $servers->get_user_servers();
-		$out = $provider_instances = array();
-		foreach($instances as $id => &$row)
+		$servers = $servers_model->get_user_servers();
+		unset($servers_model);
+		
+		$out = $provider_servers = array();
+		foreach($servers as $id => &$row)
 		{
-			$pid = $row['server_id'];
+			$pid = $row['provider_server_id'];
 			$provider = $row['provider'];
 			
 			// GoGrid-only exception - ids are not assigned immediately after creation, that sucks...
@@ -89,33 +100,18 @@ class CommonController extends Zend_Controller_Action
 				}
 			}
 			
-			$provider_instances[$provider][$pid] = $id;
+			$provider_servers[$provider][$pid] = $id;
 		}
 		
 		foreach($this->providers as $provider)
 		{
-			if(array_key_exists($provider->name, $provider_instances))
+			if(array_key_exists($provider->name, $provider_servers))
 			{
-				$out = array_merge($out, $provider->list_servers($provider_instances[$provider->name]));
+				$out = array_merge($out, $provider->list_servers($provider_servers[$provider->name], $state));
 			}
 		}
 
-		$instances = array();
-		
-		foreach($out as $instance)
-		{
-			if($instance['state'] == 'terminated')
-				continue;
-			if($instance['state'] != 'stopped')
-				$instances['running'][] = $instance;
-			else
-				$instances['stopped'][] = $instance;
-		}
-
-		echo Zend_Json_Encoder::encode(array(
-			'success'	=> true,
-			'instances'	=> $out
-		));
+		echo $this->successfull_response(array('instances'	=> $out));
 	}
 
 	public function rebootInstancesAction()
@@ -134,9 +130,7 @@ class CommonController extends Zend_Controller_Action
 			}
 		}
 
-		echo Zend_Json_Encoder::encode(array(
-			'success'	=> true
-		));
+		echo $this->successfull_response();
 	}
 
 	public function stopInstancesAction()
@@ -155,9 +149,26 @@ class CommonController extends Zend_Controller_Action
 			}
 		}
 
-		echo Zend_Json_Encoder::encode(array(
-			'success'	=> true
-		));
+		echo $this->successfull_response();
+	}
+
+	public function startInstancesAction()
+	{
+		$instance_ids = $this->getRequest()->getParam('instances');
+		$instance_ids = Zend_Json_Decoder::decode($instance_ids);
+		
+		$storage = new Application_Model_Servers();
+		$servers = $storage->get_user_server_provider_ids($instance_ids);
+
+		foreach($this->providers as $provider)
+		{
+			if(array_key_exists($provider->name, $servers))
+			{
+				$provider->start_servers($servers[$provider->name]);
+			}
+		}
+
+		echo $this->successfull_response();
 	}
 
 	public function terminateInstancesAction()
@@ -176,9 +187,7 @@ class CommonController extends Zend_Controller_Action
 			}
 		}
 
-		echo Zend_Json_Encoder::encode(array(
-			'success'	=> true
-		));
+		echo $this->successfull_response();
 	}
 	
 }

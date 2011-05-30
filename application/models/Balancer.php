@@ -19,6 +19,8 @@ class Application_Model_Balancer
 		$this->cassie->LOADBALANCERS->insert($uuid, $details);
 		$this->cassie->USER_LOADBALANCERS->insert($this->user_id, 
 		array($uuid => ''));
+		
+		return $uuid;
 	}
 
 	public function delete_load_balancer($load_balancer_id)
@@ -62,7 +64,7 @@ class Application_Model_Balancer
 			$this->cassie->USER_LOADBALANCER_SERVERS->insert($load_balancer_id, $server_ids);
 	}
 	
-	public function get_servers_available_fo_lb($provider = "ALL", $load_balancer_id)
+	public function get_servers_available_for_lb($provider = "ALL", $load_balancer_id)
 	{
 		$this->cassie->use_column_families(array('USER_LOADBALANCERS', 'USER_LOADBALANCER_SERVERS'));
 		

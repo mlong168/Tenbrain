@@ -31,7 +31,7 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 	{
 		parent::__construct();
 		
-		$this->name = basename(__FILE__, '.php');
+		$this->name = 'Amazon';
 		$this->storage = new Application_Model_Servers();
 		$this->ec2 = new AmazonEC2(self::TENBRAIN_API_KEY, self::TENBRAIN_API_SECRET);
 	}
@@ -184,24 +184,43 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 		
 		$this->test_response($response);
 
-		$instance_id = $response->body->instanceId();
-		$instance_id = (string) $instance_id[0];
+		$instance_id = $response->body->instanceId()->first();
+		$details = $instance_id->parent();
+		$instance_id = (string) $instance_id;
 		
 		$this->tag_instance($instance_id, 'Name', $name);
-		
-		// write to db if things went fine
+
 		$this->storage->add_server(array(
-			'name'		=> $name,
-			'server_id'	=> $instance_id,
-			'type'		=> $type,
-			'image_id'	=> $image_id,
-			'provider'	=> $this->name
+			// major stuff:
+			'name'				=> $name,
+			'provider_server_id'=> $instance_id,
+			'type'				=> $type,
+			'image_id'			=> $image_id,
+			'provider'			=> $this->name,
+			'launch_time'		=> $details->launchTime,
+			
+			//all the rest:
+			'key_name'				=> (string) $details->keyName,
+			'availability_zone'		=> (string) $details->placement->availabilityZone,
+			'kernel_id'				=> (string) $details->kernelId,
+			'monitoring'			=> (string) $details->monitoring->state,
+			'security_group_id'		=> (string) $details->groupSet->groupId()->first(),
+			'security_group_name'	=> (string) $details->groupSet->groupName()->first(),
+			'root_device_type'		=> (string) $details->rootDeviceType,
+			'root_device_name'		=> (string) $details->rootDeviceName,
+			'virtualization_type'	=> (string) $details->virtualizationType,
+			'hypervisor'			=> (string) $details->hypervisor
+			// ''	=> (string) $details->,
 		));
 		return true;
 	}
 	
-	public function list_servers($ids = array())
+	public function list_servers($ids = array(), $state = 'running')
 	{
+		$possible_states = array(
+			'running'	=>array('pending', 'running', 'stopping'),
+			'stopped'	=>array('stopped', 'stopping', 'shutting-down')
+		);
 		$response = $this->ec2->describe_instances(array(
 			'InstanceId' => array_keys($ids)
 		));
@@ -210,24 +229,28 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 		$instances = array();
 		$list = $response->body->query("descendant-or-self::instanceId")->map(function($node){
 			return $node->parent();
-		})->each(function($node) use(&$instances, $ids){
-			$name = $node->tagSet->xpath("descendant-or-self::item[key='Name']/value");
-			$name = $name ? (string) $name[0] : '<i>not set</i>';
-			$id = (string) $node->instanceId;
-			$instances[] = array(
-				'id'				=> $ids[$id],
-				'name'				=> $name,
-				'dns_name'			=> (string) $node->dnsName,
-				'ip_address'		=> (string) $node->ipAddress,
-				'image_id'			=> (string) $node->imageId,
-				'state'				=> (string) $node->instanceState->name,
-				'type'				=> (string) $node->instanceType,
-				'provider'			=> 'Amazon'
-				// 'virtualization'	=> (string) $node->virtualizationType,
-				// 'root_device'	=> (string) $node->rootDeviceType,
-				// ''				=> (string) $node->,
-			);
+		})->each(function($node) use(&$instances, $ids, $state, $possible_states){
+			$server_state = (string) $node->instanceState->name;
+			if(in_array($server_state, $possible_states[$state]))
+			{
+				$name = $node->tagSet->xpath("descendant-or-self::item[key='Name']/value");
+				$name = $name ? (string) $name[0] : '<i>not set</i>';
+				
+				$id = (string) $node->instanceId;
+				$instances[] = array(
+					'id'				=> $ids[$id],
+					'name'				=> $name,
+					'dns_name'			=> (string) $node->dnsName,
+					'ip_address'		=> (string) $node->ipAddress,
+					'image_id'			=> (string) $node->imageId,
+					'state'				=> $server_state,
+					'type'				=> (string) $node->instanceType,
+					'provider'			=> 'Amazon'
+					// ''				=> (string) $node->,
+				);
+			}
 		});
+		// print_r($instances);
 		
 		return $instances;
 	}

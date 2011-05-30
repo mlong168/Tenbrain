@@ -606,12 +606,9 @@ var Instances = function(){
 				if(record.data.state !== 'stopped') metadata.css = 'grid-loader';
 				return value;
 			}},
-			{text: "Link to server root", dataIndex: 'dns_name', width: 250, renderer: Helpers.link_wrapper},
 			{text: "IP Address", dataIndex: 'ip_address', width: 120},
 			{text: "State", dataIndex: 'state', width: 100},
-			{text: "Virtualization", dataIndex: 'virtualization', width: 100},
-			{text: "Type", dataIndex: 'type', width: 100},
-			{text: "Root Device", dataIndex: 'root_device', width: 100}
+			{text: "Type", dataIndex: 'type', width: 100}
 		],
 		listeners: {
 			rowcontextmenu: function (grid, id, e) {
@@ -715,9 +712,7 @@ var Instances = function(){
 			{text: "Name", dataIndex: 'name', width: 150},
 			{text: "Provider", dataIndex: 'provider', width: 80},
 			{text: "State", dataIndex: 'state', width: 100},
-			{text: "Virtualization", dataIndex: 'virtualization', width: 100},
-			{text: "Type", dataIndex: 'type', width: 100},
-			{text: "Root Device", dataIndex: 'root_device', width: 100}
+			{text: "Type", dataIndex: 'type', width: 100}
 		]
 	});
 	
