@@ -21,7 +21,7 @@ class Paypal_DoDirectPayment
 		// Set request-specific fields.
 		$paymentType = urlencode('Sale');				// 'Authorization' or 'Sale'
 		$creditCardType = urlencode(strtoupper($cc_type));
-		$creditCardNumber = urlencode($cc_number); //test num - 4834612755548993
+		$creditCardNumber = urlencode($cc_number);
 		$cvv2Number = urlencode($cc_cvv2);
 		$amount = urlencode($cc_amount);
 		$currencyID = urlencode('USD');
@@ -51,6 +51,7 @@ class Paypal_DoDirectPayment
 	
 	private function CheckMoney($amount)
 	{
+		$amount = (int)$amount;
 		if(is_int($amount))
 		{
 			if($amount < $this->minMoneyAmount)
