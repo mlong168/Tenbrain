@@ -7,6 +7,8 @@
  */
 class PayController extends Zend_Controller_Action
 {
+	protected $minMoneyAmount = 10;
+	
 	private $selections = array(
 		'pay_cc'	=> 
 			array(
@@ -55,8 +57,12 @@ class PayController extends Zend_Controller_Action
 			$params = $this->getRequest()->getParams();
 			if($this->view->form->isValid($params))
 			{
-				#TODO: pass params
-				$this->_helper->Redirector->gotoUrl('pay/creditcard/');
+				$amount = $params['money_amount'];
+				if ($amount < $this->minMoneyAmount)
+				{
+					$amount = $this->minMoneyAmount;
+				}
+				$this->_helper->Redirector->gotoUrl('pay/creditcard/amount/'.$amount);
 			}
 			else
 			{
@@ -69,7 +75,15 @@ class PayController extends Zend_Controller_Action
     public function creditcardAction()
     {
     	$this->isAutorized();
-		$form = new Paypal_Form_Creditcard();
+    	
+    	$amount = $this->getRequest()->getParam('amount');
+    	if( !(isset($amount) && $amount >= $this->minMoneyAmount) )
+    	{
+    		$this->_helper->Redirector->gotoUrl('pay');
+    	}
+    	
+    	
+		$form = new Paypal_Form_Creditcard($amount);
 		$this->view->form = $form;
 		
 		if ($this->getRequest()->isPost())

@@ -22,9 +22,7 @@ class Application_Model_Paypal extends Zend_Db_Table_Abstract
     public function db_save($data) 
     {
     	$this->details = $data;
-    	
     	$auth = Zend_Auth::getInstance();
-    	
     	$bind = array(
     		'userid' 		=> $auth->getIdentity()->id,
     		'ack' 			=> urldecode($data['ACK']),
@@ -35,6 +33,14 @@ class Application_Model_Paypal extends Zend_Db_Table_Abstract
     		'error_long' 	=> $this->urldecode_save('L_LONGMESSAGE0'),
     		'details' 		=> urldecode(print_r($data, true)),
     	);
+    	
+    	
+    	if($this->isPaymentSuccessful($bind['ack']))
+    	{
+    		$this->upgradeAccount();
+    	}
+    	
+    	
     	return $this->insert($bind);
     }
     
@@ -68,6 +74,11 @@ class Application_Model_Paypal extends Zend_Db_Table_Abstract
 				return true;
 			} 
 		return false;
+    }
+    
+    public function upgradeAccount()
+    {
+    	#TODO: upgrage account accourding to money amount
     }
     
     
