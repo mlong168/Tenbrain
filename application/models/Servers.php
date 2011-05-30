@@ -11,6 +11,16 @@ class Application_Model_Servers
 		$this->cassie = new ZendExt_Cassandra();
 	}
 	
+	public function update_provider_id($server_id, $provider_server_id)
+	{
+		$this->cassie->use_column_families(array('SERVERS'));
+		
+		$server = $this->cassie->SERVERS->get($server_id);
+		$server['provider_server_id'] = $provider_server_id;
+		
+		$server = $this->cassie->SERVERS->insert($server_id, $server);
+	}
+	
 	public function get_user_server($server_id)
 	{
 		$this->cassie->use_column_families(array('SERVERS', 'USER_SERVERS'));
@@ -37,7 +47,6 @@ class Application_Model_Servers
 	{
 		$servers = $this->get_user_servers($server_ids);
 		$out = array();
-		
 		foreach($servers as $tb_id => $server)
 		{
 			if(!array_key_exists($server['provider'], $out)) $out[$server['provider']] = array();
