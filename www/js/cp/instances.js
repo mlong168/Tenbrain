@@ -715,9 +715,7 @@ var Instances = function(){
 			{text: "Name", dataIndex: 'name', width: 150},
 			{text: "Provider", dataIndex: 'provider', width: 80},
 			{text: "State", dataIndex: 'state', width: 100},
-			{text: "Virtualization", dataIndex: 'virtualization', width: 100},
-			{text: "Type", dataIndex: 'type', width: 100},
-			{text: "Root Device", dataIndex: 'root_device', width: 100}
+			{text: "Type", dataIndex: 'type', width: 100}
 		]
 	});
 	

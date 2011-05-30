@@ -65,10 +65,10 @@ class CommonController extends Zend_Controller_Action
 		
 		if($state === 'terminated')
 		{
-			$terminated = $this->instance->get_user_terminated_instances();
+			$terminated = $servers->get_user_terminated_servers();
 			echo Zend_Json_Encoder::encode(array(
 				'success'	=> true,
-				'instances'	=> isset($terminated) ? $terminated : array()
+				'instances'	=> count($terminated) ? $terminated : array()
 			));
 			return;
 		}
