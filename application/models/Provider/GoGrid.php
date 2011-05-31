@@ -384,7 +384,6 @@ class Application_Model_Provider_GoGrid extends Application_Model_Provider
 		$response = json_decode($response);
 		$this->test_response($response);
 		
-		$server_id = $this->get_provider_server_id($server_id);
 		foreach($response->list as $pass)
 		{
 			if(!isset($pass->server)) continue;
