@@ -117,8 +117,14 @@ class Application_Model_Servers
 		
 		$terminated = $this->cassie->SERVERS->multiget($server_ids);
 		$out = array();
+		// foreach($terminated as $id => $term)
 		foreach($terminated as $term)
 		{
+			// if(!isset($term['type']))
+			// {
+				// $term = array_merge($term, array('type' => '256 Server'));
+				// $this->cassie->SERVERS->insert($id, $term);
+			// }
 			$out[] = array(
 				'name'		=> $term['name'],
 				'provider'	=> $term['provider'],

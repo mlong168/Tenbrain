@@ -190,4 +190,32 @@ class CommonController extends Zend_Controller_Action
 		echo $this->successfull_response();
 	}
 	
+	public function connectionInfoAction()
+	{
+		$server_id = $this->getRequest()->getParam('server_id');
+		$server_model = new Application_Model_Servers();
+		$server = $server_model->get_user_server($server_id);
+		if(!$server)
+		{
+			echo $this->failure_response('Your server was not found in our database');
+			return false;
+		}
+		
+		$provider = $server['provider'];
+		$connection_message = '';
+		if(array_key_exists($provider, $this->providers))
+		{
+			$connection_message = $this->providers[$provider]->get_connection_info($server_id, $server);
+		}
+		else
+		{
+			$connection_message = 'An error has occurred';
+		}
+		
+		echo $this->successfull_response(array(
+			'connection_message' => $connection_message
+		));
+		return false;
+	}
+	
 }

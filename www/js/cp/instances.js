@@ -239,32 +239,25 @@ var Instances = function(){
 					text: 'View connection info',
 					handler: function(){
 						var record = instances_menu.selected_record,
-							instance_id = record.get('id'),
-							provider = record.get('provider').toLowerCase(),
+							server_id = record.get('id'),
 							title = 'Server connection information',
 							error = 'An error has occurred';
-						switch(provider) {
-							case 'amazon': 
-								Ext.Msg.alert(title, 'You have to download the key file and then use shell command');
-							break;
-							case 'gogrid':
-								Ext.Msg.wait('Your password is being retrieved', title);
-								Ext.Ajax.request({
-									url: 'gogrid/get_instance_password',
-									params: {instance_id: instance_id},
-									success: function(response){
-										response = Ext.decode(response.responseText);
-										var s = response.success;
-										Ext.Msg.alert(title, s
-											? 'Use password "' + response.password + '" to connect to the server with username "' + response.username + '"'
-											: response.error_message || error);
-									},
-									failure: function(){
-										Ext.Msg.alert(title, error);
-									}
-								});
-							break;
-						}
+						
+						Ext.Msg.wait('Retrieving your server\'s connection info', title);
+						Ext.Ajax.request({
+							url: 'common/connection_info',
+							params: {server_id: server_id},
+							success: function(response){
+								response = Ext.decode(response.responseText);
+								var s = response.success;
+								Ext.Msg.alert(title, s
+									? response.connection_message
+									: response.error_message || error);
+							},
+							failure: function(){
+								Ext.Msg.alert(title, error);
+							}
+						});
 					}
 				}, {
 					text: 'Download key file',

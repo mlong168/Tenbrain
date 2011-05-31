@@ -26,6 +26,12 @@ class Application_Model_Provider_Rackspace extends Application_Model_Provider
 		return empty($flavors) ? false : $flavors->flavors;
 	}
 	
+	private function get_flavor_details($flavor_id)
+	{
+		$details = $this->rack->GET_request('flavors/' . $flavor_id);
+		return empty($details) ? false : $details->flavor;
+	}
+	
 	public function launch_server(array $params)
 	{
 		$setup = array(
@@ -38,17 +44,24 @@ class Application_Model_Provider_Rackspace extends Application_Model_Provider
 		
 		$server = $this->rack->POST_request('servers', $setup);
 		if(!$server) return false;
-		
 		$server = $server->server;
+		
+		$type = $this->get_flavor_details($server->flavorId);
+		
 		$this->storage->add_server(array(
+			// common to all providers
 			'name'				=> $server->name,
 			'provider_server_id'=> $server->id,
-			'flavor_id'			=> $server->flavorId,
+			'provider'			=> $this->name,
+			'type'				=> $type->name,
+			'image_id'			=> $server->imageId,
+			
+			// rackspace-specific data:
 			'host_id'			=> $server->hostId,
+			'flavor_id'			=> $server->flavorId,
 			'root_password'		=> $server->adminPass,
 			'private_ip'		=> $server->addresses->private[0],
-			'public_ip'			=> $server->addresses->public[0],
-			'provider'			=> $this->name
+			'public_ip'			=> $server->addresses->public[0]
 		));
 		
 		return true;
