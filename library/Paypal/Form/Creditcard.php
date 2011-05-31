@@ -41,15 +41,15 @@ class Paypal_Form_Creditcard extends Zend_Form
 							'maxlength' => 16,
         					'size' => 16,
 							'validators' => array(
-								new Zend_Validate_CreditCard(array(
-									Zend_Validate_CreditCard::VISA,
-									Zend_Validate_CreditCard::MASTERCARD,
-									Zend_Validate_CreditCard::DISCOVER,
-									Zend_Validate_CreditCard::AMERICAN_EXPRESS,
-									))
+								new Paypal_Validate_CreditCard(array(
+										Paypal_Validate_CreditCard::VISA,
+										Paypal_Validate_CreditCard::MASTERCARD,
+										Paypal_Validate_CreditCard::DISCOVER,
+										Paypal_Validate_CreditCard::AMERICAN_EXPRESS,
+									)),
 		)));
+		$number->setAutoInsertNotEmptyValidator(false);
 		$this->setLabelDecorator($number);
-		$number->setErrorMessages(array('Bad credit card number.'));
         
         $type = $this->createElement('select', 'type', array(
 							'label' => 'Credit Card Type',
@@ -79,8 +79,11 @@ class Paypal_Form_Creditcard extends Zend_Form
         					'size' => 4,
         					'class'	=>	$this->inputClassName,
                             'required' => TRUE,
-							'validators' => array(new Zend_Validate_StringLength(array('max' => 4)))
-        ));
+							'validators' => array(
+        						new Paypal_Validate_CVV2(),
+        						new Zend_Validate_Digits()
+        )));
+        $cvv2->setAutoInsertNotEmptyValidator(false);
 		$this->setLabelDecorator($cvv2);
 		
         $signup = $this->createElement('submit', 'submit', array(
