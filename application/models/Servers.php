@@ -136,17 +136,17 @@ class Application_Model_Servers
 		return $out;
 	}
 
-	public function get_servers_details ($server_ids, $fields = array('instance_name'))
+	public function get_servers_details ($server_ids, $fields = array('name'))
 	{
 		$servers = array();
-		$possible_fields = array('server_id', 'provider_server_id', 'server_name', 'provider', 'public_ip', 'created_on');
+		$possible_fields = array('provider_server_id', 'name', 'provider', 'ip');
 		$fields_to_retrieve = array();
 		if (! is_array($fields)) $fields = array($fields);
 		foreach ($fields as $field) {
 			if (in_array($field, $possible_fields)) $fields_to_retrieve[] = $field;
 		}
 		if ($fields === array('*')) $fields_to_retrieve = $possible_fields;
-		$columns = implode(',', $fields_to_retrieve);
+		$columns = $fields_to_retrieve;
 		
 		$this->cassie->use_column_families(array('SERVERS'));
 		

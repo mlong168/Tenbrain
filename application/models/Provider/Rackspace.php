@@ -193,4 +193,66 @@ class Application_Model_Provider_Rackspace extends Application_Model_Provider
 	{
 		
 	}
+	
+	function create_backup($id, $name, $description = 'sample description')
+	{
+		$backup_model = new Application_Model_Backups();
+		
+		$server_id = $this->get_provider_server_id($id);
+		if(!$server_id) return false;
+		
+		$server = $this->rack->GET_request('servers/' . $server_id);
+
+		$status = $server->server->status;
+		if(!$status == 'ACTIVE') $this->die_with_error('The snapshot could not be created from an instance yet');
+
+		$setup = array(
+			'image' => array(
+				'serverId' => (int)$server_id,
+				'name' => $name
+			)
+		);
+		
+		$response = $this->rack->POST_request('images',$setup);
+
+		$backup_id = $response->image->id;
+		$backup_model->add_backup(array(
+			'provider_backup_id'	=>	(int)$backup_id, 
+			'name' => $name,
+			'description'	=> $description,
+			'provider'	=> 'Rackspace',
+		
+			'server_id'	=>	(int)$server_id
+		));
+		return true;
+	}
+	
+	function get_backup_status($provider_backup_id)
+	{
+		$backup_model = new Application_Model_Backups();
+		$backup = $backup_model->get_backup_by_provider_id($provider_backup_id);
+		if(!$backup)
+			return false;
+		$backup = $this->GET_request('images/' . $backup->provider_backup_id);
+
+		if(!isset($backup->image))
+			return false;
+			
+		return $backup->image->status == "ACTIVE" ? 'completed' : $backup->image->status;
+	}
+	
+	public function created_backups()
+	{
+		$backup_model = new Application_Model_Backups();
+		$backups = $backup_model->get_available_backups("Rackspace");
+		
+		//foreach($backups as $i => $backup)
+		//{
+			//$backup['status'] = 'deleted';
+			//$backup['status'] = $this->get_backup_status($backup->provider_backup_id);
+		//	$backups[$i] = $backup;
+		//}
+		
+		return $backups;
+	}
 }
