@@ -26,6 +26,23 @@ class Application_Model_Provider_Rackspace extends Application_Model_Provider
 		return empty($flavors) ? false : $flavors->flavors;
 	}
 	
+	public function get_available_server_types()
+	{
+		$flavors = $this->list_flavors();
+		$types = array();
+		$premium = false;
+		
+		foreach($flavors as $flavor)
+		{
+			$types []= array(
+				'name'		=> $flavor->name,
+				'available'	=> true,
+				'reason'	=> 'Not available in a free version'
+			);
+		}
+		return $types;
+	}
+	
 	private function get_flavor_details($flavor_id)
 	{
 		$details = $this->rack->GET_request('flavors/' . $flavor_id);

@@ -39,8 +39,21 @@ class AmazonController extends Zend_Controller_Action
 	{
 		echo Zend_Json_Encoder::encode(array(
 			'success'	=> true,
-			'types'		=> $this->amazon->get_available_instance_types()
+			'types'		=> $this->amazon->get_available_server_types()
 		));
+	}
+	
+	public function downloadPrivateKeyAction()
+	{
+		$auth = Zend_Auth::getInstance();
+		$user_id = $auth->getIdentity()->id;
+		
+		$key = $this->amazon->get_user_private_key($user_id);
+		
+		header('Content-type: text/plain');
+		header('Content-Disposition: attachment; filename="' . $key['name'] . '.pem"');
+		echo $key['key'];
+		return false;
 	}
 
 }

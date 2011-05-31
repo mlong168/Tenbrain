@@ -218,4 +218,21 @@ class CommonController extends Zend_Controller_Action
 		return false;
 	}
 	
+	public function getAvailableServerTypesAction()
+	{
+		$provider = $this->getRequest()->getParam('provider');
+		$response = '';
+		if(in_array($provider, $this->supported_providers))
+		{
+			$types = $this->providers[$provider]->get_available_server_types();
+			$response = $this->successfull_response(array('types' => $types));
+		}
+		else
+		{
+			$response = $this->failure_response('An error has occurred');
+		}
+		echo $response;
+		return false;
+	}
+	
 }

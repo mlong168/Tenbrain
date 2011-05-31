@@ -152,7 +152,7 @@ var Instances = function(){
 
 		items: [{
 			xtype: 'hidden',
-			name: 'instance_id'	
+			name: 'server_id'	
 		}, {
 			xtype: 'combo',
 			anchor: '100%',
@@ -173,7 +173,7 @@ var Instances = function(){
 			}),
 			queryMode: 'remote',
 			displayField: 'name',
-			name: 'instance_type', // POST-var name
+			name: 'server_type', // POST-var name
 			valueField: 'value', // POST-var value
 			emptyText: 'Select type',
 			tpl: '<tpl for="."><div ext:qtip="{reason}" class="x-combo-list-item">{name}</div></tpl>',
@@ -299,7 +299,7 @@ var Instances = function(){
 				}, {
 					text: 'View Backups',
 					handler: function(){
-						var record = instances_menu.ref_grid.getStore().getAt(instances_menu.selected_record_id),
+						var record = instances_menu.selected_record,
 							id = record.get('id'),
 							name = record.get('name');
 						instances_menu.hide();
@@ -308,10 +308,9 @@ var Instances = function(){
 				}, {
 					text: 'Modify server',
 					handler: function(){
-						var record = instances_menu.ref_grid.getStore().getAt(instances_menu.selected_record_id),
+						var record = instances_menu.selected_record,
 							form = modify_form.getForm();
 						instances_menu.hide();		
-							
 						if(record.get('provider') === 'Amazon')
 						{
 							Ext.Msg.show({
@@ -322,9 +321,8 @@ var Instances = function(){
 							});
 							return false;
 						}
-
 						form.reset().setValues({instance_id: record.get('id')});
-						form.findField('instance_type').getStore().baseParams.provider = record.get('provider');
+						form.findField('server_type').store.proxy.extraParams.provider = record.get('provider');
 						modify_dialogue.show().center();
 					}
 				}]
@@ -569,8 +567,8 @@ var Instances = function(){
 							form = modify_form.getForm();
 
 						stopped_menu.hide();
-						form.reset().setValues({instance_id: record.get('id')});
-						form.findField('instance_type').getStore().baseParams.provider = record.get('provider');
+						form.reset().setValues({server_id: record.get('id')});
+						// form.findField('server_type').getStore().baseParams.provider = record.get('provider');
 						modify_dialogue.show().center();
 					}
 				}]

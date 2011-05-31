@@ -124,6 +124,12 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 		
 		return true;
 	}
+
+	public function get_user_private_key($user_id)
+	{
+		$key = $this->get_db_connection()->fetchRow('SELECT `key_pair_name` AS `name`, `private_key` AS `key` FROM `account_key_pairs` WHERE account_id = ' . $user_id);
+		return $key;
+	}
 	
 	private function tag_instance($instance_id, $tag_name, $value)
 	{
@@ -142,7 +148,7 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 		return true;
 	}
 	
-	public function get_available_instance_types()
+	public function get_available_server_types()
 	{
 		$premium = false;
 		$reason = $premium ? '' : 'Not available in a free version';
@@ -257,7 +263,17 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 
 	public function get_connection_info(array $params)
 	{
-		// TO BE FINISHED!!!
+		$response = $this->ec2->describe_instances(array('InstanceId' => $params['provider_server_id']));
+		$this->test_response($response);
+		
+		$dns_name = (string) $response->body->dnsName()->first();
+		
+		$info = 'You have to download key file to connect to the server by ssh';
+		$info .= '<br />This can be done by right-clicking on the server -> Connect -> Download key file';
+		$info .= '<br />After that, use the following command under UNIX shell:';
+		$info .= "<br />ssh -i {$params['key_name']}.pem root@$dns_name";
+		
+		return $info;
 	}
 
 	public function start_servers(array $ids)
