@@ -79,6 +79,57 @@ class CommonController extends Zend_Controller_Action
 		));
 	}
 	
+	function deleteBackupsAction()
+	{
+		$backup_ids = $this->getRequest()->getParam('backup_ids');
+		$backup_ids = json_decode($backup_ids);
+		
+		foreach($backup_ids as $id)
+		{
+			$this->remove_backup($id);
+		}
+		
+		echo json_encode(array(
+			'success'	=> true
+		));
+	}
+	
+	function deleteBackupAction()
+	{
+		$backup_id = $this->getRequest()->getParam('backup_id');
+		
+		echo json_encode(array(
+			'success'	=> $this->remove_backup($backup_id)
+		));
+	}
+	
+	function remove_backup($backup_id = null)
+	{
+		$backup_model = new Application_Model_Backups();
+		$_backup = $backup_model->get_backup_by_id($backup_id);
+		if(!$_backup)
+			return $this->failure_response('Problem1'); 
+		
+		$backup = $this->providers[$_backup['provider']]->delete_backup($backup_id);
+		
+		return $backup ? true : false; 
+	}
+	
+	function viewBackupsAction()
+	{
+		$server_id = $this->getRequest()->getParam('server_id');
+		$server_model = new Application_Model_Servers();
+		$server = $server_model->get_servers_details(array($server_id), array('provider', 'provider_instance_id'));		
+		$server = $server[0];
+		
+		$backups = $this->providers[$server['provider']]->get_backups($server['provider'], $server['provider_instance_id']);
+		
+		echo json_encode(array(
+			'success'	=> true,
+			'backups'	=> $backups
+		));
+	}
+	
 	public function availableImagesAction()
 	{
 		$images = array(); $i = 0;
