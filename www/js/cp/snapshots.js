@@ -393,7 +393,7 @@ var Snapshots = function(){
 				form.reset().setValues({backup_id: snap_id});
 				form.findField('ip_address').setDisabled(!is_gogrid).setVisible(is_gogrid);
 
-				types.getStore().baseParams.provider = provider;
+				types.store.proxy.extraParams.provider = provider;
 				redeployment_form.up('window').show().center();
 				return false;
 			}
@@ -405,7 +405,7 @@ var Snapshots = function(){
 					name = record.get('name');
 				
 				snapshot_menu.hide();
-				snapshot_instance_grid.getStore().reload({
+				snapshot_instance_grid.getStore().load({
 					params: {
 						backup_id: backup_id
 					}
@@ -471,10 +471,9 @@ var Snapshots = function(){
 		],
 		sm: sm,
 		listeners: {
-			rowcontextmenu: function (grid, id, e) {
+			itemcontextmenu: function (view, record, item, index, e) {
 				e.preventDefault();
-				snapshot_menu.relative_grid = this;
-				snapshot_menu.selected_record = this.getStore().getAt(id);
+				snapshot_menu.selected_record = record;
 				snapshot_menu.showAt(e.getXY());
 			},
 			activate: Helpers.first_time_loader
@@ -532,7 +531,7 @@ var Snapshots = function(){
 				cls: 'x-btn-text-icon',
 				iconCls: 'restart',
 				handler: function(){
-					store.common.reload();
+					store.common.load();
 				}
 			}]
 		}
