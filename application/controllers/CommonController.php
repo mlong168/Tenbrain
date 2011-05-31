@@ -4,7 +4,7 @@ class CommonController extends Zend_Controller_Action
 {
 	
 	// private $supported_providers = array('Amazon', 'Rackspace', 'GoGrid');
-	private $supported_providers = array('Amazon', 'Rackspace');
+	private $supported_providers = array('Amazon', 'Rackspace', 'GoGrid');
 	private $providers;
 	
 	public function init()
@@ -84,7 +84,7 @@ class CommonController extends Zend_Controller_Action
 			// GoGrid-only exception - ids are not assigned immediately after creation, that sucks...
 			if(!$pid && $provider === 'GoGrid')
 			{
-				$pid = $this->providers['GoGrid']->assign_instance_id($id);
+				$pid = $this->providers['GoGrid']->assign_server_id($id);
 				if(!$pid)
 				{
 					$out []= array(

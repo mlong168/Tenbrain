@@ -136,8 +136,10 @@ class Application_Model_Provider_GoGrid extends Application_Model_Provider
 		else return false;
 	}
 	
-	public function list_servers($ids)
+	public function list_servers($ids, $state)
 	{
+		//if($state !== 'running') return array();
+		
 		$response = $this->gogrid->call('grid.server.get', array(
 			'id' => array_keys($ids)
 		));
@@ -169,9 +171,9 @@ class Application_Model_Provider_GoGrid extends Application_Model_Provider
 	{
 		$server_model = new Application_Model_Servers();
 		$selected_server = $server_model->get_user_server($id);
-
-		$ip = $selected_server['public_ip'];
-		$response = $this->gogrid->call('grid.server.get', array('name' => $selected_server['server_name']));
+		
+		$ip = $selected_server['ip'];
+		$response = $this->gogrid->call('grid.server.get', array('name' => $selected_server['name']));
 		$response = json_decode($response);
 		
 		if($response->status !== 'success') return false;
@@ -340,10 +342,11 @@ class Application_Model_Provider_GoGrid extends Application_Model_Provider
 		$server = $response->list[0];
 		
 		$server_model->add_server(array(
-			'account_id' => $this->user_id,
-			'server_name' => $server->name,
+			'name' => $server->name,
 			'provider' => 'GoGrid',
-			'public_ip' => $server->ip->ip
+			
+			'account_id' => $this->user_id,
+			'ip' => $server->ip->ip
 		));
 		return true;
 	}
