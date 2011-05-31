@@ -536,15 +536,14 @@ var Instances = function(){
 				items: [{
 					text: 'Create backup',
 					handler: function(){
-						var record = stopped_menu.ref_grid.getStore().getAt(stopped_menu.selected_record_id),
-							id = record.get('id');
+						var id = stopped_menu.selected_record.get('id');
 						stopped_menu.hide();
 						Snapshots.create(id);
 					}
 				}, {
 					text: 'View backups',
 					handler: function(){
-						var record = stopped_menu.ref_grid.getStore().getAt(stopped_menu.selected_record_id),
+						var record = stopped_menu.selected_record,
 							id = record.get('id'),
 							name = record.get('name');
 						stopped_menu.hide();
@@ -566,7 +565,7 @@ var Instances = function(){
 				}, {
 					text: 'Modify server',
 					handler: function(){
-						var record = stopped_menu.ref_grid.getStore().getAt(stopped_menu.selected_record_id),
+						var record = stopped_menu.selected_record,
 							form = modify_form.getForm();
 
 						stopped_menu.hide();
@@ -577,8 +576,7 @@ var Instances = function(){
 				}]
 			}
 		}],
-		ref_grid: null,
-		selected_record_id: null
+		selected_record: null
 	});
 	
 	var sm_stopped = Ext.create('Ext.selection.CheckboxModel');
@@ -604,11 +602,10 @@ var Instances = function(){
 			{text: "Type", dataIndex: 'type', width: 100}
 		],
 		listeners: {
-			rowcontextmenu: function (grid, id, e) {
+			itemcontextmenu: function (view, record, item, index, e) {
 				var menu = stopped_menu;
 				e.preventDefault();
-				if(menu.ref_grid === null) menu.ref_grid = grid;
-				menu.selected_record_id = id;
+				menu.selected_record = record;
 				menu.showAt(e.getXY());
 			},
 			activate: Helpers.first_time_loader

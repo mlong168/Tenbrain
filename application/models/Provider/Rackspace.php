@@ -122,6 +122,14 @@ class Application_Model_Provider_Rackspace extends Application_Model_Provider
 		}
 		return $out;
 	}
+
+	public function get_connection_info(array $params)
+	{
+		$root_password = $params['root_password'];
+		return
+			"Use password '{$root_password}' and username 'root' to connect to the server by ssh."
+			. '<br />Alternatively, you can use our web console';
+	}
 	
 	// no start or stop for rackspace
 	public function start_servers(array $ids)

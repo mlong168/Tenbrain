@@ -54,6 +54,11 @@ abstract class Application_Model_Provider
 	abstract public function list_images();
 	abstract public function list_servers($ids, $state);
 
+	/**
+	* @param $params: server's database record
+	*/
+	abstract public function get_connection_info(array $params);
+	
 	abstract public function start_servers(array $ids);
 	abstract public function stop_servers(array $ids);
 	abstract public function reboot_servers(array $ids);

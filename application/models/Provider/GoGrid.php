@@ -342,13 +342,27 @@ class Application_Model_Provider_GoGrid extends Application_Model_Provider
 		$server = $response->list[0];
 		
 		$server_model->add_server(array(
-			'name' => $server->name,
-			'provider' => 'GoGrid',
+			// common to all providers
+			'name'				=> $server->name,
+			'provider_server_id'=> '',
+			'provider'			=> $this->name,
+			'type'				=> $server->ram->description,
+			'image_id'			=> $server->image->id,
 			
-			'account_id' => $this->user_id,
-			'ip' => $server->ip->ip
+			// gogrid-specific data:
+			'ram_id'	=> $server->ram->id,
+			'ip'		=> $server->ip->ip
 		));
 		return true;
+	}
+
+	public function get_connection_info(array $params)
+	{
+		$server_id = $params['provider_server_id'];
+		$auth = $this->get_password($server_id);
+		return
+			"Use password '{$auth['password']}' and username '{$auth['username']}' to connect to the server by ssh."
+			. '<br />Alternatively, you can use our web console';
 	}
 	
 	public function modify_server($server_id, $server_type)
@@ -370,7 +384,6 @@ class Application_Model_Provider_GoGrid extends Application_Model_Provider
 		$response = json_decode($response);
 		$this->test_response($response);
 		
-		$server_id = $this->get_provider_server_id($server_id);
 		foreach($response->list as $pass)
 		{
 			if(!isset($pass->server)) continue;
