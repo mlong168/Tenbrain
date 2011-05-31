@@ -20,9 +20,12 @@ abstract class Application_Model_Provider
 
 	}
 	
-	protected function get_provider_instance_id($id)
+	protected function get_provider_server_id($id)
 	{
+		$server_model = new Application_Model_Servers();
+		$server = $server_model->get_user_server_provider_ids(array($id));
 
+		return $server[$this->name][0];
 	}
 	
 	protected function view_backups($provider, $instance_id)

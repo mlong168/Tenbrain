@@ -125,9 +125,9 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 		return true;
 	}
 	
-	private function tag_instance($instance_id, $tag_name, $value)
+	private function tag_server($server_id, $tag_name, $value)
 	{
-		$response = $this->ec2->create_tags($instance_id, array(
+		$response = $this->ec2->create_tags($server_id, array(
 			array('Key' => $tag_name, 'Value' => $value)
 		));
 		
@@ -136,7 +136,7 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 			// being here means the instance is not available to be tagged yet
 			// give amazon-side a second to actually launch it
 			sleep(1);
-			$this->tag_instance($instance_id, $tag_name, $value);
+			$this->tag_server($server_id, $tag_name, $value);
 		}
 		
 		return true;
@@ -188,7 +188,7 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 		$details = $instance_id->parent();
 		$instance_id = (string) $instance_id;
 		
-		$this->tag_instance($instance_id, 'Name', $name);
+		$this->tag_server($instance_id, 'Name', $name);
 
 		$this->storage->add_server(array(
 			// common to all providers
@@ -293,5 +293,61 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 	public function delete_load_balancer($id)
 	{
 		
+	}
+	
+	public function create_backup($id, $name, $description = 'sample description')
+	{
+		$server_id = $this->get_provider_server_id($id);
+		if(!$server_id) return false;
+		
+		$response = $this->ec2->describe_instances(array('InstanceId' => $server_id));
+		$this->test_response($response);
+
+		$server = $response->body->instancesSet()->first();
+		if(!$server->count()) $this->die_with_error('The backup could not be created from an instance yet');
+
+		$server = $server->item;
+		$image_id = (string) $server->imageId;
+
+		$volume_id = $server->blockDeviceMapping->query('descendant-or-self::item[deviceName = "/dev/sda" or deviceName = "/dev/sda1"]/ebs/volumeId');
+		if(!$volume_id->count()) $this->die_with_error('The backup could not be created from an instance yet');
+		$volume_id = (string) $volume_id->first();
+
+		$response = $this->ec2->create_snapshot($volume_id, $description);
+		$this->test_response($response);
+
+		$snap_id = $response->body->snapshotId()->map_string();
+		$snap_id = $snap_id[0];
+
+		$tag_response = $this->tag_server($snap_id, "Name", $name);
+		
+		$backup_model = new Application_Model_Backups();
+		
+		$backup_image = array(
+			'name' => $name,
+			'provider_backup_id' => $snap_id,
+			'provider' => 'Amazon',
+			'description' => $description,
+		
+			'server_id' => $server_id
+		);
+		
+		$backup_model->add_backup($backup_image);
+
+		return true;
+	}
+	
+	public function created_backups()
+	{
+		$backup_model = new Application_Model_Backups();
+		$backups = $backup_model->get_available_backups($this->name);
+		//foreach($backups as $i => $backup)
+		//{
+			//$backup['status'] = 'deleted';
+			//$backup['status'] = $this->get_backup_status($backup['provider_backup_id']);
+			//$backups[$i] = $backup;
+		//}
+		
+		return $backups;
 	}
 }

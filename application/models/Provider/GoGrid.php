@@ -680,8 +680,8 @@ class Application_Model_Provider_GoGrid extends Application_Model_Provider
 		
 		return true;
 	}
-	///////////////////////////////////////////////////////////////////////////
-	function create_backup($id,$name,$description = 'sample description')
+	
+	function create_backup($id, $name, $description = 'sample description')
 	{
 		$backup_model = new Application_Model_Backups();
 		
@@ -708,11 +708,12 @@ class Application_Model_Provider_GoGrid extends Application_Model_Provider
 		
 		$backup_id = $response->list[0]->id;
 		$backup_model->add_backup(array(
-			'server_id'	=>	$server_id,
+			'name'	=>	$name,
 			'provider_backup_id'	=>	$backup_id,
-			'backup_name'	=>	$name,
 			'description'	=>	$description,
-			'provider'	=>	'GoGrid'
+			'provider'	=>	'GoGrid',
+
+			'server_id'	=>	$server_id
 		));
 		return true;
 	}
@@ -731,21 +732,20 @@ class Application_Model_Provider_GoGrid extends Application_Model_Provider
 		$response = json_decode($response);
 		$this->test_response($response);
 		
-		$this->backup->remove_backup($backup->provider_backup_id);
+		$backup_model->remove_backup($backup_id);
 		return true;
 	}
 	
 	public function created_backups()
 	{
 		$backup_model = new Application_Model_Backups();
-		$backups = $backup_model->get_available_backups("GoGrid");
-		
-		foreach($backups as $i => $backup)
-		{
-			$backup->status = 'deleted';
-			$backup->status = $this->get_backup_status($backup->provider_backup_id);
-			$backups[$i] = $backup;
-		}
+		$backups = $backup_model->get_available_backups($this->name);
+		//foreach($backups as $i => $backup)
+		//{
+		//	$backup['status'] = 'deleted';
+		//	$backup['status'] = $this->get_backup_status($backup['provider_backup_id']);
+		//	$backups[$i] = $backup;
+		//}
 		
 		return $backups;
 	}
@@ -823,7 +823,7 @@ class Application_Model_Provider_GoGrid extends Application_Model_Provider
 		
 		return $this->start_backup_image($backup_image);
 	}
-	//////////////
+	
 	public function restore_backup_to_new_server($backup_id, array $settings)
 	{
 		$backup_model = new Application_Model_Backups();
@@ -891,14 +891,15 @@ class Application_Model_Provider_GoGrid extends Application_Model_Provider
 	{
 		$backup_model = new Application_Model_Backups();
 		$backup = $backup_model->get_backup_by_provider_id($provider_backup_id);
+
 		if(!$backup)
 			return false;
+			
 		$response = $this->gogrid->call('grid.image.get', array(
-			'id' => $backup->provider_backup_id
+			'id' => 7836
 		));
-		
 		$_backup = json_decode($response);
-		
+		print_r($_backup);die;
 		$_backup = $_backup->list[0];
 		if(!isset($_backup->state))
 			return false;

@@ -43,6 +43,42 @@ class CommonController extends Zend_Controller_Action
 		print_r($this->providers['Amazon']->list_servers());
 	}
 	
+	function createBackupAction()
+	{
+		$server_id = $this->getRequest()->getParam('instance_id');
+		$servers_model = new Application_Model_Servers();
+		
+		$server = $servers_model->get_servers_details(array($server_id), array('provider', 'provider_server_id'));
+		$server = $server[0];
+		
+		$backup = $this->providers[$server['provider']]->create_backup($server_id,
+			$this->getRequest()->getParam('description'),
+			$this->getRequest()->getParam('description')
+		);
+		
+		return $backup ? $this->successfull_response('Snapshot has been created successfully') : $this->failure_response('Problem'); 
+	}
+	
+	function listBackupsAction()
+	{
+		$i = 0; $backups = array();
+
+		foreach($this->providers as $provider)
+		{
+			$bkps = $provider->created_backups();
+			foreach($bkps as $bkp)
+			{
+				$backups[] = array_merge(array('id' => $i), (Array)$bkp);
+				++$i;
+			}
+		}
+		
+		echo json_encode(array(
+			'success'	=> true,
+			'backups'	=> $backups
+		));
+	}
+	
 	public function availableImagesAction()
 	{
 		$images = array(); $i = 0;

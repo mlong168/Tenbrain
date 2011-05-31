@@ -68,23 +68,22 @@ class Application_Model_Backups
 	{
 		$backups = array();
 		$this->cassie->use_column_families(array('BACKUPS'));
-		
-		$this->cassie->BACKUPS->multiget($backup_ids);
-		return $backups;
+		return $this->cassie->BACKUPS->multiget(array_keys($backup_ids));
 	}
 	
 	public function get_backup_by_provider_id($provider_backup_id)
 	{
-		$this->cassie->use_column_families('BACKUPS', 'USER_BACKUPS', 'USER_DELETED_BACKUPS');
-
-		$user_deleted_backup_ids = $server_ids = $this->cassie->USER_DELETED_BACKUPS->get($this->user_id);
-		$user_backup_ids = $server_ids = $this->cassie->USER_BACKUPS->get($this->user_id);
-		$backups_ids = array_merge($user_backup_ids,$user_deleted_backup_ids);
+		$this->cassie->use_column_families(array('BACKUPS', 'USER_BACKUPS'));
+		$backups = array();
+		$backup_ids = $this->cassie->USER_BACKUPS->get($this->user_id);
+		$backup_ids = array_keys($backup_ids);
 		
-		foreach ($backups_ids as $id) {
-			$backup = $this->cassie->BACKUPS->get($id);
-			if($backup['provider_backup_id'] == $provider_backup_id)
+		foreach($backup_ids as $backup_id) {
+			$backup = $this->cassie->BACKUPS->get($backup_id);
+			if($backup['provider_backup_id'] == $provider_backup_id){
+				$backup['id'] = $backup_id;
 				return $backup;
+			}	
 		}
 		return NULL;
 	}
@@ -105,7 +104,6 @@ class Application_Model_Backups
 		$backup_ids = array_diff($bk, $bk_deleted);
 		if(!$backup_ids)
 			return array();
-		
 		$user_backups = $this->get_user_backups_by_id($backup_ids);
 		
 		$backups = $server_backups = array();
@@ -114,17 +112,18 @@ class Application_Model_Backups
 			$user_provider_backups = array();
 			if($provider != "ALL")
 			{
-				foreach ($user_backups as $user_backup)
-					if($user_server['provider'] == $provider)
-						$user_provider_backups[] = $user_backup;
+				foreach ($user_backups as $id => $user_backup)
+					if($user_backup['provider'] == $provider)
+						$user_provider_backups[$id] = $user_backup;
+					
 				$user_backups = $user_provider_backups;
 			}
 			if($server_id)
 			{
-				foreach($user_backups as $user_backup)
+				foreach($user_backups as $id => $user_backup)
 				{
 					$server_backups[] = array(
-						'backup_id'				=> $user_backup['backup_id'],
+						'id'					=> $id,
 						'provider_backup_id'	=> $user_backup['provider_backup_id'],
 						'backup_name'			=> $user_backup['backup_name'],
 						'server_id'				=> $user_backup['server_id']
@@ -132,13 +131,14 @@ class Application_Model_Backups
 				}
 				return $server_backups;
 			}
-			foreach($user_backups as $user_backup)
+			foreach($user_backups as $id => $user_backup)
 			{
 				$backups[] = array(
-					'backup_id'				=> $user_backup['backup_id'],
+					'id'					=> $id,
 					'provider_backup_id'	=> $user_backup['provider_backup_id'],
-					'backup_name'			=> $user_backup['backup_name'],
-					'server_id'				=> $user_backup['server_id']
+					'name'					=> $user_backup['name'],
+					'server_id'				=> $user_backup['server_id'],
+					'provider'				=> $user_backup['provider']
 				);
 			}
 			return $backups;
