@@ -140,23 +140,21 @@ var Instances = function(){
 		]
 	});
 	
-	var modify_form = new Ext.form.FormPanel({
-		fieldDefaults: {
-			labelWidth: 80
-		},
+	var modify_form = Ext.create('Ext.form.Panel', {
 		url: '/common/modify_instance',
 		baseCls: 'x-plain',
-		autoHeight: true,
-		buttonAlign: 'center',
+		height: 58,
+		minHeight: 58,
 		pollForChanges: true,
 
 		items: [{
 			xtype: 'hidden',
-			name: 'server_id'	
+			name: 'server_id'
 		}, {
 			xtype: 'combo',
 			anchor: '100%',
 			fieldLabel: 'Server Type',
+			labelWidth: 80,
 			allowBlank: false,
 			editable: false,
 			store: new Ext.data.JsonStore({
@@ -197,9 +195,10 @@ var Instances = function(){
 					success = 'Server has been modified successfully',
 					error = 'A problem has occurred while modifying the server';
 					
-				modify_dialogue.hide();
-				Ext.Msg.wait('Modifying server', title);
-				modify_form.getForm().submit({
+				this.up('window').hide();
+				this.up('form').submit({
+					waitTitle: title,
+					waitMsg: 'Modifying server',
 					success: function(form, action){
 						Ext.Msg.alert(title, action.result.success ? success : response.error_message || error);
 						Instances.reload_until_stable('stopped');
@@ -213,19 +212,19 @@ var Instances = function(){
 		}, {
 			text: 'Cancel',
 			handler: function(){
-				modify_dialogue.hide();
+				this.up('window').hide();
 			}
 		}]
 	});
 	
-	var modify_dialogue = new Ext.Window({
+	Ext.create('Ext.window.Window', {
 		title: 'Modify server',
+		layout: 'fit',
 		width: 300,
+		minWidth: 300,
 		closeAction: 'hide',
 		items: modify_form,
 		modal : true,
-		layout: 'fit',
-		minWidth: 300,
 		plain: 'true',
 		bodyStyle: 'padding:5px;'
 	});
@@ -262,6 +261,7 @@ var Instances = function(){
 				}, {
 					text: 'Download key file',
 					handler: function(){
+						if(this.up('menu').parentMenu.selected_record.get('provider') !== 'Amazon') return false;
 						Ext.Msg.confirm('Download key pair', 'Do you want to download your key pair to connect to your server via SSH?', function(button){
 							if(button === 'yes') document.location.assign('/amazon/download_private_key');
 						});
@@ -323,7 +323,7 @@ var Instances = function(){
 						}
 						form.reset().setValues({instance_id: record.get('id')});
 						form.findField('server_type').store.proxy.extraParams.provider = record.get('provider');
-						modify_dialogue.show().center();
+						modify_form.up('window').show().center();
 					}
 				}]
 			}
@@ -569,7 +569,7 @@ var Instances = function(){
 						stopped_menu.hide();
 						form.reset().setValues({server_id: record.get('id')});
 						// form.findField('server_type').getStore().baseParams.provider = record.get('provider');
-						modify_dialogue.show().center();
+						modify_form.up('window').show().center();
 					}
 				}]
 			}
