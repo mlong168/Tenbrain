@@ -291,7 +291,7 @@ var Instances = function(){
 				items: [{
 					text: 'Create Backup',
 					handler: function(){
-						var record = instances_menu.ref_grid.getStore().getAt(instances_menu.selected_record_id),
+						var record = instances_menu.selected_record,
 							id = record.get('id');
 						instances_menu.hide();
 						Snapshots.create(id);

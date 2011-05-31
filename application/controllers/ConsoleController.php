@@ -23,7 +23,7 @@ class ConsoleController extends Zend_Controller_Action
 			'extjs4/ext-all-debug',
 			'cp/instances',
 			'cp/images',
-			// 'cp/snapshots',
+			'cp/snapshots',
 			// 'cp/profile',
 			'cp/transferer'
 		);
