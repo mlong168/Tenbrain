@@ -191,15 +191,15 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 		$this->tag_instance($instance_id, 'Name', $name);
 
 		$this->storage->add_server(array(
-			// major stuff:
+			// common to all providers
 			'name'				=> $name,
 			'provider_server_id'=> $instance_id,
 			'type'				=> $type,
 			'image_id'			=> $image_id,
 			'provider'			=> $this->name,
-			'launch_time'		=> $details->launchTime,
 			
-			//all the rest:
+			// amazon-specific data:
+			'launch_time'			=> $details->launchTime,
 			'key_name'				=> (string) $details->keyName,
 			'availability_zone'		=> (string) $details->placement->availabilityZone,
 			'kernel_id'				=> (string) $details->kernelId,
