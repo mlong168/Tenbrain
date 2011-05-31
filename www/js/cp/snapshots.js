@@ -81,7 +81,7 @@ var Snapshots = function(){
 		minHeight: 80,
 		baseCls: 'x-plain',
 		pollForChanges: true,
-		fieldDefaults: {
+		defaults: {
 			xtype: 'textfield',
 			labelWidth: 70,
 			anchor: '100%',
@@ -95,7 +95,6 @@ var Snapshots = function(){
 			fieldLabel: 'Name',
 			name: 'name'
 		}, {
-			xtype: 'textfield',
 			fieldLabel: 'Description',
 			name: 'description'
 		}],

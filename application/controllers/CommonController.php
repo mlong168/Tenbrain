@@ -205,7 +205,7 @@ class CommonController extends Zend_Controller_Action
 		$connection_message = '';
 		if(array_key_exists($provider, $this->providers))
 		{
-			$connection_message = $this->providers[$provider]->get_connection_info($server_id, $server);
+			$connection_message = $this->providers[$provider]->get_connection_info($server);
 		}
 		else
 		{

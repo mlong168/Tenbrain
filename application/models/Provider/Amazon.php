@@ -255,6 +255,11 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 		return $instances;
 	}
 
+	public function get_connection_info(array $params)
+	{
+		// TO BE FINISHED!!!
+	}
+
 	public function start_servers(array $ids)
 	{
 		$response = $this->ec2->start_instances($ids);
