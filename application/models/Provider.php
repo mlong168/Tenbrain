@@ -30,7 +30,9 @@ abstract class Application_Model_Provider
 	
 	protected function view_backups($provider, $instance_id)
 	{
-
+		$backup_model = new Application_Model_Backups();
+		
+		return $backup_model->get_available_backups($provider, $instance_id);
 	}
 	
 	protected function die_with_error($error_message)

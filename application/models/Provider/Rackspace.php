@@ -227,6 +227,11 @@ class Application_Model_Provider_Rackspace extends Application_Model_Provider
 		return true;
 	}
 	
+	function get_backups($provider, $instance_id)
+	{
+		return $this->view_backups($provider, $instance_id);
+	}
+	
 	function get_backup_status($provider_backup_id)
 	{
 		$backup_model = new Application_Model_Backups();

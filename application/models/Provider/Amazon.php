@@ -316,6 +316,11 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 		
 	}
 	
+	function get_backups($provider, $instance_id)
+	{
+		return $this->view_backups($provider, $instance_id);
+	}
+	
 	public function create_backup($id, $name, $description = 'sample description')
 	{
 		$server_id = $this->get_provider_server_id($id);
