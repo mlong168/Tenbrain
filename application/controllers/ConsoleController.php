@@ -24,6 +24,7 @@ class ConsoleController extends Zend_Controller_Action
 			'cp/instances',
 			'cp/images',
 			'cp/snapshots',
+			'cp/load_balancers',
 			// 'cp/profile',
 			'cp/transferer'
 		);

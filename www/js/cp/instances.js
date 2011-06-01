@@ -326,17 +326,6 @@ var Instances = function(){
 					}
 				}]
 			}
-		}, {
-			text: 'Monitoring',
-			menu: {
-				items: [{
-					text: '1'
-				}, {
-					text: '2'
-				}, {
-					text: '3'
-				}]
-			}
 		}],
 		selected_record: null
 	});
