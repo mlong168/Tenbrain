@@ -36,6 +36,7 @@ class Application_Model_Provider_Rackspace extends Application_Model_Provider
 		{
 			$types []= array(
 				'name'		=> $flavor->name,
+				'value'		=> $flavor->id,
 				'available'	=> true,
 				'reason'	=> 'Not available in a free version'
 			);
@@ -181,6 +182,48 @@ class Application_Model_Provider_Rackspace extends Application_Model_Provider
 		}
 		
 		$this->storage->remove_servers(array_keys($ids));
+		return true;
+	}
+	
+	public function modify_server($server_id, $type, $tb_server_id, $all_params)
+	{
+		if(!is_numeric($type)) return false;
+		
+		$flavor_id = $type;
+		$resize = array(
+			'resize' => array(
+				'flavorId'	=> (int) $flavor_id
+			)
+		);
+		$response = $this->POST_request('servers/' . $server_id . '/action' , $resize);
+		
+		$start_time = time();
+		$timeout = 60 * 20;
+
+		while($start_time + $timeout > time())
+		{
+			$response = $this->GET_request('servers/' . $server_id);
+			if($response->server->status == 'VERIFY_RESIZE')
+			{
+				$cofirm = array(
+					'confirmResize' => NULL
+				);
+				
+				$sucess_response = array(204);
+				$response = $this->POST_request('servers/'.$server_id.'/action' , $cofirm, $sucess_response);
+				
+				$type = $this->get_flavor_details($server->flavorId);
+				$all_params['flavor_id'] = $flavor_id;
+				$all_params['type'] = $type->name;
+				$this->storage->change_server($tb_server_id, $all_params);
+			
+				break;
+			}
+			else
+			{
+				sleep(15);
+			}
+		}
 		return true;
 	}
 	

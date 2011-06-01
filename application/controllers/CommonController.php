@@ -322,4 +322,24 @@ class CommonController extends Zend_Controller_Action
 		return false;
 	}
 	
+	public function modifyServerAction()
+	{
+		$request = $this->getRequest();
+		$server_id = $request->getParam('server_id');
+		$new_type = $request->getParam('server_type');
+		
+		$server_model = new Application_Model_Servers();
+		$server = $server_model->get_user_server($server_id);
+		
+		$success = false;
+		$provider = $server['provider'];
+		if(array_key_exists($provider, $this->providers))
+		{
+			$success = $this->providers[$provider]->modify_server($server['provider_server_id'], $new_type, $server_id, $server);
+		}
+		
+		echo $success ? $this->successfull_response() : $this->failure_response('Server modificaion failed');
+		return false;
+	}
+	
 }

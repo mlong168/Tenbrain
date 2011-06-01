@@ -85,6 +85,13 @@ class Application_Model_Servers
 			array($uuid => ''));
 		}
 	}
+	
+	public function change_server($server_id, $new_params)
+	{
+		$this->cassie->use_column_families(array('SERVERS'));
+		$this->cassie->SERVERS->insert($server_id, $new_params);
+		return true;
+	}
 
 	public function remove_server ($server_id)
 	{

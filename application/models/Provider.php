@@ -66,6 +66,8 @@ abstract class Application_Model_Provider
 	abstract public function reboot_servers(array $ids);
 	abstract public function terminate_servers(array $ids);
 	
+	abstract public function modify_server($provider_server_id, $new_type, $tb_server_id, $all_params);
+	
 	abstract public function create_load_balancer($name, array $instances, $gogrid_lb_address);
 	abstract public function delete_load_balancer($id);
 }
