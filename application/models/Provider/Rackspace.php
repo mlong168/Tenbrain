@@ -36,6 +36,7 @@ class Application_Model_Provider_Rackspace extends Application_Model_Provider
 		{
 			$types []= array(
 				'name'		=> $flavor->name,
+				'value'		=> $flavor->id,
 				'available'	=> true,
 				'reason'	=> 'Not available in a free version'
 			);
@@ -110,19 +111,18 @@ class Application_Model_Provider_Rackspace extends Application_Model_Provider
 		if($state !== 'running') return array();
 		
 		$out = array();
-		// $av_types = $this->get_available_server_types();
+		$flavors = $this->list_flavors();
+		$types = array();
+		foreach($flavors as $flavor)
+		{
+			$types[$flavor->id] = $flavor->name;
+		}
 		foreach($ids as $pid => $db_id)
 		{
 			$server = $this->rack->GET_request('servers/' . $pid);
 			if(!$server) continue;
 			$server = $server->server;
 			$ip = $server->addresses->public[0];
-			
-			// foreach($av_types as &$t)
-			// {
-				// if($t['value'] == $server->flavorId)
-					// $type = $t['name'];
-			// }
 			
 			$out[] = array(
 				'id'				=> $db_id,
@@ -131,8 +131,7 @@ class Application_Model_Provider_Rackspace extends Application_Model_Provider
 				'ip_address'		=> $ip,
 				'image_id'			=> $server->imageId,
 				'state'				=> $server->status === 'ACTIVE' ? 'running' : 'pending',
-				// 'type'				=> $type,
-				'type'				=> $server->flavorId,
+				'type'				=> $types[$server->flavorId],
 				'provider'			=> $this->name
 				// ''				=> $server->, 
 			);
@@ -181,6 +180,48 @@ class Application_Model_Provider_Rackspace extends Application_Model_Provider
 		}
 		
 		$this->storage->remove_servers(array_keys($ids));
+		return true;
+	}
+	
+	public function modify_server($server_id, $type, $tb_server_id, $all_params)
+	{
+		if(!is_numeric($type)) return false;
+		
+		$flavor_id = $type;
+		$resize = array(
+			'resize' => array(
+				'flavorId'	=> (int) $flavor_id
+			)
+		);
+		$response = $this->rack->POST_request('servers/' . $server_id . '/action' , $resize);
+		
+		$start_time = time();
+		$timeout = 60 * 20;
+
+		while($start_time + $timeout > time())
+		{
+			$response = $this->rack->GET_request('servers/' . $server_id);
+			if($response->server->status == 'VERIFY_RESIZE')
+			{
+				$cofirm = array(
+					'confirmResize' => NULL
+				);
+				
+				$sucess_response = array(204);
+				$response = $this->rack->POST_request('servers/'.$server_id.'/action' , $cofirm, $sucess_response);
+				
+				$type = $this->get_flavor_details($flavor_id);
+				$all_params['flavor_id'] = $flavor_id;
+				$all_params['type'] = $type->name;
+				$this->storage->change_server($tb_server_id, $all_params);
+			
+				break;
+			}
+			else
+			{
+				sleep(15);
+			}
+		}
 		return true;
 	}
 	

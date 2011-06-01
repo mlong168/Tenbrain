@@ -158,6 +158,7 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 		{
 			$output []= array(
 				'name'		=> $type,
+				'value'		=> $type,
 				'available'	=> $premium || $type === $this->default_type,
 				'reason'	=> $reason
 			);
@@ -304,6 +305,24 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 
 		$this->storage->remove_servers(array_keys($ids));
 		return true;
+	}
+	
+	public function modify_server($server_id, $type, $tb_server_id, $all_params)
+	{
+		if(in_array($type, $this->available_types))
+		{
+			$response = $this->ec2->modify_instance_attribute(
+				$server_id,
+				'instanceType',
+				array('Value' => $type)
+			);
+			$this->test_response($response);
+			
+			$all_params['type'] = $type;
+			$this->storage->change_server($tb_server_id, $all_params);
+			return true;
+		}
+		return false;
 	}
 	
 	public function create_load_balancer($name, array $instances, $gogrid_lb_address)

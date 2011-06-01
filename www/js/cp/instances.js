@@ -141,7 +141,7 @@ var Instances = function(){
 	});
 	
 	var modify_form = Ext.create('Ext.form.Panel', {
-		url: '/common/modify_instance',
+		url: '/common/modify_server',
 		baseCls: 'x-plain',
 		height: 58,
 		minHeight: 58,
@@ -321,7 +321,7 @@ var Instances = function(){
 							});
 							return false;
 						}
-						form.reset().setValues({instance_id: record.get('id')});
+						form.reset().setValues({server_id: record.get('id')});
 						form.findField('server_type').store.proxy.extraParams.provider = record.get('provider');
 						modify_form.up('window').show().center();
 					}
@@ -568,7 +568,7 @@ var Instances = function(){
 
 						stopped_menu.hide();
 						form.reset().setValues({server_id: record.get('id')});
-						// form.findField('server_type').getStore().baseParams.provider = record.get('provider');
+						form.findField('server_type').store.proxy.extraParams.provider = record.get('provider');
 						modify_form.up('window').show().center();
 					}
 				}]
