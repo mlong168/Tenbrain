@@ -3,7 +3,7 @@ var Snapshots = function(){
 	Ext.define('Backups', {
 		extend: 'Ext.data.Model',
 		fields: [
-			{name: 'id',			type: 'int'},
+			{name: 'id',			type: 'string'},
 			{name: 'name',			type: 'string'},
 			{name: 'description',	type: 'string'},
 			{name: 'provider',		type: 'string'},
