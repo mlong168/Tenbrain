@@ -111,19 +111,18 @@ class Application_Model_Provider_Rackspace extends Application_Model_Provider
 		if($state !== 'running') return array();
 		
 		$out = array();
-		// $av_types = $this->get_available_server_types();
+		$flavors = $this->list_flavors();
+		$types = array();
+		foreach($flavors as $flavor)
+		{
+			$types[$flavor->id] = $flavor->name;
+		}
 		foreach($ids as $pid => $db_id)
 		{
 			$server = $this->rack->GET_request('servers/' . $pid);
 			if(!$server) continue;
 			$server = $server->server;
 			$ip = $server->addresses->public[0];
-			
-			// foreach($av_types as &$t)
-			// {
-				// if($t['value'] == $server->flavorId)
-					// $type = $t['name'];
-			// }
 			
 			$out[] = array(
 				'id'				=> $db_id,
@@ -132,8 +131,7 @@ class Application_Model_Provider_Rackspace extends Application_Model_Provider
 				'ip_address'		=> $ip,
 				'image_id'			=> $server->imageId,
 				'state'				=> $server->status === 'ACTIVE' ? 'running' : 'pending',
-				// 'type'				=> $type,
-				'type'				=> $server->flavorId,
+				'type'				=> $types[$server->flavorId],
 				'provider'			=> $this->name
 				// ''				=> $server->, 
 			);
