@@ -148,21 +148,21 @@ var Snapshots = function(){
 		border: false,
 		height: 80,
 		minHeight: 80,
+		baseCls: 'x-plain',
 		pollForChanges: true,
 		fieldDefaults: {
-			xtype: 'textfield',
-			labelWidth: 70,
 			anchor: '100%',
-			allowBlank: false,
-			vtype: 'alphanum'
+			labelWidth: 100,
+			allowBlank: false
 		},
 
 		items: [{
 			xtype: 'hidden',
 			name: 'backup_id'
 		}, {
-			fieldLabel: 'Name',
-			name: 'name',
+			xtype: 'textfield',
+			fieldLabel: 'Server Name',
+			name: 'name'
 		}, {
 			xtype: 'combo',
 			disabled: true,
@@ -392,6 +392,7 @@ var Snapshots = function(){
 				
 				form.reset().setValues({backup_id: snap_id});
 				form.findField('ip_address').setDisabled(!is_gogrid).setVisible(is_gogrid);
+				redeployment_form.setHeight(is_gogrid ? 112 : 80);
 
 				types.store.proxy.extraParams.provider = provider;
 				redeployment_form.up('window').show().center();
