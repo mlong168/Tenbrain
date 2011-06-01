@@ -195,14 +195,14 @@ class Application_Model_Provider_Rackspace extends Application_Model_Provider
 				'flavorId'	=> (int) $flavor_id
 			)
 		);
-		$response = $this->POST_request('servers/' . $server_id . '/action' , $resize);
+		$response = $this->rack->POST_request('servers/' . $server_id . '/action' , $resize);
 		
 		$start_time = time();
 		$timeout = 60 * 20;
 
 		while($start_time + $timeout > time())
 		{
-			$response = $this->GET_request('servers/' . $server_id);
+			$response = $this->rack->GET_request('servers/' . $server_id);
 			if($response->server->status == 'VERIFY_RESIZE')
 			{
 				$cofirm = array(
@@ -210,9 +210,9 @@ class Application_Model_Provider_Rackspace extends Application_Model_Provider
 				);
 				
 				$sucess_response = array(204);
-				$response = $this->POST_request('servers/'.$server_id.'/action' , $cofirm, $sucess_response);
+				$response = $this->rack->POST_request('servers/'.$server_id.'/action' , $cofirm, $sucess_response);
 				
-				$type = $this->get_flavor_details($server->flavorId);
+				$type = $this->get_flavor_details($flavor_id);
 				$all_params['flavor_id'] = $flavor_id;
 				$all_params['type'] = $type->name;
 				$this->storage->change_server($tb_server_id, $all_params);
