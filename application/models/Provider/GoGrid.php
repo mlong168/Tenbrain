@@ -365,9 +365,8 @@ class Application_Model_Provider_GoGrid extends Application_Model_Provider
 			. '<br />Alternatively, you can use our web console';
 	}
 	
-	public function modify_server($server_id, $type, $tb_server_id, $all_params)
+	public function modify_server($server_id, $ram_size, $tb_server_id, $all_params)
 	{
-		$ram_size = $type;
 		$response = $this->gogrid->call('grid.server.edit', array(
 			'id'			=> $server_id,
 			'server.ram'	=> $ram_size 
@@ -375,8 +374,9 @@ class Application_Model_Provider_GoGrid extends Application_Model_Provider
 		$response = json_decode($response);
 		$this->test_response($response);
 			
-		$all_params['type'] = $type;
-		$this->storage->change_server($tb_server_id, $all_params);
+		$all_params['type'] = $ram_size;
+		$server_model = new Application_Model_Servers();
+		$server_model->change_server($tb_server_id, $all_params);
 		
 		return true;
 	}

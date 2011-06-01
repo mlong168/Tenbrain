@@ -321,7 +321,7 @@ var Instances = function(){
 							});
 							return false;
 						}
-						form.reset().setValues({instance_id: record.get('id')});
+						form.reset().setValues({server_id: record.get('id')});
 						form.findField('server_type').store.proxy.extraParams.provider = record.get('provider');
 						modify_form.up('window').show().center();
 					}
