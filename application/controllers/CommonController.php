@@ -52,7 +52,7 @@ class CommonController extends Zend_Controller_Action
 		$server = $server[0];
 		
 		$backup = $this->providers[$server['provider']]->create_backup($server_id,
-			$this->getRequest()->getParam('description'),
+			$this->getRequest()->getParam('name'),
 			$this->getRequest()->getParam('description')
 		);
 		
@@ -94,6 +94,22 @@ class CommonController extends Zend_Controller_Action
 		));
 	}
 	
+	function backupInstanceAction()
+	{
+		$backup_id = $this->getRequest()->getParam('backup_id');
+		$backup_model = new Application_Model_Backups();
+		
+		$backup = $backup_model->get_backup_details(array($backup_id), array('provider', 'provider_backup_id'));
+
+		$backup = $backup[0];
+		$instances = $this->providers[$backup['provider']]->get_backuped_server($backup_id);
+
+		echo json_encode(array(
+			'success'	=> true,
+			'instances'	=> $instances
+		));
+	}
+	
 	function deleteBackupAction()
 	{
 		$backup_id = $this->getRequest()->getParam('backup_id');
@@ -108,8 +124,7 @@ class CommonController extends Zend_Controller_Action
 		$backup_model = new Application_Model_Backups();
 		$_backup = $backup_model->get_backup_by_id($backup_id);
 		if(!$_backup)
-			return $this->failure_response('Problem1'); 
-		
+			return $this->failure_response('Problem'); 
 		$backup = $this->providers[$_backup['provider']]->delete_backup($backup_id);
 		
 		return $backup ? true : false; 

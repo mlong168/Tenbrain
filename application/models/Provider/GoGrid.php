@@ -739,7 +739,7 @@ class Application_Model_Provider_GoGrid extends Application_Model_Provider
 		
 		if(!$backup) $this->die_with_error('No snapshot specified');
 		$response = $this->gogrid->call('grid.image.delete', array(
-			'id' => $backup->provider_backup_id
+			'id' => $backup['provider_backup_id']
 		));
 		
 		$response = json_decode($response);
@@ -876,7 +876,7 @@ class Application_Model_Provider_GoGrid extends Application_Model_Provider
 		$backup = $backup_model->get_backup_by_id($backup_id);
 
 		$response = $this->gogrid->call('grid.server.get', array(
-			'id' => $backup->server_id
+			'id' => $backup['server_id']
 		));
 		$server = json_decode($response);
 		$server = $server->list[0];

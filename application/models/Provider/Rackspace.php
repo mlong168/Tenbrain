@@ -227,6 +227,41 @@ class Application_Model_Provider_Rackspace extends Application_Model_Provider
 		return true;
 	}
 	
+	public function delete_backup($backup_id = false)
+	{
+		$backup_model = new Application_Model_Backups();
+		
+		$backup = $backup_model->get_backup_by_id($backup_id);
+		
+		if(!$backup) $this->die_with_error('No snapshot specified');
+
+		$this->rack->DELETE_request('images/' . $backup['provider_backup_id']);	
+		
+		$backup_model->remove_backup($backup_id);
+		return true;
+	}
+	
+	public function get_backuped_server($backup_id)
+	{
+		$backup_model = new Application_Model_Backups();
+		$backup = $backup_model->get_backup_by_id($backup_id);
+
+		$server = $this->rack->GET_request('servers/' . $backup['server_id']);
+
+		if(!$server)
+			return array();
+		$server = $server->server;
+		
+		$server_desrc = array(
+			'id'				=> $server->id,
+			'name'				=> (string) $server->name,
+			'state'			=> (string) $server->status,
+			'ip'				=> $server->addresses->public[0]
+		);
+
+		return $server_desrc;
+	}
+	
 	function get_backups($provider, $instance_id)
 	{
 		return $this->view_backups($provider, $instance_id);
@@ -238,7 +273,7 @@ class Application_Model_Provider_Rackspace extends Application_Model_Provider
 		$backup = $backup_model->get_backup_by_provider_id($provider_backup_id);
 		if(!$backup)
 			return false;
-		$backup = $this->GET_request('images/' . $backup->provider_backup_id);
+		$backup = $this->rack->GET_request('images/' . $backup->provider_backup_id);
 
 		if(!isset($backup->image))
 			return false;

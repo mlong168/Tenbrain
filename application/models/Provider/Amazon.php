@@ -316,6 +316,70 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 		
 	}
 	
+	public function delete_backup($backup_id = false)
+	{
+		$backup_model = new Application_Model_Backups();
+		$backup = $backup_model->get_backup_by_id($backup_id);
+		
+		if(!$backup_id) $this->die_with_error('No backup specified');
+
+		$response = $this->ec2->delete_snapshot($backup['provider_backup_id']);
+		$this->test_response($response);
+		
+		$backup_model->remove_backup($backup_id);
+		return true;
+	}
+	
+	private function get_backup_volume($backup_id = false)
+	{
+		if(!$backup_id) $this->die_with_error('No backup specified');
+
+		$response = $this->ec2->describe_snapshots(array('SnapshotId' => $backup_id));
+		$this->test_response($response);
+		return (string) $response->body->volumeId()->first();
+	}
+	
+	public function get_backuped_server($backup_id = false, $describe = false)
+	{		
+		$backup_model = new Application_Model_Backups();
+		$backup = $backup_model->get_backup_by_id($backup_id);
+		$response = $this->ec2->describe_instances(array(
+			'Filter' => array(
+				array('Name' => 'block-device-mapping.volume-id', 'Value' => $this->get_backup_volume($backup['provider_backup_id'])),
+			)
+		));
+		$this->test_response($response);
+		$servers = array();
+		if(count($response->body->item()) > 1)
+		{
+			$list = $response->body->instanceId();
+
+			$results = $list->map(function($node){
+				return $node->parent();
+			});
+			$results->each(function($node, $i, &$servers){
+				$tags = $node->tagSet;
+				$name = '<i>not set</i>';
+				if($tags->count())
+				{
+					$name_ary = $tags->xpath("item[key='Name']/value");
+					$name = (string) $name_ary[0];
+				}
+				$servers[] = array(
+					'id'				=> $i,
+					'name'				=> $name,
+					'server_id'			=> (string) $node->instanceId,
+					'dns_name'			=> (string) $node->dnsName,
+					'ip'				=> (string) $node->ipAddress,
+					'state'				=> (string) $node->instanceState->name
+					// ''				=> (string) $node->,
+				);
+			}, $servers);
+		}
+
+		return $servers;
+	}
+	
 	function get_backups($provider, $instance_id)
 	{
 		return $this->view_backups($provider, $instance_id);
