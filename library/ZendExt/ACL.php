@@ -11,7 +11,7 @@ class ZendExt_ACL extends Zend_Acl
  
     public function __construct($user) 
     { 
-        $this->_user = $user ? $user->username : 'Guest'; 
+        $this->_user = $user->username; 
         
         $bootstrap = Zend_Controller_Front::getInstance()->getParam('bootstrap');
         $resources = $bootstrap->getOption('resources');
@@ -26,9 +26,9 @@ class ZendExt_ACL extends Zend_Acl
             ->from('acl_roles') 
             ->from('accounts') 
             ->where('accounts.username = "' . $this->_user . '"') 
-            ->where('accounts.role_id = acl_roles.role_id')); 
- 
-        $this->_getUserRoleId = $getUserRole['role_id'] ? $getUserRole['role_id'] : 4; 
+            ->where('accounts.role_id = acl_roles.role_id'));
+            
+        $this->_getUserRoleId = $getUserRole['role_id'] ? $getUserRole['role_id'] : 2; 
         $this->_getUserRoleName = $getUserRole['role_name'] ? $getUserRole['role_name'] : 'User'; 
  
         $this->addRole(new Zend_Acl_Role($this->_user), $this->_getUserRoleName); 
