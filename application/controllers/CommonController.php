@@ -52,7 +52,7 @@ class CommonController extends Zend_Controller_Action
 		$server = $server[0];
 		
 		$backup = $this->providers[$server['provider']]->create_backup($server_id,
-			$this->getRequest()->getParam('description'),
+			$this->getRequest()->getParam('name'),
 			$this->getRequest()->getParam('description')
 		);
 		
@@ -94,6 +94,49 @@ class CommonController extends Zend_Controller_Action
 		));
 	}
 	
+	function backupInstanceAction()
+	{
+		$backup_id = $this->getRequest()->getParam('backup_id');
+		$backup_model = new Application_Model_Backups();
+		
+		$backup = $backup_model->get_backup_details(array($backup_id), array('provider', 'provider_backup_id'));
+
+		$backup = $backup[0];
+		$instances = $this->providers[$backup['provider']]->get_backuped_server($backup_id);
+
+		echo json_encode(array(
+			'success'	=> true,
+			'instances'	=> $instances
+		));
+	}
+	
+	function restoreBackupToCorrespondingInstanceAction()
+	{
+		$backup_id = $this->getRequest()->getParam('backup_id');
+		$backup_model = new Application_Model_Backups();
+
+		$_backup = $backup_model->get_backup_by_id($backup_id);
+		if(!$_backup)
+			return $this->failure_response('Problem'); 
+		$backup = $this->providers[$_backup['provider']]->restore_backup_to_corresponding_server($backup_id);
+		return $backup ? $this->successfull_response('Snapshot has been deleted successfully') : $this->failure_response('Problem'); 
+	}
+	
+	function restoreBackupToNewInstanceAction()
+	{
+		$backup_id = $this->getRequest()->getParam('backup_id');
+		$name = $this->getRequest()->getParam('name');
+		$server_type = $this->getRequest()->getParam('server_type');
+		$ip = $this->getRequest()->getParam('ip_address');
+		
+		$backup_model = new Application_Model_Backups();
+		$backup = $backup_model->get_backup_by_id($backup_id);
+		$settings = array('name' => $name, 'type' =>  $server_type, 'ip' => $ip);
+		$result = $this->providers[$backup['provider']]->restore_backup_to_new_server($backup_id, $settings);
+		
+		return $result ? $this->successfull_response('Snapshot has been deleted successfully') : $this->failure_response('Problem'); 
+	}
+	
 	function deleteBackupAction()
 	{
 		$backup_id = $this->getRequest()->getParam('backup_id');
@@ -108,8 +151,7 @@ class CommonController extends Zend_Controller_Action
 		$backup_model = new Application_Model_Backups();
 		$_backup = $backup_model->get_backup_by_id($backup_id);
 		if(!$_backup)
-			return $this->failure_response('Problem1'); 
-		
+			return $this->failure_response('Problem'); 
 		$backup = $this->providers[$_backup['provider']]->delete_backup($backup_id);
 		
 		return $backup ? true : false; 
@@ -161,7 +203,6 @@ class CommonController extends Zend_Controller_Action
 		
 		$servers = $servers_model->get_user_servers();
 		unset($servers_model);
-		
 		$out = $provider_servers = array();
 		foreach($servers as $id => &$row)
 		{

@@ -335,6 +335,173 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 		
 	}
 	
+	public function delete_backup($backup_id = false)
+	{
+		$backup_model = new Application_Model_Backups();
+		$backup = $backup_model->get_backup_by_id($backup_id);
+		
+		if(!$backup_id) $this->die_with_error('No backup specified');
+
+		$response = $this->ec2->delete_snapshot($backup['provider_backup_id']);
+		$this->test_response($response);
+		
+		$backup_model->remove_backup($backup_id);
+		return true;
+	}
+	
+	private function get_backup_volume($backup_id = false)
+	{
+		if(!$backup_id) $this->die_with_error('No backup specified');
+
+		$response = $this->ec2->describe_snapshots(array('SnapshotId' => $backup_id));
+		$this->test_response($response);
+		return (string) $response->body->volumeId()->first();
+	}
+	
+	private function extract_tag_from_tagset($tagset, $tag_name)
+	{
+		return (string) $tagset->query("descendant-or-self::item[key='$tag_name']/value")->first();
+	}
+	
+	private function restore_backup($provider_backup_id, $name = '', $type = NULL)
+	{
+		if($type == NULL)
+		{
+			$type = $this->default_type;
+		}
+
+		$server_model = new Application_Model_Servers();
+		$backup_model = new Application_Model_Backups();
+		
+		$backup = $backup_model->get_backup_by_provider_id($provider_backup_id);
+		$server = $server_model->get_user_server_by_provider_id($backup['server_id']);
+
+		$response = $this->ec2->run_instances($server['image_id'], 1, 1, array(
+			'KeyName'		=> $this->get_user_key_pair(),
+			'InstanceType'	=> $type,
+
+			'BlockDeviceMapping' => array(
+				'DeviceName'				=> '/dev/sda',
+				'Ebs.DeleteOnTermination'	=> true,
+				'Ebs.SnapshotId'			=> $provider_backup_id
+			)
+		));
+		$this->test_response($response);
+
+		$new_server_id = $response->body->instanceId()->map_string();
+		$new_server_id = $new_server_id[0];
+
+		if(!empty($name))
+		{
+			$tag_response = $this->tag_server($new_server_id, "Name", $name);
+		}
+		
+		// write to db if things went fine
+		$server_model->add_server(array(
+			'provider_instance_id' 	=> $new_server_id,
+			'name' 					=> $name,
+			'provider' 				=> 'Amazon'
+		));
+		
+		return array(
+			'success'			=> true,
+			'new_instance_id'	=> $new_server_id
+		);
+	}
+	
+	public function restore_backup_to_new_server($backup_id, array $settings)
+	{
+		$name = $settings['name'];
+		$type = $settings['type'];
+		
+		if($type == NULL)
+		{
+			$type = $this->default_type;
+		}
+		$backup_model = new Application_Model_Backups();
+		$backup = $backup_model->get_backup_by_id($backup_id);
+		$this->restore_backup($backup['provider_backup_id'], $name, $type);
+		return true;
+	}
+	
+	public function restore_backup_to_corresponding_server($backup_id = false)
+	{
+		$server_model = new Application_Model_Servers();
+		$backup_model = new Application_Model_Backups();
+		$backup = $backup_model->get_backup_by_id($backup_id);
+		$response = $this->ec2->describe_instances(array(
+			'Filter' => array(
+				array('Name' => 'block-device-mapping.volume-id', 'Value' => $this->get_backup_volume($backup['provider_backup_id']))
+			)
+		));
+		$this->test_response($response);
+		$old_server = $response->body->instancesSet();
+		
+		
+		if(!$old_server) $this->die_with_error('The instance this backup was created off has been terminated');
+
+		$old_server = $old_server->first()->item;
+		$old_server = array(
+			'id'		=> (string) $old_server->instanceId,
+			'type'		=> (string) $old_server->instanceType,
+			'name'		=> $this->extract_tag_from_tagset($old_server->tagSet, 'Name')
+		);
+		$new = $this->restore_backup($backup['provider_backup_id'], $old_server['name'], $old_server['type']);
+		if(!$new['success'])
+		{
+			$this->die_with_error('Sorry, a problem has occurred while restoring your backup');
+		}
+		
+		$response = $this->ec2->terminate_instances($old_server['id']);
+		$this->test_response($response);
+		
+		$server_ids = $server_model->get_server_ids($old_server['id']);
+		$server_model->remove_server($server_ids[0]);
+
+		return true;
+	}
+	
+	public function get_backuped_server($backup_id = false, $describe = false)
+	{		
+		$backup_model = new Application_Model_Backups();
+		$backup = $backup_model->get_backup_by_id($backup_id);
+		$response = $this->ec2->describe_instances(array(
+			'Filter' => array(
+				array('Name' => 'block-device-mapping.volume-id', 'Value' => $this->get_backup_volume($backup['provider_backup_id'])),
+			)
+		));
+		$this->test_response($response);
+		$servers = array();
+		if(count($response->body->item()) > 1)
+		{
+			$list = $response->body->instanceId();
+
+			$results = $list->map(function($node){
+				return $node->parent();
+			});
+			$results->each(function($node, $i, &$servers){
+				$tags = $node->tagSet;
+				$name = '<i>not set</i>';
+				if($tags->count())
+				{
+					$name_ary = $tags->xpath("item[key='Name']/value");
+					$name = (string) $name_ary[0];
+				}
+				$servers[] = array(
+					'id'				=> $i,
+					'name'				=> $name,
+					'server_id'			=> (string) $node->instanceId,
+					'dns_name'			=> (string) $node->dnsName,
+					'ip'				=> (string) $node->ipAddress,
+					'state'				=> (string) $node->instanceState->name
+					// ''				=> (string) $node->,
+				);
+			}, $servers);
+		}
+
+		return $servers;
+	}
+	
 	function get_backups($provider, $instance_id)
 	{
 		return $this->view_backups($provider, $instance_id);
