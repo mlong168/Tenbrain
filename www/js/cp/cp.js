@@ -18,6 +18,7 @@ Ext.onReady(function(){
 			Images.get_grid(),
 			// snapshots.js:
 			Snapshots.get_panel(),
+			Load_balancers.get_grid()
 			// profile.js:
 			// account_profile, account_settings, account_password, account_linked
 		];

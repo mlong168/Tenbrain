@@ -7,7 +7,6 @@ var Helpers = function(){
 		first_time_loader: function(p){
 			var store = p.getStore(),
 				elem = p.getEl();
-			
 			if(store.last() === undefined)
 			{
 				elem.mask('Loading, please wait ...');
@@ -327,32 +326,24 @@ var Instances = function(){
 					}
 				}]
 			}
-		}, {
-			text: 'Monitoring',
-			menu: {
-				items: [{
-					text: '1'
-				}, {
-					text: '2'
-				}, {
-					text: '3'
-				}]
-			}
 		}],
 		selected_record: null
 	});
 
 	// layouts:
-	var xg = Ext.grid, sm_running = Ext.create('Ext.selection.CheckboxModel'), grids = { };
+	var grids = { }
+	var sm_running = Ext.create('Ext.selection.CheckboxModel');
 	grids.running = Ext.create('Ext.grid.Panel', {
 		id: 'running_instances-panel',
 		title: 'Your currently running servers',
 		layout: 'fit',
 		store: store.running,
+		selModel: sm_running,
 		forceFit: true,
 		border: false,
 		viewConfig: {
-			emptyText: '<p style="text-align: center">You have not launched any server so far</p>'
+			emptyText: '<p style="text-align:center">You have not launched any server so far</p>',
+			loadingText: 'Loading the list of your running servers'
 		},
 		columnLines: true,
 		listeners: {
@@ -363,7 +354,6 @@ var Instances = function(){
 				menu.showAt(e.getXY());
 			}
 		},
-		sm: sm_running,
 		columns: [
 			{text: "Name", dataIndex: 'name', width: 150, renderer: function(value, metadata, record){
 				if(record.data.state !== 'running') metadata.css = 'grid-loader';
@@ -371,7 +361,7 @@ var Instances = function(){
 			}},
 			{text: "Link to server root", dataIndex: 'dns_name', width: 250, renderer: Helpers.link_wrapper},
 			{text: "IP Address", dataIndex: 'ip_address', width: 120},
-			{text: "State", dataIndex: 'state', width: 100},
+			{text: "State", dataIndex: 'state', width: 60},
 			{text: "Type", dataIndex: 'type', width: 100}
 		],
 		tbar: Ext.create('Ext.toolbar.Toolbar', {
@@ -381,12 +371,13 @@ var Instances = function(){
 				cls: 'x-btn-text-icon',
 				iconCls: 'restart',
 				handler: function(){
-					var selected = sm_running.getSelections(), instances = [],
+					var selected = sm_running.getSelection(),
+						instances = [],
 						title = 'Reboot Servers',
 						success = 'Selected servers have been rebooted successfully',
 						error = 'A problem has occurred while rebooting servers';
 						
-					if(!sm_running.getCount())
+					if(selected.length === 0)
 					{
 						Ext.Msg.alert('Warning', 'Please select some servers to perform the action');
 						return false;
@@ -410,7 +401,7 @@ var Instances = function(){
 								response = Ext.decode(response.responseText);
 								var s = response.success;
 								Ext.Msg.alert(title, s ? success : response.error_message || error);
-								store.running.reload();
+								store.running.load();
 							},
 							failure: function(){
 								Ext.Msg.alert(title, error);
@@ -424,12 +415,13 @@ var Instances = function(){
 				cls: 'x-btn-text-icon',
 				iconCls: 'stop',
 				handler: function(){
-					var selected = sm_running.getSelections(), instances = [],
+					var selected = sm_running.getSelection(),
+						instances = [],
 						title = 'Stop servers',
 						success = 'Selected servers have been stopped successfully',
 						error = 'A problem has occurred while stopping the servers';
 						
-					if(!sm_running.getCount())
+					if(selected.length === 0)
 					{
 						Ext.Msg.alert('Warning', 'Please select some servers to perform the action');
 						return false;
@@ -454,7 +446,7 @@ var Instances = function(){
 								var s = response.success;
 								Ext.Msg.alert(title, s ? success : response.error_message || error);
 								reload_until_stable('running', function(){
-									store.stopped.reload();
+									store.stopped.load();
 								});
 							},
 							failure: function(){
@@ -469,12 +461,13 @@ var Instances = function(){
 				cls: 'x-btn-text-icon',
 				iconCls: 'terminate',
 				handler: function(){
-					var selected = sm_running.getSelections(), instances = [],
+					var selected = sm_running.getSelection(),
+						instances = [],
 						title = 'Terminate servers',
 						success = 'Selected servers have been terminated successfully',
 						error = 'A problem has occurred while terminating servers';
 						
-					if(!sm_running.getCount())
+					if(selected.length === 0)
 					{
 						Ext.Msg.alert('Warning', 'Please select some servers to perform the action');
 						return false;
@@ -499,7 +492,7 @@ var Instances = function(){
 								var s = response.success;
 								Ext.Msg.alert(title, s ? success : response.error_message || error);
 								reload_until_stable('running', function(){
-									store.terminated.reload();
+									store.terminated.load();
 								});
 							},
 							failure: function(){
@@ -582,14 +575,16 @@ var Instances = function(){
 		id: 'stopped_instances-panel',
 		title: 'Servers that have been stopped',
 		layout: 'fit',
-		store: store.stopped,
 		forceFit: true,
 		border: false,
+		columnLines: true,
+		
+		store: store.stopped,
+		selModel: sm_stopped,
+		
 		viewConfig: {
 			emptyText: '<p style="text-align: center">You do not currently have any stopped server</p>'
 		},
-		columnLines: true,
-		sm: sm_stopped,
 		columns: [
 			{text: "Name", dataIndex: 'name', width: 150, renderer: function(value, metadata, record){
 				if(record.data.state !== 'stopped') metadata.css = 'grid-loader';
@@ -616,12 +611,13 @@ var Instances = function(){
 				cls: 'x-btn-text-icon',
 				iconCls: 'start',
 				handler: function(){
-					var selected = sm_stopped.getSelections(), instances = [],
+					var selected = sm_stopped.getSelection(),
+						instances = [],
 						title = 'Start Servers',
 						success = 'Selected servers have been started successfully',
 						error = 'A problem has occurred while starting selected servers';
 						
-					if(!sm_stopped.getCount())
+					if(selected.length === 0)
 					{
 						Ext.Msg.alert('Warning', 'Please select some servers to perform the action');
 						return false;
@@ -646,7 +642,7 @@ var Instances = function(){
 								var s = response.success;
 								Ext.Msg.alert(title, s ? success : response.error_message || error);
 								reload_until_stable('stopped', function(){
-									store.running.reload();
+									store.running.load();
 								});
 							},
 							failure: function(){
@@ -671,10 +667,12 @@ var Instances = function(){
 		}
 	});
 
-	grids.terminated = new xg.GridPanel({
+	grids.terminated = Ext.create('Ext.grid.Panel', {
 		id: 'terminated_instances-panel',
 		title: 'Servers that have previously been terminated',
+		layout: 'fit',
 		border: false,
+		forceFit: true,
 		store: store.terminated,
 		bbar: {
 			xtype: 'toolbar',
@@ -688,7 +686,6 @@ var Instances = function(){
 				}
 			}]
 		},
-		forceFit: true,
 		viewConfig: {
 			emptyText: '<p style="text-align: center">You do not have any terminated server so far</p>'
 		},

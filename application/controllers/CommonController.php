@@ -383,4 +383,36 @@ class CommonController extends Zend_Controller_Action
 		return false;
 	}
 	
+	public function listLoadBalancersAction()
+	{
+		$balancer_model = new Application_Model_Balancer();
+		$balancers = $balancer_model->get_user_load_balancers();
+		echo $this->successfull_response(array('balancers' => $balancers));
+		return false;
+	}
+	
+	public function getServersForLoadBalancingAction()
+	{
+		$provider = $this->getRequest()->getParam('provider');
+		$servers = array();
+		if(in_array($provider, $this->supported_providers))
+		{
+			$balancer_model = new Application_Model_Balancer();
+			$servers = $balancer_model->get_servers_for_lb($provider);
+		}
+		
+		echo $this->successfull_response(array('servers' => $servers));
+		return false;
+	}
+	
+	public function createLoadBalancerAction()
+	{
+		$request = $this->getRequest();
+		$name = $request->getParam('name');
+		$provider = $request->getParam('provider');
+		$servers = $request->getParam('instances');
+		// $balancer_model = new Application_Model_Balancer();
+		return false;
+	}
+	
 }

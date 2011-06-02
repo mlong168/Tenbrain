@@ -143,7 +143,7 @@ var Load_balancers = function(){
 	Ext.define('Servers_to_register', {
 		extend: 'Ext.data.Model',
 		fields: [
-			{name: 'id', type: 'int'},
+			{name: 'id', type: 'string'},
 			{name: 'name', type: 'string'},
 			{name: 'address', type: 'string'}
 		]
@@ -153,10 +153,10 @@ var Load_balancers = function(){
 		model: 'Servers_to_register',
 		proxy: {
 			type: 'ajax',
-			url: 'common/instances_for_load_balancing',
+			url: 'common/get_servers_for_load_balancing',
 			reader: {
 				type: 'json',
-				root: 'backups'
+				root: 'servers'
 			},
 			extraParams: {
 				provider: 'Amazon'
@@ -164,7 +164,15 @@ var Load_balancers = function(){
 		}
 	});
 	
+Ext.onReady(function(){
+	deploy_form.up('window').show();
+})
 		
+	Ext.define('Provider', {
+		extend: 'Ext.data.Model',
+		fields: [{type: 'string', name: 'name'}]
+	});
+	
 	var deploy_form = Ext.create('Ext.form.Panel', {
 		id: 'lb_deploy_form',
 		url: '/common/create_load_balancer',
@@ -177,7 +185,7 @@ var Load_balancers = function(){
 		defaults: {
 			xtype: 'combo',
 			anchor: '100%',
-			labelWidth: 60,
+			labelWidth: 70,
 			allowBlank: false
 		},
 		items: [{
@@ -189,27 +197,29 @@ var Load_balancers = function(){
 		}, {
 			fieldLabel: 'Provider',
 			name: 'provider',
-			store: new Ext.data.ArrayStore({
-				fields: ['name'],
-				data: [['Amazon'], ['GoGrid'], ['Rackspace']]
+			store: new Ext.create('Ext.data.Store', {
+				model: 'Provider',
+				data: [{name: 'Amazon'}, {name: 'GoGrid'}, {name: 'Rackspace'}]
 			}),
 			displayField: 'name',
 			valueField: 'name',
-			mode: 'local',
+			queryMode: 'local',
 			listeners: {
-				select: function(box, record){
-					var provider = record.data.name,
-						servers_selection = Ext.getCmp('instance_to_register_within_lb');
+				select: function(field, value){
+					var panel = this.up('form'),
+						form = panel.getForm(),
+						servers_selection = form.findField('instances[]'),
+						gg_address = form.findField('address'),
+						provider = field.lastValue,
+						is_gogrid = provider === 'GoGrid';
+						
 					servers_selection.enable();
-					if(instances_to_register_store.baseParams.provider !== provider) {
+					if(instances_to_register_store.proxy.extraParams.provider !== provider) {
 						servers_selection.reset();
-						instances_to_register_store.setBaseParam('provider', provider);
+						instances_to_register_store.proxy.extraParams.provider = provider;
 					}
-					if(provider === 'GoGrid') {
-						Ext.getCmp('gogrid_lb_address').enable().show();
-					} else {
-						Ext.getCmp('gogrid_lb_address').disable().hide();
-					}
+					gg_address.setVisible(is_gogrid).setDisabled(!is_gogrid);
+					panel.setHeight(is_gogrid ? 140 : 110);
 				}
 			}
 		},  {
@@ -237,7 +247,6 @@ var Load_balancers = function(){
 			forceSelection: true,
 			triggerAction: 'all',
 		}, {
-			id: 'instance_to_register_within_lb',
 			// xtype: 'superboxselect',
 			disabled: true,
 			editable: false,
@@ -247,7 +256,7 @@ var Load_balancers = function(){
 			blankText: 'Please select one or more servers',
 			emptyText: 'Select one or more servers',
 			listEmptyText: 'No servers are available to be registered',
-			resizable: true,
+			// resizable: true,
 			name: 'instances[]',
 			store: instances_to_register_store,
 			mode: 'remote',
@@ -549,9 +558,9 @@ var Load_balancers = function(){
 				text: 'Deploy a load balancer',
 				iconCls: 'start',
 				handler: function(){
-					var form = deploy_form.getForm().reset();					
-					form.findField('gogrid_lb_address').disable().hide();
-					form.findField('instance_to_register_within_lb').disable();
+					var form = deploy_form.setHeight(110).getForm().reset();
+					form.findField('address').disable().hide();
+					form.findField('instances[]').disable();
 					deploy_form.up('window').show().center();
 				}
 			}, '->', {
