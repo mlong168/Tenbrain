@@ -2,11 +2,14 @@
 
 class ConsoleController extends Zend_Controller_Action
 {
-	
+	private $_acl = array();
 	private $layout;
 
 	public function init()
 	{
+		$this->_acl = new ZendExt_ACL(Zend_Auth::getInstance()->getIdentity());
+		if(!$this->_acl->isUserAllowed('Console','view'))
+			$this->_redirect("account/sign_in");
 		$helper = $this->_helper->getHelper('Layout');
 		$this->layout =$helper->getLayoutInstance(); 
 	}
