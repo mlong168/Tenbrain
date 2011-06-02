@@ -398,7 +398,7 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 		
 		// write to db if things went fine
 		$server_model->add_server(array(
-			'provider_instance_id' 	=> $new_server_id,
+			'provider_server_id' 	=> $new_server_id,
 			'name' 					=> $name,
 			'provider' 				=> 'Amazon'
 		));
@@ -438,7 +438,7 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 		$old_server = $response->body->instancesSet();
 		
 		
-		if(!$old_server) $this->die_with_error('The instance this backup was created off has been terminated');
+		if(!$old_server) $this->die_with_error('The server this backup was created off has been terminated');
 
 		$old_server = $old_server->first()->item;
 		$old_server = array(
@@ -502,9 +502,9 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 		return $servers;
 	}
 	
-	function get_backups($provider, $instance_id)
+	function get_backups($provider, $server_id)
 	{
-		return $this->view_backups($provider, $instance_id);
+		return $this->view_backups($provider, $server_id);
 	}
 	
 	public function create_backup($id, $name, $description = 'sample description')
@@ -516,13 +516,13 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 		$this->test_response($response);
 
 		$server = $response->body->instancesSet()->first();
-		if(!$server->count()) $this->die_with_error('The backup could not be created from an instance yet');
+		if(!$server->count()) $this->die_with_error('The backup could not be created from an server yet');
 
 		$server = $server->item;
 		$image_id = (string) $server->imageId;
 
 		$volume_id = $server->blockDeviceMapping->query('descendant-or-self::item[deviceName = "/dev/sda" or deviceName = "/dev/sda1"]/ebs/volumeId');
-		if(!$volume_id->count()) $this->die_with_error('The backup could not be created from an instance yet');
+		if(!$volume_id->count()) $this->die_with_error('The backup could not be created from an server yet');
 		$volume_id = (string) $volume_id->first();
 
 		$response = $this->ec2->create_snapshot($volume_id, $description);

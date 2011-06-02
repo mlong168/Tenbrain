@@ -2,6 +2,12 @@
 
 class Application_Model_Provider_Rackspace extends Application_Model_Provider
 {
+	private $server_url = '';
+	private $auth_token = '';
+	
+	private $premium = true;
+	private $default_type = 1;	
+	
 	private $rack;
 	private $storage;
 	
@@ -225,9 +231,52 @@ class Application_Model_Provider_Rackspace extends Application_Model_Provider
 		return true;
 	}
 	
-	public function create_load_balancer($name, array $instances, $gogrid_lb_address)
+	public function create_load_balancer($name, array $servers, $gogrid_lb_address)
 	{
+		$selected_servers = array();
+		foreach($servers as $provider => $server_ids)
+			foreach($server_ids as $server_id => $provider_server_id)
+				$selected_servers[] = $provider_server_id;
+				
+		$nodes = array();
+		foreach($selected_servers as $id)
+		{
+			$server = $this->rack->GET_request('servers/' . $id);
+			$nodes []= array(
+				'address'	=> $server->server->addresses->private[0],
+				'port'		=> '80',
+				'condition'	=> 'ENABLED'
+			);
+		}
+		$setup = array(
+			'loadBalancer' => array(
+				'name'			=> $name,
+				'port'			=> '80',
+				'protocol'		=> 'HTTP',
+				'virtualIps'	=> array(
+					array('type' => 'PUBLIC')
+				),
+				'nodes'			=> $nodes
+			)
+		);
+		$this->server_url = str_replace('servers', 'ord.loadbalancers', $this->server_url);
+		$lb = $this->rack->POST_request('loadbalancers', $setup);
+
+		if(!$lb) return false;
+		$balancer_model = new Application_Model_Balancer();
+		$lb = $lb->loadBalancer;
+		$balancer = array(
+			'name' => $lb->name, 
+			'provider' => $this->name, 
+			'provider_balancer_id' => $lb->id, 
+			'type' => 'PUBLIC');
 		
+		$lb_id = $balancer_model->add_load_balancer($balancer);
+		foreach($selected_servers as $provider_server_id)
+		{
+			$balancer_model->add_servers_in_lb($lb_id, $provider_server_id);
+		}
+		return true;
 	}
 	
 	public function delete_load_balancer($id)
