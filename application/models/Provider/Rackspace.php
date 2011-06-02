@@ -268,6 +268,80 @@ class Application_Model_Provider_Rackspace extends Application_Model_Provider
 		return true;
 	}
 	
+	private function start_backup_image($backup_image)
+	{
+		$flavorId = $backup_image['flavorId'];
+		$provider_backup_id = $backup_image['imageId'];
+		$name = $backup_image['name'];
+		
+		$server_model = new Application_Model_Servers();
+		
+		$setup = array(
+			'server' => array(
+				'name' => $name,
+				'imageId' => (int)$provider_backup_id,
+				'flavorId' => (int) $flavorId
+			)
+		);
+		$response = $this->rack->POST_request('servers',$setup);
+		// write to db if things went fine
+		$server = $response->server;
+		
+		$backup_details = array(
+			'name' => $server->name,
+			'provider' => 'Rackspace',
+			'provider_server_id' => $server->id,
+		
+			'ip' => $server->addresses->public[0]
+		);
+		//print_r($backup_details);
+		$server_model->add_server($backup_details);
+		return true;
+	}
+	
+	public function restore_backup_to_corresponding_server($backup_id)
+	{
+		$backup_model = new Application_Model_Backups();
+		$backup = $backup_model->get_backup_by_id($backup_id);
+		if(!$backup)
+			return false;
+		$server = $this->rack->GET_request('servers/' . $backup['server_id']);
+		if(isset($server->server) && $server->server->status == "ACTIVE")
+		{
+			$server_model = new Application_Model_Servers();
+			$this->rack->DELETE_request('servers/' . $server->server->id);
+			$server_ids = $server_model->get_server_ids($server->server->id);
+			$server_model->remove_server($server_ids[0]);
+		}
+		else
+			return false;
+		$backup_image = array(
+			'flavorId' => $server->server->flavorId,
+			'imageId'	=> $backup['provider_backup_id'],
+			'name'	=> $server->server->name
+		);
+		
+		return $this->start_backup_image($backup_image);
+	}
+	
+	public function restore_backup_to_new_server($backup_id, array $settings)
+	{
+		$backup_model = new Application_Model_Backups();
+		$backup = $backup_model->get_backup_by_id($backup_id);
+		if(!$backup)
+			return false;
+		
+		$flavorId = $settings['type'];
+		$name = $settings['name'];
+		
+		$backup_image = array(
+			'flavorId' => $flavorId,
+			'imageId'	=> $backup['provider_backup_id'],
+			'name'	=> $name
+		);
+		return $this->start_backup_image($backup_image);
+	}
+	
 	public function delete_backup($backup_id = false)
 	{
 		$backup_model = new Application_Model_Backups();

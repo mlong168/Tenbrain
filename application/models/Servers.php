@@ -29,6 +29,23 @@ class Application_Model_Servers
 		if($user_server)
 			return $this->cassie->SERVERS->get($server_id);
 	}
+	
+	public function get_user_server_by_provider_id($provider_server_id)
+	{
+		$this->cassie->use_column_families(array('SERVERS', 'USER_SERVERS'));
+
+		$user_server_ids = $this->cassie->USER_SERVERS->get($this->user_id);
+		$user_server_ids = array_keys($user_server_ids);
+		
+		if($user_server_ids)
+		{
+			$servers = $this->cassie->SERVERS->multiget($user_server_ids);
+			foreach ($servers as $server) {
+				if($server['provider_server_id'] == $provider_server_id)
+					return $server;
+			}
+		}
+	}
 
 	public function get_user_servers($ids = null)
 	{
@@ -146,7 +163,7 @@ class Application_Model_Servers
 	public function get_servers_details ($server_ids, $fields = array('name'))
 	{
 		$servers = array();
-		$possible_fields = array('provider_server_id', 'name', 'provider', 'ip');
+		$possible_fields = array('provider_server_id', 'name', 'provider', 'ip', 'image_id');
 		$fields_to_retrieve = array();
 		if (! is_array($fields)) $fields = array($fields);
 		foreach ($fields as $field) {
@@ -166,12 +183,13 @@ class Application_Model_Servers
 	public function get_server_ids($provider_server_ids)
 	{
 		$server_ids = array();
-		if(!is_array($provider_instance_ids)) $provider_instance_ids = array($provider_instance_ids);
-		$user_servers = $this->getUserServers();
-		foreach ($servers as $server)
+		if(!is_array($provider_server_ids)) $provider_server_ids = array($provider_server_ids);
+		$user_servers = $this->get_user_servers();
+		
+		foreach ($user_servers as $id => $server)
 		{
-			if(in_array($server['provider_server_id'], $provider_instance_ids))
-				$server_ids[] = $server['server_id'];
+			if(in_array($server['provider_server_id'], $provider_server_ids))
+				$server_ids[] = $id;
 		}
 		return $server_ids;
 	}

@@ -792,11 +792,10 @@ class Application_Model_Provider_GoGrid extends Application_Model_Provider
 		// write to db if things went fine
 		$server = $response->list[0];
 
-		$server_model->add_user_server(array(
-			'account_id' => $this->user_id,
-			'server_name' => $server->name,
-			'provider' => 'GoGrid',
-			'public_ip' => $server->ip->ip
+		$server_model->add_server(array(
+			'name' 		=> $server->name,
+			'provider'	=> 'GoGrid',
+			'ip' 		=> $server->ip->ip
 		));
 		
 		return true;
@@ -811,10 +810,10 @@ class Application_Model_Provider_GoGrid extends Application_Model_Provider
 			return false;
 
 		$response = $this->gogrid->call('grid.server.get', array(
-			'id' => $backup->server_id
+			'id' => $backup['server_id']
 		));
 		$_server = json_decode($response);
-
+		
 		if(isset($_server) && $_server->status == 'success')
 		{			
 			$serv_id = $_server->list[0]->id;
@@ -823,7 +822,7 @@ class Application_Model_Provider_GoGrid extends Application_Model_Provider
 			));
 			$server_model = new Application_Model_Servers();
 			$server_ids = $server_model->get_server_ids($serv_id);
-			$server_model->terminate_server($server_ids[0]['server_id'], $this->user_id);
+			$server_model->remove_server($server_ids[0]);
 		}
 		else
 			return false;
@@ -834,9 +833,8 @@ class Application_Model_Provider_GoGrid extends Application_Model_Provider
 		$backup_image = array(
 			'backup_name'	=> $name,
 			'ram'	=> isset($ram) ? $ram : 1,
-			'provider_backup_id' => $backup->provider_backup_id
+			'provider_backup_id' => $backup['provider_backup_id']
 		);
-		
 		return $this->start_backup_image($backup_image);
 	}
 	
@@ -855,7 +853,7 @@ class Application_Model_Provider_GoGrid extends Application_Model_Provider
 			'backup_name'=> $name,
 			'ram'	=> $ram,
 			'ip'	=>	$ip,
-			'provider_backup_id' => $backup->provider_backup_id
+			'provider_backup_id' => $backup['provider_backup_id']
 		);
 		
 		return $this->start_backup_image($backup_image);
