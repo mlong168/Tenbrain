@@ -11,6 +11,7 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 
 	private $ec2;
 	private $storage;
+	private $user_id;
 	
 	private $available_types = array(
 		't1.micro',
@@ -32,8 +33,50 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 		parent::__construct();
 		
 		$this->name = 'Amazon';
+		$this->user_id = Zend_Auth::getInstance()->getIdentity()->id;
 		$this->storage = new Application_Model_Servers();
 		$this->ec2 = new AmazonEC2(self::TENBRAIN_API_KEY, self::TENBRAIN_API_SECRET);
+	}
+	
+	public function get_user_aws_credentials()
+	{
+		$credentials_model = new Application_Model_DbTable_Credentials_Amazon();
+		$credentials = $credentials_model->get_credentials($this->user_id);
+		
+		return $credentials;
+	}
+	
+	public function set_user_aws_credentials($key, $secret_key)
+	{
+		$aws_userid = $this->get_aws_userid($key, $secret_key);
+		if(!$aws_userid)
+		{
+			$this->die_with_error("The security credentials you've provided do not seem to be valid. Please try again.");
+		}
+		
+		$credentials_model = new Application_Model_DbTable_Credentials_Amazon();
+		$credentials_model->set_credentials($this->user_id, array(
+			'aws_user_id'	=> $aws_userid,
+			'key'			=> $key,
+			'secret_key'	=> $secret_key
+		));
+		
+		return true;
+	}
+	
+	private function get_aws_userid($key, $secret_key)
+	{
+		$iam_handle = new AmazonIAM($key, $secret_key);
+		$response = $iam_handle->get_user();
+		
+		return $response->isOK()
+			? (string) $response->body->UserId()->first()
+			: false;
+	}
+
+	public function update_user_aws_credentials($new_credentials)
+	{
+		// do smth here!!!
 	}
 
 	private function test_response($response)
@@ -325,16 +368,6 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 		return false;
 	}
 	
-	public function create_load_balancer($name, array $servers, $gogrid_lb_address)
-	{
-		
-	}
-	
-	public function delete_load_balancer($id)
-	{
-		
-	}
-	
 	public function delete_backup($backup_id = false)
 	{
 		$backup_model = new Application_Model_Backups();
@@ -561,5 +594,99 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 		//}
 		
 		return $backups;
+	}
+
+	private function get_elb_handle()
+	{
+		$credentials = $this->get_user_aws_credentials();
+		if(empty($credentials))
+			$this->die_with_error('You have to upgrade to TenBrain Premium and enter your own AWS credentials to use this feature');
+
+		return new AmazonELB($credentials['key'], $credentials['secret_key']);
+	}
+	
+	public function create_load_balancer($name, array $servers, $gogrid_lb_address)
+	{
+		$elb = $this->get_elb_handle();
+
+		$response = $elb->create_load_balancer($name, array(
+			array(
+				'Protocol' => 'HTTP',
+				'InstancePort' => 80,
+				'LoadBalancerPort' => 80
+			)
+		), 'us-east-1d');
+		$this->test_response($response);
+		
+		$balancer_model = new Application_Model_Balancer();
+		$lb_id = $balancer_model->add_load_balancer(array(
+			'name'		=> $name,
+			'provider'	=> $this->name,
+			'provider_lb_id'	=> $name,
+			// other:
+			// ''	=> $,
+		)); 
+		
+		if($this->register_instances_within_load_balancer($name, array_values($servers)))
+		{
+			$balancer_model->add_servers_to_lb($lb_id, array_keys($servers));
+		}
+
+		return true;
+	}
+	
+	public function delete_load_balancer($id)
+	{
+		$name = $provider_lb_id;
+		
+		$elb = $this->get_elb_handle();
+		$response = $elb->delete_load_balancer($name);
+		$this->test_response($response);
+		
+		$balancer_model = new Application_Model_Balancer();
+		$balancer_model->delete_load_balancer($id);
+		
+		return true;
+	}
+	
+	public function register_instances_within_load_balancer($lb_name, $server_ids)
+	{
+		$enabled_zones = $this->get_lb_availability_zones($lb_name);		
+		$instances_to_register = array();
+		$zones_to_register = array();
+		foreach($server_ids as $instance)
+		{
+			$response = $this->ec2->describe_instances(array('InstanceId' => $instance));
+			$instance_zone = (string) $response->body->availabilityZone()->first();
+			if(!in_array($instance_zone, $enabled_zones))
+			{
+				$zones_to_register []= $instance_zone;
+			}
+			$instances_to_register []= array('InstanceId' => $instance);
+		}
+		
+		$elb = $this->get_elb_handle();
+		if(count($zones_to_register))
+		{
+			$response = $elb->enable_availability_zones_for_load_balancer($lb_name, $zones_to_register);
+		}
+		
+		$response = $elb->register_instances_with_load_balancer($lb_name, $instances_to_register);
+		$this->test_response($response);
+		return true;
+	}
+	
+	private function get_lb_availability_zones($lb_name)
+	{
+		$elb = $this->get_elb_handle();
+		
+		$response = $elb->describe_load_balancers(array('LoadBalancerNames' => $lb_name));
+		$zones_response = $response->body->AvailabilityZones();
+		$zones = array();
+		foreach($zones_response as $zone)
+		{
+			$zones []= (string) $zone->member;
+		}
+		return $zones;
 	}
 }

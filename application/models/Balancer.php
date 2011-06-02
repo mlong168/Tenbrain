@@ -27,10 +27,9 @@ class Application_Model_Balancer
 	{
 		$this->cassie->use_column_families(array('LOADBALANCERS', 'USER_LOADBALANCERS'));
 		
-		$uuid = uniqid('tb-');
+		$uuid = uniqid('tlb-');
 		$this->cassie->LOADBALANCERS->insert($uuid, $details);
-		$this->cassie->USER_LOADBALANCERS->insert($this->user_id, 
-		array($uuid => ''));
+		$this->cassie->USER_LOADBALANCERS->insert($this->user_id, array($uuid => ''));
 		
 		return $uuid;
 	}
@@ -71,7 +70,7 @@ class Application_Model_Balancer
 			$this->cassie->USER_LOADBALANCER_SERVERS->remove($load_balancer_id, $server_ids);
 	}
 	
-	public function add_servers_in_lb($load_balancer_id, $server_ids)
+	public function add_servers_to_lb($load_balancer_id, $server_ids)
 	{
 		$this->cassie->use_column_families(array('USER_LOADBALANCERS', 'USER_LOADBALANCER_SERVERS'));
 		$lb = $this->cassie->USER_LOADBALANCERS->get($this->user_id, $load_balancer_id); // Check if user have this LB
