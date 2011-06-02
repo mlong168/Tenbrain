@@ -27,10 +27,10 @@ class ZendExt_ACL extends Zend_Acl
             ->from('accounts') 
             ->where('accounts.username = "' . $this->_user . '"') 
             ->where('accounts.role_id = acl_roles.role_id'));
-            
-        $this->_getUserRoleId = $getUserRole['role_id'] ? $getUserRole['role_id'] : 2; 
-        $this->_getUserRoleName = $getUserRole['role_name'] ? $getUserRole['role_name'] : 'User'; 
- 
+
+        $this->_getUserRoleId = $getUserRole['role_id'] ? $getUserRole['role_id'] : 4; 
+        $this->_getUserRoleName = $getUserRole['role_name'] ? $getUserRole['role_name'] : 'Guest';
+        
         $this->addRole(new Zend_Acl_Role($this->_user), $this->_getUserRoleName); 
  
     } 
@@ -122,7 +122,7 @@ class ZendExt_ACL extends Zend_Acl
             ->where('acl_resources.resource = "' . $group . '"') 
             ->where('uid = resource_uid') 
         ); 
- 
+        
         foreach ($group as $key=>$value) { 
             if($this->isAllowed($this->_user, $value['resource'], $value['permission'])) { 
                 $result[] = $value['permission']; 
