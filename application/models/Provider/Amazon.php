@@ -325,7 +325,7 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 		return false;
 	}
 	
-	public function create_load_balancer($name, array $instances, $gogrid_lb_address)
+	public function create_load_balancer($name, array $servers, $gogrid_lb_address)
 	{
 		
 	}

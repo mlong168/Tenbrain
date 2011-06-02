@@ -418,7 +418,7 @@ class CommonController extends Zend_Controller_Action
 			$server_model = new Application_Model_Servers();
 			$server_ids = $server_model->get_user_server_provider_ids($servers, true);
 			
-			$success = $this->providers[$provider]->create_load_balancer($name, $server_ids);
+			$success = $this->providers[$provider]->create_load_balancer($name, $server_ids, null);
 		}
 		
 		echo $success
