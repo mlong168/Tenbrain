@@ -370,7 +370,19 @@ class CommonController extends Zend_Controller_Action
 		$name = $request->getParam('name');
 		$provider = $request->getParam('provider');
 		$servers = $request->getParam('instances');
-		// $balancer_model = new Application_Model_Balancer();
+		
+		$success = false;
+		if(in_array($provider, $this->supported_providers))
+		{
+			$server_model = new Application_Model_Servers();
+			$server_ids = $server_model->get_user_server_provider_ids($servers, true);
+			
+			$success = $this->providers[$provider]->create_load_balancer($name, $server_ids);
+		}
+		
+		echo $success
+			? $this->successfull_response()
+			: $this->failure_response('We are sorry, an error has occurred');
 		return false;
 	}
 	
