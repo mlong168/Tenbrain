@@ -55,5 +55,15 @@ class AmazonController extends Zend_Controller_Action
 		echo $key['key'];
 		return false;
 	}
+	
+	public function setUserCredentialsAction()
+	{
+		$request = $this->getRequest();
+		$key = $request->getParam('key');
+		$secret_key = $request->getParam('secret_key');
+		
+		$amazon_model = new Application_Model_Provider_Amazon();
+		$amazon_model->set_user_aws_credentials($key, $secret_key);
+	}
 
 }

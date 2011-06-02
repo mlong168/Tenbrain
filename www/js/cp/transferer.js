@@ -36,11 +36,11 @@ var Transferer = function(){
 			allowBlank: false
 		},
 		items: [{
-			width: 200,
+			width: 300,
 			fieldLabel: 'Key',
 			name: 'key'
 		}, {
-			width: 300,
+			width: 400,
 			fieldLabel: 'Secret Key',
 			name: 'secret_key'
 		}],
