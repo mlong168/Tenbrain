@@ -23,7 +23,29 @@ var Transferer = function(){
 		});
 	};
 	
+	var add_togglable_fieldSet = function(form, title, items, collapsed){
+		var collapsed = typeof collapsed !== 'undefined' ? collapsed : true,
+			fieldset = Ext.create('Ext.form.FieldSet', {
+				checkboxToggle: true,
+				title: title,
+				defaultType: 'textfield',
+				collapsed: collapsed,
+				layout: 'anchor',
+				defaults: {
+					labelWidth: 70,
+				    anchor: '100%',
+				    allowBlank: false
+				},
+				items: items
+			});
+		fieldset.checkboxCmp.addListener('change', function(){
+			form.doLayout()
+		});
+		form.items.add(fieldset);
+	}
+	
 	var amazon_credentials_form = Ext.create('Ext.form.Panel', {
+		id: 'amazon_credentials_form',
 		title: 'Amazon',
 		url: '/amazon/set_user_credentials',		
 		buttonAlign: 'center',
@@ -31,19 +53,11 @@ var Transferer = function(){
 		autoHeight: true,
 		pollForChanges: true,
 		defaults: {
-			labelWidth: 70,
 			xtype: 'textfield',
 			allowBlank: false
 		},
-		items: [{
-			width: 300,
-			fieldLabel: 'Key',
-			name: 'key'
-		}, {
-			width: 400,
-			fieldLabel: 'Secret Key',
-			name: 'secret_key'
-		}],
+
+		items: [],
 
 		buttons: [{
 			text: 'Proceed',
@@ -54,6 +68,23 @@ var Transferer = function(){
 			handler: function(){ credentials_dialogue.hide(); }
 		}]
 	});
+	
+	
+	add_togglable_fieldSet(amazon_credentials_form, 'Existing credentials', [{
+			fieldLabel: 'Key',
+			name: 'key'
+		}, {
+			fieldLabel: 'Secret Key',
+			name: 'secret_key'
+		}]);
+	
+	add_togglable_fieldSet(amazon_credentials_form, 'Enter new API credentials', [{
+			fieldLabel: 'Key',
+			name: 'key'
+		}, {
+			fieldLabel: 'Secret Key',
+			name: 'secret_key'
+		}], false);
 	
 	var rackspace_credentials_form = Ext.create('Ext.form.Panel', {
 		title: 'Rackspace',
@@ -117,7 +148,7 @@ var Transferer = function(){
 	});
 	
 	var credentials_dialogue = Ext.create('Ext.window.Window', {
-		title: 'Cloud account credentials manager',
+		title: 'Your personal cloud account manager',
 		layout: 'fit',
 		width: 450,
 		minWidth: 400,

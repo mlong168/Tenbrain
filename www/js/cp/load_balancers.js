@@ -164,10 +164,10 @@ var Load_balancers = function(){
 		}
 	});
 	
-Ext.onReady(function(){
-	deploy_form.up('window').show();
-})
-		
+// Ext.onReady(function(){
+	// deploy_form.up('window').show();
+// })
+
 	Ext.define('Provider', {
 		extend: 'Ext.data.Model',
 		fields: [{type: 'string', name: 'name'}]
