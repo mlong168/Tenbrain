@@ -23,25 +23,43 @@ var Transferer = function(){
 		});
 	};
 	
-	var add_togglable_fieldSet = function(form, title, items, collapsed){
-		var collapsed = typeof collapsed !== 'undefined' ? collapsed : true,
-			fieldset = Ext.create('Ext.form.FieldSet', {
-				checkboxToggle: true,
-				title: title,
-				defaultType: 'textfield',
-				collapsed: collapsed,
-				layout: 'anchor',
-				defaults: {
-					labelWidth: 70,
-				    anchor: '100%',
-				    allowBlank: false
-				},
-				items: items
-			});
-		fieldset.checkboxCmp.addListener('change', function(){
-			form.doLayout()
+	var add_existing_credentials = function(form, items){
+		items.push({
+			xtype: 'button',
+			disabled: false,
+			anchor: 'r',
+			text: 'Delete this credentials and all its data',
+			handler: function(){
+				var fieldset = this.up('fieldset');
+				fieldset.setLoading(true);
+				setTimeout(function(){
+					fieldset.setLoading(false);
+					Ext.Msg.alert('API credentials removal', 'Your credentials have been removed successfully', function(){
+						fieldset.collapse().disable();
+					})
+				}, 200);
+			}
 		});
-		form.items.add(fieldset);
+		var fieldset = Ext.create('Ext.form.FieldSet', {
+			checkboxToggle: true,
+			title: 'Existing credentials',
+			defaultType: 'textfield',
+			collapsed: true,
+			layout: 'anchor',
+			defaults: {
+				labelWidth: 70,
+			    anchor: '100%',
+			    disabled: true
+			},
+			items: items
+		});
+		var form_relayout = function(){
+			form.doLayout()
+		};
+		fieldset.checkboxCmp.addListener('change', form_relayout);
+		fieldset.addListener('destroy', form_relayout);
+		form.items.insert(form.items.length - 1, fieldset);
+		form_relayout();
 	}
 	
 	var amazon_credentials_form = Ext.create('Ext.form.Panel', {
@@ -51,61 +69,107 @@ var Transferer = function(){
 		buttonAlign: 'center',
 		baseCls: 'x-plain',
 		autoHeight: true,
-		pollForChanges: true,
 		defaults: {
 			xtype: 'textfield',
 			allowBlank: false
 		},
-
-		items: [],
-
-		buttons: [{
-			text: 'Proceed',
-			formBind: true,
-			handler: submit_credentials
-		}, {
-			text: 'Cancel',
-			handler: function(){ credentials_dialogue.hide(); }
+		items: [{
+			xtype: 'fieldset',
+			collapsible: true,
+			title: 'Enter new API credentials',
+			defaultType: 'textfield',
+			layout: 'anchor',
+			defaults: {
+				labelWidth: 70,
+			    anchor: '100%',
+			    allowBlank: false
+			},
+			items: [{
+				fieldLabel: 'Key',
+				name: 'key'
+			}, {
+				fieldLabel: 'Secret Key',
+				name: 'secret_key'
+			}, {
+				xtype: 'button',
+				text: 'Submit',
+				anchor: '15%',
+				handler: function(){
+					var form = this.up('form'), fieldset = this.up('fieldset');
+					form.setLoading(true);
+					Ext.Ajax.request({
+						url: 'amazon/set_user_api_credentials',
+						success: function(response){
+							form.setLoading(false);
+							response = Ext.decode(response.responseText);
+							if(!response.success) return false;
+							add_existing_credentials(form, [{
+									fieldLabel: 'Key',
+									name: 'key',
+									// value: fieldset.items.get('key').value
+									value: 'fieldset.items.get().value'
+								}, {
+									fieldLabel: 'Secret Key',
+									name: 'secret_key',
+									value: 'fkjlkdsfjlkds'
+								}]);
+			
+						},
+						failure: function(){
+							form.setLoading(false);
+						}
+					})
+				}
+			}, {
+				xtype: 'button',
+				text: 'Reset',
+				anchor: '15%'
+			}]
 		}]
 	});
 	
+	amazon_credentials_form.addListener('activate', function(){
+		var form = this;
+		form.setLoading(true);
+		Ext.Ajax.request({
+			url: 'amazon/get_user_api_credentials',
+			success: function(response){
+				form.setLoading(false);
+				response = Ext.decode(response);
+				if(!response.success) return false;
+				var credentials = response.credentials;
+				if(typeof credentials !== undefined && credentials.length !== 0)
+				{
+					add_existing_credentials(form, [{
+							fieldLabel: 'Key',
+							name: 'key',
+							value: credentials.key
+						}, {
+							fieldLabel: 'Secret Key',
+							name: 'secret_key',
+							value: credentials.secret_key
+						}]);
+				}
+
+			},
+			failure: function(){
+				form.setLoading(false);
+			}
+		})
+	})
 	
-	add_togglable_fieldSet(amazon_credentials_form, 'Existing credentials', [{
-			fieldLabel: 'Key',
-			name: 'key'
-		}, {
-			fieldLabel: 'Secret Key',
-			name: 'secret_key'
-		}]);
-	
-	add_togglable_fieldSet(amazon_credentials_form, 'Enter new API credentials', [{
-			fieldLabel: 'Key',
-			name: 'key'
-		}, {
-			fieldLabel: 'Secret Key',
-			name: 'secret_key'
-		}], false);
 	
 	var rackspace_credentials_form = Ext.create('Ext.form.Panel', {
 		title: 'Rackspace',
 		url: '/rackspace/set_user_credentials',		
 		buttonAlign: 'center',
 		baseCls: 'x-plain',
-		pollForChanges: true,
 		defaults: {
 			xtype: 'textfield',
+			anchor: '100%',
 			labelWidth: 70,
 			allowBlank: false
 		},
-		items: [{
-			width: 200,
-			fieldLabel: 'Username',
-			name: 'username',
-		}, {
-			width: 300,
-			fieldLabel: 'API Key',
-			name: 'key',
-		}],
 
 		buttons: [{
 			text: 'Proceed',
@@ -113,9 +177,29 @@ var Transferer = function(){
 			handler: submit_credentials
 		}, {
 			text: 'Cancel',
-			handler: function(){ credentials_dialogue.hide(); }
+			handler: function(){ this.up('window').hide(); }
 		}]
 	});
+	
+	
+	// add_togglable_fieldSet(rackspace_credentials_form, 'Existing credentials', [{
+			// fieldLabel: 'Username',
+			// name: 'username',
+			// disabled: true
+		// }, {
+			// fieldLabel: 'API Key',
+			// name: 'key',
+			// value: 'kfjlkgkjfskfsjglks',
+			// disabled: true
+		// }]);
+// 	
+	// add_togglable_fieldSet(rackspace_credentials_form, 'Enter new API credentials', [{
+			// fieldLabel: 'Username',
+			// name: 'username',
+		// }, {
+			// fieldLabel: 'API Key',
+			// name: 'key',
+		// }], false);
 	
 	var gogrid_credentials_form = Ext.create('Ext.form.Panel', {
 		title: 'GoGrid',
@@ -162,6 +246,10 @@ var Transferer = function(){
 			items: [amazon_credentials_form, rackspace_credentials_form, gogrid_credentials_form]
 		})
 	});
+	
+// Ext.onReady(function(){
+	// credentials_dialogue.show();
+// })
 	
 	Ext.define('Account_types', {
 		extend: 'Ext.data.Model',

@@ -228,12 +228,70 @@ var Instances = function(){
 		bodyStyle: 'padding:5px;'
 	});
 	
+	var web_console = Ext.create('Ext.window.Window', {
+		title: 'Web SSH console',
+		layout: 'fit',
+		width: 687,
+		height: 465,
+		// resizable: false,
+		closeAction: 'hide',
+		modal : true,
+		plain: 'true',
+		bodyStyle: 'padding:5px;'
+	});
+	
+	
 	var instances_menu = new Ext.menu.Menu({
 		id: 'running_instances_menu',
 		items: [{
 			text: 'Connect',
 			menu: {
 				items: [{
+					text: 'Open web console',
+					handler: function(){
+						var record = instances_menu.selected_record,
+							server_id = record.get('id');
+						Ext.Msg.wait('Connecting to your server');
+						Ext.Ajax.request({
+							url: 'common/connection_params',
+							params: {server_id: server_id},
+							failure: function(){
+								Ext.Msg.alert('An error has occurred');
+							},
+							success: function(response){
+								var response = Ext.decode(response.responseText),
+									params = response.connection_params,
+									iframes = web_console.items,
+									console_url = 'https://ec2-50-19-43-161.compute-1.amazonaws.com/ajaxterm/?';
+								if(!response.success)
+								{
+									Ext.Msg.alert('An error has occurred');
+									return false;
+								}
+								Ext.Msg.hide();
+								console_url += 'hostname=' + params.hostname
+									+ '&port=' + params.port
+									+ '&provider=' + params.provider
+									+ '&login_user=' + params.login_user
+									+ '&key_name=' + params.username || 'default';
+								if(iframes.getCount() !== 0)
+								{
+									iframes.get(0).destroy;
+									iframes.removeAll();
+								}
+								iframes.add(Ext.create('Ext.Component', {
+									autoEl: {
+										tag: 'iframe',
+										frameborder: 0,
+										src: console_url
+									}
+								}))
+								web_console.doLayout().show().center();
+							}
+						})
+						
+					}
+				}, {
 					text: 'View connection info',
 					handler: function(){
 						var record = instances_menu.selected_record,

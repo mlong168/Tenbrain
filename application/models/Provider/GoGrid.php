@@ -364,6 +364,19 @@ class Application_Model_Provider_GoGrid extends Application_Model_Provider
 			"Use password '{$auth['password']}' and username '{$auth['username']}' to connect to the server by ssh."
 			. '<br />Alternatively, you can use our web console';
 	}
+
+	public function get_connection_params(array $params)
+	{
+		$server_id = $params['provider_server_id'];
+		$auth = $this->get_password($server_id);
+		
+		return array(
+			'hostname'	=> $params['ip'],
+			'login_user'=> $auth['username'],
+			'port'		=> 22,
+			'provider'	=> strtolower($this->name)
+		);
+	}
 	
 	public function modify_server($server_id, $ram_size, $tb_server_id, $all_params)
 	{

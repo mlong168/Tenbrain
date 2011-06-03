@@ -346,6 +346,30 @@ class CommonController extends Zend_Controller_Action
 		return false;
 	}
 	
+	public function connectionParamsAction()
+	{
+		$server_id = $this->getRequest()->getParam('server_id');
+		$server_model = new Application_Model_Servers();
+		$server = $server_model->get_user_server($server_id);
+		if(!$server)
+		{
+			echo $this->failure_response('Your server was not found in our database');
+			return false;
+		}
+		
+		$provider = $server['provider'];
+		$connection_params = array();
+		if(array_key_exists($provider, $this->providers))
+		{
+			$connection_params = $this->providers[$provider]->get_connection_params($server);
+		}
+		
+		echo $this->successfull_response(array(
+			'connection_params' => $connection_params
+		));
+		return false;
+	}
+	
 	public function getAvailableServerTypesAction()
 	{
 		$provider = $this->getRequest()->getParam('provider');

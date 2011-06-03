@@ -320,6 +320,22 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 		return $info;
 	}
 
+	public function get_connection_params(array $params)
+	{
+		$response = $this->ec2->describe_instances(array('InstanceId' => $params['provider_server_id']));
+		$this->test_response($response);
+		
+		$dns_name = (string) $response->body->dnsName()->first();
+		
+		return array(
+			'hostname'	=> $dns_name,
+			'username'	=> Zend_Auth::getInstance()->getIdentity()->username,
+			'login_user'=> 'ubuntu',
+			'port'		=> 22,
+			'provider'	=> strtolower($this->name)
+		);
+	}
+
 	public function start_servers(array $ids)
 	{
 		$response = $this->ec2->start_instances($ids);
