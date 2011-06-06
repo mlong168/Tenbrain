@@ -32,6 +32,7 @@ class PayController extends Zend_Controller_Action
     public function indexAction ()
     {
     	$type = 'pay_cc';
+			
 		$this->view->assign(array(
 			'selections'=> $this->selections[$type],
 			'type'		=> $type,
