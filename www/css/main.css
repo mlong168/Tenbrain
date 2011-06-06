@@ -106,7 +106,7 @@ html, body {
 #footer_icon_hider {
 	position: absolute;
 	z-index: 3;
-	bottom: 70px; left: 0; right: 0;
+	bottom: 90px; left: 0; right: 0;
 	width: auto;
 	height: 15px;
 	background: #fff;
@@ -121,21 +121,33 @@ html, body {
 	width: auto;
 	bottom: 0;
 	padding: 0 4em;
-	height: 70px;
+	height: 90px;
 	font: 13px Verdana, Arial, Sans-serif;
-	background: url('/css/images/blue_footer.png') repeat-x;
+	background: #0893d6 url('/css/images/blue_footer.png') repeat-x;
 }
 
 #menu {
-	padding-top: 1em;
+	margin-top: 0.5em;
+	list-style-type: none;
 	font: bold 13px Arial, Verdana, Sanf-serif;
 }
 
+#menu ul {
+	float: left;
+	list-style-type: none;
+}
+
+#menu ul li {
+	padding: 0 0 0.2em 1em;
+}
+#menu ul li:first-child {
+	padding-left: 0;
+	font-size: 1.1em;
+}
+
 #menu .item {
-	display: inline-block;
-	padding: 0 0 0.1em 0.1em;
+	padding: 0.2em 0 0.1em 0.1em;
 	border-bottom: 1px dashed white;
-	margin-right: 1em;
 	color: white;
 	text-decoration: none;
 }
@@ -165,7 +177,7 @@ html, body {
 .main {
 	background: #fff url('/css/images/gray_background.png') repeat-x;
 	border-top: 2px solid #C5D4D8;
-	padding-bottom: 87px;
+	padding-bottom: 107px;
 }
 .main.small_content { padding-top: 5em; }
 .main.big_content { padding-top: 1em; }
