@@ -22,16 +22,16 @@ class SelectionController extends Zend_Controller_Action
 			)
 		),
 		'deployment'	=> array(
-			'desktop'	=>  array(
-				'type'		=> 'big',
-				'disabled'	=> true,
-				'text'		=> 'Desktop<br />Deployment'
-			),
-			'enterprise'=> array(
-				'type'		=> 'big',
-				'disabled'	=> true,
-				'text'		=> 'Enterprise<br />Deployment'
-			),
+			// 'desktop'	=>  array(
+				// 'type'		=> 'big',
+				// 'disabled'	=> true,
+				// 'text'		=> 'Desktop<br />Deployment'
+			// ),
+			// 'enterprise'=> array(
+				// 'type'		=> 'big',
+				// 'disabled'	=> true,
+				// 'text'		=> 'Enterprise<br />Deployment'
+			// ),
 			'cloud'		=> array(
 				'type'		=> 'big',
 				'disabled'	=> false,
@@ -107,7 +107,7 @@ class SelectionController extends Zend_Controller_Action
 	
 	public function indexAction()
 	{
-		$this->_forward('tenstack');
+		$this->_forward('deployment');
 	}
 	
 	public function errorAction()
@@ -130,7 +130,9 @@ class SelectionController extends Zend_Controller_Action
 	
 	public function deploymentAction()
 	{
-		$tenstack = $this->getRequest()->getParam('tenstack');
+		// $tenstack = $this->getRequest()->getParam('tenstack');
+		$tenstack = 'web';
+		
 		if(in_array($tenstack, array_keys($this->selections['tenstack'])))
 		{
 			$this->selected->tenstack = $tenstack;
@@ -192,7 +194,7 @@ class SelectionController extends Zend_Controller_Action
 				
 				$this->view->assign(array(
 					'results'	=> array(
-						'tenstack ' . $tenstack		=> $this->selections['tenstack'][$tenstack]['text'],
+						// 'tenstack ' . $tenstack		=> $this->selections['tenstack'][$tenstack]['text'],
 						'deployment ' . $deployment	=> $this->selections['deployment'][$deployment]['text'],
 						$dep . ' ' . $finals		=> $this->selections[$dep][$finals]['text']
 					)
@@ -215,7 +217,7 @@ class SelectionController extends Zend_Controller_Action
 		if(!$auth->hasIdentity())
 		{
 			// $this->session->set_userdata('sign_in_redirect', '/selection/confirm');
-			$this->_redirect('auth/login');
+			$this->_redirect('account/sign_in');
 		}
 		
 		if(!isset($this->selected->selection))
@@ -229,22 +231,24 @@ class SelectionController extends Zend_Controller_Action
 		switch($this->selected->selection['providers'])
 		{
 			case 'rackspace':
-				$this->load->model('Rackspace_model', 'rackspace');
-				$this->rackspace->launch_instance('TenBrain UC Stack for ' . $user_name, 49, 1 );
+				$rackspace_model = new Application_Model_Provider_Rackspace();
+				$rackspace_model->launch_server(array(
+					'name'		=> 'TenBrain UC Stack for ' . $user_name,
+					'image_id'	=> 49,
+					'flavor_id'	=> 1
+				));
 			break;	
 			case 'amazon':
-				$this->load->model('Amazon_model', 'amazon');
-				$this->amazon->launch_instance('ami-326c9f5b', 't1.micro', 'TenBrain UC Stack for ' . $user_name);
+				$amazon_model = new Application_Model_Provider_Amazon();
+				$amazon_model->launch_server(array(
+					'name'		=> 'TenBrain UC Stack for ' . $user_name,
+					'image_id'	=> 'ami-326c9f5b',
+					'type'		=> 't1.micro'
+				));
 			break;
 			case 'gogrid':
-				echo 'Started GoGrid Instance';
-				die;
-				//$this->load->model('GoGrid_model', 'gogrid');
-				//$this->gogrid->launch_instance('512MB', '5825', 'TenBrain UC Stack for ' . $user_name);
-			break;
+				// not supported
 			default:
-				$this->load->model('Amazon_model', 'amazon');
-				$this->amazon->launch_instance('ami-326c9f5b', 't1.micro', 'TenBrain UC Stack for ' . $user_name);
 			break;
 		}
 		unset($this->selected->selection);			

@@ -57,7 +57,7 @@ form#payment ul.errors{
 }
 .pay_cc.onetime {
     background-position: 0 0;
-    width: 80px;
+    width: 102px;
 }
 .pay_cc.monthly {
     background-position: -112px 0;

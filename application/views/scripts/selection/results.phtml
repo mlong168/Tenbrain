@@ -1,21 +1,30 @@
 <div class="main small_content">
 	<p class="selection_message wide">You have selected:</p>
-	<div class="results">
-	<?php foreach($this->results as $class => $text): ?>
-		<div class="selected_item">
-			<span class="selection_image <?php echo $class?>">.</span>
-			<div class="selection_text final"><?php echo str_replace('<br />', ' ', $text) ?></div>
-		</div>
-		<?php if($text !== end($this->results)): ?>
-			<div class="control arrow"></div>
-		<?php endif; ?>
-	<?php endforeach; ?>	
-	<div class="clearfix"></div>
+	<div id="selections">
+		<ul>
+		<?php foreach($this->results as $class => $text): ?>
+			<li class="selected_item">
+				<span class="selection_image <?php echo $class?>">.</span>
+				<div class="selection_text final"><?php echo str_replace('<br />', ' ', $text) ?></div>
+			</li>
+			<?php if($text !== end($this->results)): ?>
+				<li class="control arrow"></li>
+			<?php endif; ?>
+		<?php endforeach; ?>
+		</ul>
 	</div>
+
+	<div class="clearfix"></div>
 	
-	<div class="confirm_dialogue">
-		<a class="control reject_button small" href="/">Change this</a>
-		<a class="control selection_button small" href="/selection/confirm">Confirm</a>
+	<div id="confirm_dialogue">
+		<ul>
+			<li>
+				<a class="control reject_button small" href="/">Change this</a>
+			</li>
+			<li>
+				<a class="control selection_button small" href="/selection/confirm">Confirm</a>
+			</li>
+		</ul>
 	</div>
 	
 	<div class="clearfix"></div>

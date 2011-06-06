@@ -20,7 +20,7 @@ class ConsoleController extends Zend_Controller_Action
 		$this->layout->setLayout('console');
 		$this->view->headTitle()->prepend('Tenbrain Control Panel');
 		
-		$this->layout->active_menu_item = 'running_instances';	//temporary, should be instances
+		$this->layout->active_menu_item = 'running_instances';
 		
 		$scripts = array(
 			'extjs4/ext-all-debug',
@@ -52,7 +52,7 @@ class ConsoleController extends Zend_Controller_Action
 		// Servers: 
 		$menu []= array(
 			'text'		=> 'Server Management',
-			'expanded'	=> !$profile_active,
+			'expanded'	=> true,
 			'children'	=> array(
 				array(
 					'text'	=> 'Running Servers',
@@ -75,6 +75,7 @@ class ConsoleController extends Zend_Controller_Action
 		// images: 
 		$menu []= array(
 			'text'		=> 'Available Images',
+			'expanded'	=> true,
 			'children'	=> array(
 				array(
 					'text'	=> 'Images available for deployment',
@@ -87,6 +88,7 @@ class ConsoleController extends Zend_Controller_Action
 		// snapshots:
 		$menu []= array(
 			'text'		=> 'Backups',
+			'expanded'	=> true,
 			'children'	=> array(
 				array(
 					'text'	=> 'Created Backups',
