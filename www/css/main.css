@@ -50,8 +50,9 @@ html, body {
 	z-index: 11;
 	-moz-user-select: none;
 	-webkit-user-select: none;
-	user-select: none;
+/*	user-select: none;*/
 }
+
 #signin_opener.active {
 	background: transparent;
 	/* color: #1A9ED9; */
@@ -410,6 +411,10 @@ html, body {
 	overflow-y: auto;
 }
 
+#big_helper {
+	text-indent: 2em;
+}
+
 .social_icon {
 	display: block;
 	width: 32px;
@@ -444,8 +449,9 @@ html, body {
 .overlay.front {
 	z-index: 101;
 	background: #fff;
-	margin: 5em 20%;
+	margin: 3em 10%;
 	padding: 2em;
+	overflow-y: auto;
 }
 
 .help_title {
