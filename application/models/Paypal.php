@@ -79,6 +79,36 @@ class Application_Model_Paypal extends Zend_Db_Table_Abstract
     public function upgradeAccount()
     {
     	#TODO: upgrage account accourding to money amount
+			$amount_paid = floatval($this->details["AMT"]);
+			$sum_per_day = 1; // 1$ dollar per day
+			$paid_days = floor($amount_paid/$sum_per_day);
+			$exp_date = date("Y-m-d", strtotime("+".$paid_days." days"));
+			
+			$account_role_exp = new Application_Model_AccountRoleExp();
+			$select = $account_role_exp->select()->where("account_id = ?", Zend_Auth::getInstance()->getIdentity()->id);
+			$existing_account = $account_role_exp->fetchRow($select);
+
+			if(!empty($existing_account))
+			{			
+				$new_exp_date = date("Y-m-d", strtotime("+".$paid_days." days", strtotime($existing_account->expiration_date)));
+				
+				$data = array(
+					"expiration_date" => $new_exp_date
+				);
+				$where = $account_role_exp->getAdapter()->quoteInto('id = ?', $existing_account->id);
+				$account_role_exp->update($data, $where);
+			}
+			else
+			{
+				$bind = array(
+					"account_id" => Zend_Auth::getInstance()->getIdentity()->id,
+					"role_id" => 2,
+					"expiration_date" => $exp_date
+				);
+				
+				$account_role_exp->insert($bind);
+			}
+			
     }
     
     
