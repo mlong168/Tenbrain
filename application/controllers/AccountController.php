@@ -74,7 +74,16 @@ class AccountController extends Zend_Controller_Action
                         Zend_Session::rememberMe();
                     $storage = new Zend_Auth_Storage_Session();
                     $storage->write($authAdapter->getResultRowObject());
+					
+					$redirect = new Zend_Session_Namespace('sign_in_redirect');
+					if(isset($redirect->url))
+					{
+						$url = $redirect->url;
+						unset($redirect->url);
+						$this->_redirect($url);
+					}
                     $this->_redirect('console');
+					
                 } else {
                     $this->view->errorMessage = 'Invalid username or password. Please try again';
                 }

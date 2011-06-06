@@ -216,7 +216,8 @@ class SelectionController extends Zend_Controller_Action
 		
 		if(!$auth->hasIdentity())
 		{
-			// $this->session->set_userdata('sign_in_redirect', '/selection/confirm');
+			$redirect = new Zend_Session_Namespace('sign_in_redirect');
+			$redirect->url = 'selection/confirm';
 			$this->_redirect('account/sign_in');
 		}
 		
