@@ -130,7 +130,8 @@ html, body {
 #menu {
 	margin-top: 0.5em;
 	list-style-type: none;
-	font: bold 13px Arial, Verdana, Sanf-serif;
+	font: 12px Arial, Helvetica, sans-serif;
+	line-height: 1.5em;
 }
 
 #menu ul {
@@ -138,16 +139,12 @@ html, body {
 	list-style-type: none;
 }
 
-#menu ul li {
-	padding: 0 0 0.2em 1em;
-}
 #menu ul li:first-child {
-	padding-left: 0;
-	font-size: 1.1em;
+	font-weight: bold;
 }
 
 #menu .item {
-	padding: 0.2em 0 0.1em 0.1em;
+	padding: 0.2em 0 0 0.1em;
 	border-bottom: 1px dashed white;
 	color: white;
 	text-decoration: none;
@@ -188,41 +185,37 @@ html, body {
 	font: 24px Verdana, Arial, Sans-Serif;
 }
 .selection_message { color: #009CDC; }
-.selection_message.wide { margin: 0 0 2em; }
+.selection_message.wide { margin: 0 0 1.5em; }
 .selection_message.narrow { margin: 0 0 1em; }
 .error_message { margin: 0 0 1em; color: red; }
 
-#selections, #confirm_dialogue {
+.selections {
 	float: right;
 	position: relative;
 	left: -50%;
 	text-align: left;
+	margin: 1em 0 0;
 }
 
-#selections ul, #confirm_dialogue ul {
+.selections ul {
 	list-style-type: none;
 	position: relative;
 	left: 50%;
+	margin: 0;
+	padding: 0;
 }
 
-#selections li, #confirm_dialogue li {
+.selections li {
 	float: left;
 	position: relative;
+	margin: 0 2em;
 }
 
-.selection_item, .selected_item { width: 250px; }
 .selection_item {
-	margin: 2em 2em 0;
 	text-decoration: none;
 	outline: none;
 }
 .selection_item.disabled { opacity: 0.5; }
-
-#confirm_dialogue a.control.small {
-	float: left;
-	margin: 0 1em;
-}
-
 
 .control {
 	display: block;
@@ -250,10 +243,10 @@ html, body {
 .control.selection_button.small, .control.reject_button.small { font: normal 1.5em/2em Verdana, Arial, Sans-Serif; }
 .control.selection_button.big, .control.reject_button.big { font: normal 1.2em/1.2em Verdana, Arial, Sans-Serif; }
 
+.selections .control.arrow { margin: 3em 0 0; }
 .control.arrow {
 	width: 20px;
 	height: 19px;
-	margin: 3em 1.5em 0;
 	background-position: -178px -71px;
 }
 
@@ -352,7 +345,10 @@ html, body {
 }
 .selection_text.final {
 	position: relative;
-	top: -12px;
+	top: -8px;
+	width: 220px;
+	text-align: left;
+	text-indent: 2em;
 }
 
 .tenstack {

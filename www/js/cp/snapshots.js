@@ -449,97 +449,99 @@ var Snapshots = function(){
 	});
 
 	var sm = Ext.create('Ext.selection.CheckboxModel');
-	var snapshots = Ext.create('Ext.grid.Panel', {
-		id: 'snapshots-panel',
-		title: 'Created backups',
-		layout: 'fit',
-		border: false,
-		store: store.common,
-		forceFit: true,
-		viewConfig: {
-			emptyText: '<p style="text-align: center">You have not created any backup so far</p>'
-		},
-		columnLines: true,
-		columns: [
-			{text: "Name", dataIndex: 'name', width: 150, renderer: function(value, metadata, record){
-				if(record.data.status !== 'completed') metadata.css = 'grid-loader';
-				return value;
-			}},
-			{text: "Status", dataIndex: 'status', width: 60},
-			{text: "Provider", dataIndex: 'provider', width: 60},
-			{text: "Description", dataIndex: 'description', id: 'description', width: 150},
-			{text: "Start Time", dataIndex: 'created_on', width: 100}
-		],
-		sm: sm,
-		listeners: {
-			itemcontextmenu: function (view, record, item, index, e) {
-				e.preventDefault();
-				snapshot_menu.selected_record = record;
-				snapshot_menu.showAt(e.getXY());
-			},
-			activate: Helpers.first_time_loader
-		},
-		tbar: {
-			xtype: 'toolbar',
-			items: [{
-				xtype: 'button',
-				text: 'Delete Backups',
-				cls: 'x-btn-text-icon',
-				iconCls: 'terminate',
-				handler: function(){
-					var selected = sm.getSelections(), snaps = [],
-						title = 'Backup removal',
-						success = 'Backups have been deleted successfully',
-						error = 'A problem has occurred while deleting backups';						
-					if(!sm.getCount())
-					{
-						Ext.Msg.alert('Warning', 'Please select some backups to perform the action');
-						return false;
-					}
-					
-					Ext.MessageBox.confirm(title, 'Are you sure you want to delete these backups?', function(button){
-						if(button !== 'yes') return false;
-					
-						for(var i = selected.length; i--;)
-						{
-							snaps.push(selected[i].data.id);
-						}
-						Ext.Msg.wait('Backups are being deleted', 'Backup removal');
-						Ext.Ajax.request({
-							url: 'common/delete_backups',
-							params: {
-								backup_ids: Ext.encode(snaps)
-							},
-							success: function(response){
-								response = Ext.decode(response.responseText);
-								var s = response.success;
-								Ext.Msg.alert(title, s ? success : response.error_message || error);
-								store.common.reload();
-							},
-							failure: function(){
-								Ext.Msg.alert(title, error);
-							}
-						});
-					});
-				}
-			}]
-		},
-		bbar: {
-			xtype: 'toolbar',
-			items: ['->', {
-				xtype: 'button',
-				text: 'Refresh List',
-				cls: 'x-btn-text-icon',
-				iconCls: 'restart',
-				handler: function(){
-					store.common.load();
-				}
-			}]
-		}
-	});
 	
 	return {
-		get_panel: function(){ return snapshots; },
+		panels: {
+			backups: {
+				xtype: 'grid',
+				id: 'snapshots-panel',
+				title: 'Created backups',
+				layout: 'fit',
+				store: store.common,
+				viewConfig: {
+					emptyText: '<p style="text-align: center">You have not created any backup so far</p>'
+				},
+				columns: [
+					{text: "Name", dataIndex: 'name', width: 250, renderer: function(value, metadata, record){
+						if(record.data.status !== 'completed') metadata.css = 'grid-loader';
+						return value;
+					}},
+					{text: "Status", dataIndex: 'status', width: 80},
+					{text: "Provider", dataIndex: 'provider', width: 80},
+					{text: "Description", dataIndex: 'description', id: 'description', flex: 1},
+					{text: "Created on", dataIndex: 'created_on', width: 200}
+				],
+				selModel: sm,
+				listeners: {
+					itemcontextmenu: function (view, record, item, index, e) {
+						e.preventDefault();
+						snapshot_menu.selected_record = record;
+						snapshot_menu.showAt(e.getXY());
+					},
+					activate: Helpers.first_time_loader
+				},
+				dockedItems: [{
+					xtype: 'toolbar',
+					dock: 'top',
+					items: [{
+						xtype: 'button',
+						text: 'Delete Backups',
+						cls: 'x-btn-text-icon',
+						iconCls: 'terminate',
+						handler: function(){
+							var selected = sm.getSelection(), snaps = [],
+								title = 'Backup removal',
+								success = 'Backups have been deleted successfully',
+								error = 'A problem has occurred while deleting backups';						
+							if(selected.length === 0)
+							{
+								Ext.Msg.alert('Warning', 'Please select some backups to perform the action');
+								return false;
+							}
+							
+							for(var i = selected.length; i--;)
+							{
+								snaps.push(selected[i].data.id);
+							}
+							
+							Ext.Msg.confirm(title, 'Are you sure you want to delete these backups?', function(button){
+								if(button !== 'yes') return false;
+							
+								Ext.Msg.wait('Backups are being deleted', 'Backup removal');
+								Ext.Ajax.request({
+									url: 'common/delete_backups',
+									params: {
+										backup_ids: Ext.encode(snaps)
+									},
+									success: function(response){
+										response = Ext.decode(response.responseText);
+										var s = response.success;
+										Ext.Msg.alert(title, s ? success : response.error_message || error);
+										store.common.load();
+									},
+									failure: function(){
+										Ext.Msg.alert(title, error);
+									}
+								});
+							});
+						}
+					}]
+				}, {
+					xtype: 'toolbar',
+					dock: 'bottom',
+					items: ['->', {
+						xtype: 'button',
+						text: 'Refresh List',
+						cls: 'x-btn-text-icon',
+						iconCls: 'restart',
+						handler: function(){
+							store.common.load();
+						}
+					}]
+				}]
+			}
+		},
+		
 		reload_until_stable: reload_until_stable,
 		
 		create: function(instance_id){

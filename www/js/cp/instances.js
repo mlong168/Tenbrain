@@ -262,7 +262,7 @@ var Instances = function(){
 								var response = Ext.decode(response.responseText),
 									params = response.connection_params,
 									iframes = web_console.items,
-									console_url = 'https://ec2-50-19-43-161.compute-1.amazonaws.com/ajaxterm/?';
+									console_url = 'https://webconsole.tenbrain.com/ajaxterm/?';
 								if(!response.success)
 								{
 									Ext.Msg.alert('An error has occurred');
@@ -387,195 +387,6 @@ var Instances = function(){
 		}],
 		selected_record: null
 	});
-
-	// layouts:
-	var grids = { }
-	var sm_running = Ext.create('Ext.selection.CheckboxModel');
-	grids.running = Ext.create('Ext.grid.Panel', {
-		id: 'running_instances-panel',
-		title: 'Your currently running servers',
-		layout: 'fit',
-		store: store.running,
-		selModel: sm_running,
-		forceFit: true,
-		border: false,
-		viewConfig: {
-			emptyText: '<p style="text-align:center">You have not launched any server so far</p>',
-			loadingText: 'Loading the list of your running servers'
-		},
-		columnLines: true,
-		listeners: {
-			itemcontextmenu: function (view, record, item, index, e) {
-				var menu = instances_menu;
-				e.preventDefault();
-				menu.selected_record = record;
-				menu.showAt(e.getXY());
-			}
-		},
-		columns: [
-			{text: "Name", dataIndex: 'name', width: 150, renderer: function(value, metadata, record){
-				if(record.data.state !== 'running') metadata.css = 'grid-loader';
-				return value;
-			}},
-			{text: "Link to server root", dataIndex: 'dns_name', width: 250, renderer: Helpers.link_wrapper},
-			{text: "IP Address", dataIndex: 'ip_address', width: 120},
-			{text: "State", dataIndex: 'state', width: 60},
-			{text: "Type", dataIndex: 'type', width: 100}
-		],
-		tbar: Ext.create('Ext.toolbar.Toolbar', {
-			items: [{
-				xtype: 'button',
-				text: 'Reboot',
-				cls: 'x-btn-text-icon',
-				iconCls: 'restart',
-				handler: function(){
-					var selected = sm_running.getSelection(),
-						instances = [],
-						title = 'Reboot Servers',
-						success = 'Selected servers have been rebooted successfully',
-						error = 'A problem has occurred while rebooting servers';
-						
-					if(selected.length === 0)
-					{
-						Ext.Msg.alert('Warning', 'Please select some servers to perform the action');
-						return false;
-					}
-					
-					for(var i = selected.length; i--;)
-					{
-						instances.push(selected[i].data.id);
-					}
-					
-					Ext.MessageBox.confirm(title, 'Are you sure you want to reboot these servers?', function(button){
-						if(button !== 'yes') return false;
-					
-						Ext.Msg.wait('Rebooting selected servers', title);
-						Ext.Ajax.request({
-							url: 'common/reboot_instances',
-							params: {
-								instances: Ext.encode(instances)
-							},
-							success: function(response){
-								response = Ext.decode(response.responseText);
-								var s = response.success;
-								Ext.Msg.alert(title, s ? success : response.error_message || error);
-								store.running.load();
-							},
-							failure: function(){
-								Ext.Msg.alert(title, error);
-							}
-						});
-					});
-				}
-			}, {
-				xtype: 'button',
-				text: 'Stop',
-				cls: 'x-btn-text-icon',
-				iconCls: 'stop',
-				handler: function(){
-					var selected = sm_running.getSelection(),
-						instances = [],
-						title = 'Stop servers',
-						success = 'Selected servers have been stopped successfully',
-						error = 'A problem has occurred while stopping the servers';
-						
-					if(selected.length === 0)
-					{
-						Ext.Msg.alert('Warning', 'Please select some servers to perform the action');
-						return false;
-					}
-					
-					for(var i = selected.length; i--;)
-					{
-						instances.push(selected[i].data.id);
-					}
-					
-					Ext.MessageBox.confirm(title, 'Are you sure you want to stop these servers?', function(button){
-						if(button !== 'yes') return false;
-					
-						Ext.Msg.wait('Stopping selected servers', title);
-						Ext.Ajax.request({
-							url: 'common/stop_instances',
-							params: {
-								instances: Ext.encode(instances)
-							},
-							success: function(response){
-								response = Ext.decode(response.responseText);
-								var s = response.success;
-								Ext.Msg.alert(title, s ? success : response.error_message || error);
-								reload_until_stable('running', function(){
-									store.stopped.load();
-								});
-							},
-							failure: function(){
-								Ext.Msg.alert(title, error);
-							}
-						});
-					});
-				}
-			}, {
-				xtype: 'button',
-				text: 'Terminate',
-				cls: 'x-btn-text-icon',
-				iconCls: 'terminate',
-				handler: function(){
-					var selected = sm_running.getSelection(),
-						instances = [],
-						title = 'Terminate servers',
-						success = 'Selected servers have been terminated successfully',
-						error = 'A problem has occurred while terminating servers';
-						
-					if(selected.length === 0)
-					{
-						Ext.Msg.alert('Warning', 'Please select some servers to perform the action');
-						return false;
-					}
-					
-					for(var i = selected.length; i--;)
-					{
-						instances.push(selected[i].data.id);
-					}
-					
-					Ext.MessageBox.confirm(title, 'Are you sure you want to terminate these servers?', function(button){
-						if(button !== 'yes') return false;
-						
-						Ext.Msg.wait('Terminating selected servers', title);
-						Ext.Ajax.request({
-							url: 'common/terminate_instances',
-							params: {
-								instances: Ext.encode(instances)
-							},
-							success: function(response){
-								response = Ext.decode(response.responseText);
-								var s = response.success;
-								Ext.Msg.alert(title, s ? success : response.error_message || error);
-								reload_until_stable('running', function(){
-									store.terminated.load();
-								});
-							},
-							failure: function(){
-								Ext.Msg.alert(title, error);
-							}
-						});
-						return false;
-					})
-				}
-			}]
-		}),
-		dockedItems: [{
-			xtype: 'toolbar',
-			dock: 'bottom',
-			items: ['->', {
-				xtype: 'button',
-				text: 'Refresh List',
-				cls: 'x-btn-text-icon',
-				iconCls: 'restart',
-				handler: function(){
-					store.running.load();
-				}
-			}]
-		}],
-	});
 	
 	var stopped_menu = new Ext.menu.Menu({
 		id: 'stopped_instances_menu',
@@ -628,139 +439,320 @@ var Instances = function(){
 		selected_record: null
 	});
 	
+	var sm_running = Ext.create('Ext.selection.CheckboxModel');
 	var sm_stopped = Ext.create('Ext.selection.CheckboxModel');
-	grids.stopped = Ext.create('Ext.grid.Panel', {
-		id: 'stopped_instances-panel',
-		title: 'Servers that have been stopped',
-		layout: 'fit',
-		forceFit: true,
-		border: false,
-		columnLines: true,
-		
-		store: store.stopped,
-		selModel: sm_stopped,
-		
-		viewConfig: {
-			emptyText: '<p style="text-align: center">You do not currently have any stopped server</p>'
-		},
-		columns: [
-			{text: "Name", dataIndex: 'name', width: 150, renderer: function(value, metadata, record){
-				if(record.data.state !== 'stopped') metadata.css = 'grid-loader';
-				return value;
-			}},
-			{text: "IP Address", dataIndex: 'ip_address', width: 120},
-			{text: "State", dataIndex: 'state', width: 100},
-			{text: "Type", dataIndex: 'type', width: 100}
-		],
-		listeners: {
-			itemcontextmenu: function (view, record, item, index, e) {
-				var menu = stopped_menu;
-				e.preventDefault();
-				menu.selected_record = record;
-				menu.showAt(e.getXY());
-			},
-			activate: Helpers.first_time_loader
-		},
-		tbar: {
-			xtype: 'toolbar',
-			items: [{
-				xtype: 'button',
-				text: 'Start',
-				cls: 'x-btn-text-icon',
-				iconCls: 'start',
-				handler: function(){
-					var selected = sm_stopped.getSelection(),
-						instances = [],
-						title = 'Start Servers',
-						success = 'Selected servers have been started successfully',
-						error = 'A problem has occurred while starting selected servers';
-						
-					if(selected.length === 0)
-					{
-						Ext.Msg.alert('Warning', 'Please select some servers to perform the action');
-						return false;
-					}
-					
-					for(var i = selected.length; i--;)
-					{
-						instances.push(selected[i].data.id);
-					}
-					
-					Ext.MessageBox.confirm(title, 'Are you sure you want to start these servers?', function(button){
-						if(button !== 'yes') return false;
-					
-						Ext.Msg.wait('Starting selected servers', title);
-						Ext.Ajax.request({
-							url: 'common/start_instances',
-							params: {
-								instances: Ext.encode(instances)
-							},
-							success: function(response){
-								response = Ext.decode(response.responseText);
-								var s = response.success;
-								Ext.Msg.alert(title, s ? success : response.error_message || error);
-								reload_until_stable('stopped', function(){
-									store.running.load();
-								});
-							},
-							failure: function(){
-								Ext.Msg.alert(title, error);
-							}
-						});
-					});
-				}
-			}]
-		},
-		bbar: {
-			xtype: 'toolbar',
-			items: ['->', {
-				xtype: 'button',
-				text: 'Refresh List',
-				cls: 'x-btn-text-icon',
-				iconCls: 'restart',
-				handler: function(){
-					store.stopped.load();
-				}
-			}]
-		}
-	});
-
-	grids.terminated = Ext.create('Ext.grid.Panel', {
-		id: 'terminated_instances-panel',
-		title: 'Servers that have previously been terminated',
-		layout: 'fit',
-		border: false,
-		forceFit: true,
-		store: store.terminated,
-		bbar: {
-			xtype: 'toolbar',
-			items: ['->', {
-				xtype: 'button',
-				text: 'Refresh List',
-				cls: 'x-btn-text-icon',
-				iconCls: 'restart',
-				handler: function(){
-					store.terminated.load();
-				}
-			}]
-		},
-		viewConfig: {
-			emptyText: '<p style="text-align: center">You do not have any terminated server so far</p>'
-		},
-		columnLines: true,
-		listeners: {
-			activate: Helpers.first_time_loader
-		},
-		columns: [
-			{text: "Name", dataIndex: 'name', width: 150},
-			{text: "Provider", dataIndex: 'provider', width: 80},
-			{text: "State", dataIndex: 'state', width: 100},
-			{text: "Type", dataIndex: 'type', width: 100}
-		]
-	});
 	
 	return {
-		get_panel: function(state){ return grids[state] },
+		panels: {
+			running: {
+				xtype: 'grid',
+				id: 'running_instances-panel',
+				title: 'Your currently running servers',
+				layout: 'fit',
+				store: store.running,
+				selModel: sm_running,
+				viewConfig: {
+					emptyText: '<p style="text-align:center">You have not launched any server so far</p>',
+					loadingText: 'Loading the list of your running servers'
+				},
+				listeners: {
+					itemcontextmenu: function (view, record, item, index, e) {
+						var menu = instances_menu;
+						e.preventDefault();
+						menu.selected_record = record;
+						menu.showAt(e.getXY());
+					}
+				},
+				columns: [
+					{text: "Name", dataIndex: 'name', width: 150, renderer: function(value, metadata, record){
+						if(record.data.state !== 'running') metadata.css = 'grid-loader';
+						return value;
+					}},
+					{text: "Link to server root", dataIndex: 'dns_name', flex: 1, renderer: Helpers.link_wrapper},
+					{text: "IP Address", dataIndex: 'ip_address', width: 120},
+					{text: "State", dataIndex: 'state', width: 60},
+					{text: "Type", dataIndex: 'type', width: 150}
+				],
+				dockedItems: [{
+					xtype: 'toolbar',
+					dock: 'top',
+					items: [{
+						xtype: 'button',
+						text: 'Reboot',
+						cls: 'x-btn-text-icon',
+						iconCls: 'restart',
+						handler: function(){
+							var selected = sm_running.getSelection(),
+								instances = [],
+								title = 'Reboot Servers',
+								success = 'Selected servers have been rebooted successfully',
+								error = 'A problem has occurred while rebooting servers';
+								
+							if(selected.length === 0)
+							{
+								Ext.Msg.alert('Warning', 'Please select some servers to perform the action');
+								return false;
+							}
+							
+							for(var i = selected.length; i--;)
+							{
+								instances.push(selected[i].data.id);
+							}
+							
+							Ext.MessageBox.confirm(title, 'Are you sure you want to reboot these servers?', function(button){
+								if(button !== 'yes') return false;
+							
+								Ext.Msg.wait('Rebooting selected servers', title);
+								Ext.Ajax.request({
+									url: 'common/reboot_instances',
+									params: {
+										instances: Ext.encode(instances)
+									},
+									success: function(response){
+										response = Ext.decode(response.responseText);
+										var s = response.success;
+										Ext.Msg.alert(title, s ? success : response.error_message || error);
+										store.running.load();
+									},
+									failure: function(){
+										Ext.Msg.alert(title, error);
+									}
+								});
+							});
+						}
+					}, {
+						xtype: 'button',
+						text: 'Stop',
+						cls: 'x-btn-text-icon',
+						iconCls: 'stop',
+						handler: function(){
+							var selected = sm_running.getSelection(),
+								instances = [],
+								title = 'Stop servers',
+								success = 'Selected servers have been stopped successfully',
+								error = 'A problem has occurred while stopping the servers';
+								
+							if(selected.length === 0)
+							{
+								Ext.Msg.alert('Warning', 'Please select some servers to perform the action');
+								return false;
+							}
+							
+							for(var i = selected.length; i--;)
+							{
+								instances.push(selected[i].data.id);
+							}
+							
+							Ext.MessageBox.confirm(title, 'Are you sure you want to stop these servers?', function(button){
+								if(button !== 'yes') return false;
+							
+								Ext.Msg.wait('Stopping selected servers', title);
+								Ext.Ajax.request({
+									url: 'common/stop_instances',
+									params: {
+										instances: Ext.encode(instances)
+									},
+									success: function(response){
+										response = Ext.decode(response.responseText);
+										var s = response.success;
+										Ext.Msg.alert(title, s ? success : response.error_message || error);
+										reload_until_stable('running', function(){
+											store.stopped.load();
+										});
+									},
+									failure: function(){
+										Ext.Msg.alert(title, error);
+									}
+								});
+							});
+						}
+					}, {
+						xtype: 'button',
+						text: 'Terminate',
+						cls: 'x-btn-text-icon',
+						iconCls: 'terminate',
+						handler: function(){
+							var selected = sm_running.getSelection(),
+								instances = [],
+								title = 'Terminate servers',
+								success = 'Selected servers have been terminated successfully',
+								error = 'A problem has occurred while terminating servers';
+								
+							if(selected.length === 0)
+							{
+								Ext.Msg.alert('Warning', 'Please select some servers to perform the action');
+								return false;
+							}
+							
+							for(var i = selected.length; i--;)
+							{
+								instances.push(selected[i].data.id);
+							}
+							
+							Ext.MessageBox.confirm(title, 'Are you sure you want to terminate these servers?', function(button){
+								if(button !== 'yes') return false;
+								
+								Ext.Msg.wait('Terminating selected servers', title);
+								Ext.Ajax.request({
+									url: 'common/terminate_instances',
+									params: {
+										instances: Ext.encode(instances)
+									},
+									success: function(response){
+										response = Ext.decode(response.responseText);
+										var s = response.success;
+										Ext.Msg.alert(title, s ? success : response.error_message || error);
+										reload_until_stable('running', function(){
+											store.terminated.load();
+										});
+									},
+									failure: function(){
+										Ext.Msg.alert(title, error);
+									}
+								});
+								return false;
+							})
+						}
+					}]
+				}, {
+					xtype: 'toolbar',
+					dock: 'bottom',
+					items: ['->', {
+						xtype: 'button',
+						text: 'Refresh List',
+						cls: 'x-btn-text-icon',
+						iconCls: 'restart',
+						handler: function(){
+							store.running.load();
+						}
+					}]
+				}]
+			},
+			stopped: {
+				xtype: 'grid',
+				id: 'stopped_instances-panel',
+				title: 'Servers that have been stopped',
+				layout: 'fit',
+				store: store.stopped,
+				selModel: sm_stopped,
+				viewConfig: {
+					emptyText: '<p style="text-align: center">You do not currently have any stopped server</p>'
+				},
+				columns: [
+					{text: "Name", dataIndex: 'name', flex: 1, renderer: function(value, metadata, record){
+						if(record.data.state !== 'stopped') metadata.css = 'grid-loader';
+						return value;
+					}},
+					{text: "IP Address", dataIndex: 'ip_address', width: 120},
+					{text: "State", dataIndex: 'state', width: 100},
+					{text: "Type", dataIndex: 'type', width: 150}
+				],
+				listeners: {
+					itemcontextmenu: function (view, record, item, index, e) {
+						var menu = stopped_menu;
+						e.preventDefault();
+						menu.selected_record = record;
+						menu.showAt(e.getXY());
+					},
+					activate: Helpers.first_time_loader
+				},
+				dockedItems: [{
+					xtype: 'toolbar',
+					dock: 'top',
+					items: [{
+						xtype: 'button',
+						text: 'Start',
+						cls: 'x-btn-text-icon',
+						iconCls: 'start',
+						handler: function(){
+							var selected = sm_stopped.getSelection(),
+								instances = [],
+								title = 'Start Servers',
+								success = 'Selected servers have been started successfully',
+								error = 'A problem has occurred while starting selected servers';
+								
+							if(selected.length === 0)
+							{
+								Ext.Msg.alert('Warning', 'Please select some servers to perform the action');
+								return false;
+							}
+							
+							for(var i = selected.length; i--;)
+							{
+								instances.push(selected[i].data.id);
+							}
+							
+							Ext.MessageBox.confirm(title, 'Are you sure you want to start these servers?', function(button){
+								if(button !== 'yes') return false;
+							
+								Ext.Msg.wait('Starting selected servers', title);
+								Ext.Ajax.request({
+									url: 'common/start_instances',
+									params: {
+										instances: Ext.encode(instances)
+									},
+									success: function(response){
+										response = Ext.decode(response.responseText);
+										var s = response.success;
+										Ext.Msg.alert(title, s ? success : response.error_message || error);
+										reload_until_stable('stopped', function(){
+											store.running.load();
+										});
+									},
+									failure: function(){
+										Ext.Msg.alert(title, error);
+									}
+								});
+							});
+						}
+					}]
+				}, {
+					xtype: 'toolbar',
+					dock: 'bottom',
+					items: ['->', {
+						xtype: 'button',
+						text: 'Refresh List',
+						cls: 'x-btn-text-icon',
+						iconCls: 'restart',
+						handler: function(){
+							store.stopped.load();
+						}
+					}]
+				}]
+			},
+			terminated: {
+				xtype: 'grid',
+				id: 'terminated_instances-panel',
+				title: 'Servers that have previously been terminated',
+				layout: 'fit',
+				store: store.terminated,
+				columns: [
+					{text: "Name", dataIndex: 'name', flex: 1},
+					{text: "Provider", dataIndex: 'provider', width: 100},
+					{text: "State", dataIndex: 'state', width: 100},
+					{text: "Type", dataIndex: 'type', width: 200}
+				],
+				listeners: {
+					activate: Helpers.first_time_loader
+				},
+				viewConfig: {
+					emptyText: '<p style="text-align: center">You do not have any terminated server so far</p>'
+				},
+				dockedItems: [{
+					xtype: 'toolbar',
+					dock: 'bottom',
+					items: ['->', {
+						xtype: 'button',
+						text: 'Refresh List',
+						cls: 'x-btn-text-icon',
+						iconCls: 'restart',
+						handler: function(){
+							store.terminated.load();
+						}
+					}]
+				}]
+			}
+		},
 		reload_instances: function(state){	// reload all if state is not specified
 			if(typeof state === 'string' && states.indexOf(state) !== -1)
 			{
