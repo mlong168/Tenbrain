@@ -459,7 +459,8 @@ var Snapshots = function(){
 				layout: 'fit',
 				store: store.common,
 				viewConfig: {
-					emptyText: '<p style="text-align: center">You have not created any backup so far</p>'
+					emptyText: '<p style="text-align: center">You have not created any backup so far</p>',
+					loadingText: undefined
 				},
 				columns: [
 					{text: "Name", dataIndex: 'name', width: 250, renderer: function(value, metadata, record){

@@ -529,7 +529,8 @@ var Load_balancers = function(){
 				title: 'Load Balancers',
 				store: store,
 				viewConfig: {
-					emptyText: '<p style="text-align: center">No load balancers have been created</p>'
+					emptyText: '<p style="text-align: center">No load balancers have been created</p>',
+					loadingText: undefined
 				},
 				columns: [
 					{text: "Name", dataIndex: 'name', width: 200, renderer: function(value, metadata, record){

@@ -4,15 +4,14 @@ var Helpers = function(){
 		link_wrapper: function(link){
 			return '<a target="_blank" href="http://' + link + '/">' + link + '</a>';
 		},
-		first_time_loader: function(p){
-			var store = p.getStore(),
-				elem = p.getEl();
+		first_time_loader: function(panel){
+			var store = panel.getStore();
 			if(store.last() === undefined)
 			{
-				elem.mask('Loading, please wait ...');
+				panel.setLoading('Loading, please wait ...');
 				store.load({
 					callback: function(){
-						elem.unmask();
+						panel.setLoading(false, false);
 					}
 				});
 			}
@@ -453,7 +452,7 @@ var Instances = function(){
 				selModel: sm_running,
 				viewConfig: {
 					emptyText: '<p style="text-align:center">You have not launched any server so far</p>',
-					loadingText: 'Loading the list of your running servers'
+					loadingText: undefined
 				},
 				listeners: {
 					itemcontextmenu: function (view, record, item, index, e) {
@@ -636,7 +635,8 @@ var Instances = function(){
 				store: store.stopped,
 				selModel: sm_stopped,
 				viewConfig: {
-					emptyText: '<p style="text-align: center">You do not currently have any stopped server</p>'
+					emptyText: '<p style="text-align: center">You do not currently have any stopped server</p>',
+					loadingText: undefined
 				},
 				columns: [
 					{text: "Name", dataIndex: 'name', flex: 1, renderer: function(value, metadata, record){
@@ -736,7 +736,8 @@ var Instances = function(){
 					activate: Helpers.first_time_loader
 				},
 				viewConfig: {
-					emptyText: '<p style="text-align: center">You do not have any terminated server so far</p>'
+					emptyText: '<p style="text-align: center">You do not have any terminated server so far</p>',
+					loadingText: undefined
 				},
 				dockedItems: [{
 					xtype: 'toolbar',

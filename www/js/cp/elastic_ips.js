@@ -210,7 +210,8 @@ var Elastic_IPs = function(){
 					}}
 				],
 				viewConfig: {
-					emptyText: '<p style="text-align: center">No elastic IPs have been allocated</p>'
+					emptyText: '<p style="text-align: center">No elastic IPs have been allocated</p>',
+					loadingText: undefined
 				},
 				listeners: {
 					itemcontextmenu: function (view, record, item, index, e) {
