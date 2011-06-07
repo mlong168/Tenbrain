@@ -28,6 +28,7 @@ class ConsoleController extends Zend_Controller_Action
 			'cp/images',
 			'cp/snapshots',
 			'cp/load_balancers',
+			'cp/elastic_ips',
 			// 'cp/profile',
 			'cp/transferer'
 		);

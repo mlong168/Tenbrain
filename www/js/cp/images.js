@@ -359,52 +359,51 @@ var Images = function(){
 		}
 	});
 	
-	var images_grid = new Ext.grid.GridPanel({
-		id: 'available_images-panel',
-		title: 'Images available for deployment',
-		store: images,
-		loadMask: true,
-		forceFit: true,
-		border: false,
-		emptyText: '<p style="text-align: center">No images are available for deployment</p>',
-		features: [Ext.create('Ext.grid.feature.Grouping', {
-			groupHeaderTpl: 'Provider: {name} ({rows.length} {[values.rows.length > 1 ? "Images" : "Image"]})'
-		})],
-		listeners: {
-			itemcontextmenu: function (view, record, item, index, e) {
-				e.preventDefault();
-				images_menu.selected_image = record;
-				images_menu.showAt(e.getXY());
-			},
-			activate: function(p){
-				var store = p.getStore();
-				if(store.last() === undefined) store.load();
-			}
-		},
-		columns: [
-			{header: "Name", dataIndex: 'name', width: 100, flex: 1},
-			{header: "Provider", dataIndex: 'provider', hidden: true},
-			{header: "State", dataIndex: 'state', width: 70, flex: 1},
-			{header: "Description", dataIndex: 'description', width: 170, flex: 1},
-			{header: "Location", dataIndex: 'location', width: 120, flex: 1}
-		],
-		bbar: {
-			xtype: 'toolbar',
-			items: ['->', {
-				xtype: 'button',
-				text: 'Refresh List',
-				cls: 'x-btn-text-icon',
-				iconCls: 'restart',
-				handler: function(){
-					images.load();
-				}
-			}]
-		}
-	});
 	
 	return {
-		get_grid: function(){
-			return images_grid;
+		panels: {
+			images: {
+				xtype: 'grid',
+				id: 'available_images-panel',
+				title: 'Images available for deployment',
+				store: images,
+				loadMask: true,
+				emptyText: '<p style="text-align: center">No images are available for deployment</p>',
+				features: [Ext.create('Ext.grid.feature.Grouping', {
+					groupHeaderTpl: 'Provider: {name} ({rows.length} {[values.rows.length > 1 ? "Images" : "Image"]})'
+				})],
+				listeners: {
+					itemcontextmenu: function (view, record, item, index, e) {
+						e.preventDefault();
+						images_menu.selected_image = record;
+						images_menu.showAt(e.getXY());
+					},
+					activate: function(p){
+						var store = p.getStore();
+						if(store.last() === undefined) store.load();
+					}
+				},
+				columns: [
+					{header: "Name", dataIndex: 'name', width: 300},
+					{header: "State", dataIndex: 'state', width: 100},
+					{header: "Description", dataIndex: 'description', flex: 1},
+					{header: "Location", dataIndex: 'location', width: 180}
+				],
+				dockedItems: [{
+					xtype: 'toolbar',
+					dock: 'bottom',
+					items: ['->', {
+						xtype: 'button',
+						text: 'Refresh List',
+						cls: 'x-btn-text-icon',
+						iconCls: 'restart',
+						handler: function(){
+							images.load();
+						}
+					}]
+				}]
+				
+			}
 		}
 	};
 }();

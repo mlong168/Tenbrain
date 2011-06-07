@@ -521,61 +521,58 @@ var Load_balancers = function(){
 		};
 	}();
 
-	var grid = Ext.create('Ext.grid.Panel', {
-		id: 'load_balancers-panel',
-		title: 'Load Balancers',
-		store: store,
-		forceFit: true,
-		scroll: 'vertical',
-		border: false,
-		viewConfig: {
-			emptyText: '<p style="text-align: center">No load balancers have been created</p>'
-		},
-		columnLines: true,
-		columns: [
-			{text: "Name", dataIndex: 'name', width: 130, renderer: function(value, metadata, record){
-				if(record.data.state !== 'On') metadata.css = 'grid-loader';
-				return value;
-			}},
-			{text: "Provider", dataIndex: 'provider', width: 100},
-			{text: "State", dataIndex: 'state', width: 60},
-			{text: "DNS Name", dataIndex: 'dns_name', width: 130, renderer: function(value){
-				return '<a target="_blank" href="http://' + value + '/">' + value + '</a>';
-			}}
-		],
-		listeners: {
-			itemcontextmenu: function (grid, id, e) {
-				e.preventDefault();
-				lb_menu.ref_grid = this;
-				lb_menu.selected_record = this.getStore().getAt(id);
-				lb_menu.showAt(e.getXY());
-			},
-			activate: Helpers.first_time_loader
-		},
-		tbar: {
-			xtype: 'toolbar',
-			items: [{
-				text: 'Deploy a load balancer',
-				iconCls: 'start',
-				handler: function(){
-					var form = deploy_form.setHeight(110).getForm().reset();
-					form.findField('address').disable().hide();
-					form.findField('instances[]').disable();
-					deploy_form.up('window').show().center();
-				}
-			}, '->', {
-				text: 'Refresh List',
-				iconCls: 'restart',
-				handler: function(){
-					store.load();
-				}
-			}]
-		}
-	});
-	
 	return {
-		get_grid: function(){
-			return grid;
+		panels: {
+			balancers: {
+				xtype: 'grid',
+				id: 'load_balancers-panel',
+				title: 'Load Balancers',
+				store: store,
+				viewConfig: {
+					emptyText: '<p style="text-align: center">No load balancers have been created</p>',
+					loadingText: undefined
+				},
+				columns: [
+					{text: "Name", dataIndex: 'name', width: 200, renderer: function(value, metadata, record){
+						if(record.data.state !== 'On') metadata.css = 'grid-loader';
+						return value;
+					}},
+					{text: "Provider", dataIndex: 'provider', width: 100},
+					{text: "State", dataIndex: 'state', width: 80},
+					{text: "DNS Name", dataIndex: 'dns_name', flex: 1, renderer: function(value){
+						return '<a target="_blank" href="http://' + value + '/">' + value + '</a>';
+					}}
+				],
+				listeners: {
+					itemcontextmenu: function (grid, id, e) {
+						e.preventDefault();
+						lb_menu.ref_grid = this;
+						lb_menu.selected_record = this.getStore().getAt(id);
+						lb_menu.showAt(e.getXY());
+					},
+					activate: Helpers.first_time_loader
+				},
+				dockedItems: [{
+					xtype: 'toolbar',
+					dock: 'top',
+					items: [{
+						text: 'Deploy a load balancer',
+						iconCls: 'start',
+						handler: function(){
+							var form = deploy_form.setHeight(110).getForm().reset();
+							form.findField('address').disable().hide();
+							form.findField('instances[]').disable();
+							deploy_form.up('window').show().center();
+						}
+					}, '->', {
+						text: 'Refresh List',
+						iconCls: 'restart',
+						handler: function(){
+							store.load();
+						}
+					}]
+				}]
+			}
 		}
 	}
 }();

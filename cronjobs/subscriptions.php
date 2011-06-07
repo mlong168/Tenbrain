@@ -2,7 +2,7 @@
 define("_CRONJOB_",true);
 require("/home/yvershynin/tenbrain/www/index.php");
 
-	//look through all entries of user_role_exp table and create all needed changes.
+	//look through all entries of account_role_exp table and create all needed changes.
 	
 	$account_role_exp = new Application_Model_AccountRoleExp();
 	

@@ -50,10 +50,8 @@
 					</span>
 					<input type="submit" id="sign_in" class="login_submit centered" value="Sign in" />
 				</p>
-				<p class="form_contents centered">
-					<span class="third_party_header">Sign in with your account from:</span>
-				</p>
-				<div class="form_contents">
+				<p class="form_contents third_party_header">Sign in with your account from:</p>
+				<div id="third_party_small">
 					<ul class="signin_social">
 						<?php foreach($lt->third_party_auth_providers as $provider) : ?>
 						<li class="control third_party small <?php echo $provider; ?>">
@@ -73,6 +71,7 @@
 	<?php echo $lt->content ?>
 	
 	<div id="helper">
+		<div id="question">?</div>
 		<span class="help_header"><?php echo isset($lt->short_help_title) ? $lt->short_help_title : 'Tips' ?></span>
 		<span class="help_message"><?php echo isset($short_message) ? $short_message : "This is a sample text for a TenBrain help system. Mind it's size - do not put too much text here. If you want to add more help, use the one that dispays in a shaded box. That will be viewed when clicking here." ?></span>
 	</div>

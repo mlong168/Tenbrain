@@ -1,5 +1,21 @@
+Ext.Loader.setConfig({enabled: true});
+
+Ext.require([
+    'Ext.tip.QuickTipManager',
+    'Ext.container.Viewport',
+    'Ext.layout.*',
+    'Ext.form.Panel',
+    'Ext.form.Label',
+    'Ext.grid.*',
+    'Ext.data.*',
+    'Ext.tree.*',
+    'Ext.selection.*',
+    'Ext.tab.Panel'
+]);
+
 Ext.onReady(function(){
-	Ext.QuickTips.init();
+	
+	Ext.tip.QuickTipManager.init();
 	
 	// welcome panel
 	var welcome = {
@@ -10,33 +26,38 @@ Ext.onReady(function(){
 		contentEl: 'welcome-div'  // pull existing content from the page
 	};
 	
-	var menu = function(){
-		var items = [ welcome,
-			// instances.js:
-			Instances.get_panel('running'), Instances.get_panel('terminated'), Instances.get_panel('stopped'),
-			// images.js:
-			Images.get_grid(),
-			// snapshots.js:
-			Snapshots.get_panel(),
-			Load_balancers.get_grid()
-			// profile.js:
-			// account_profile, account_settings, account_password, account_linked
-		];
-		if(account_type === 'premium')
+	var pages = [];
+	pages.push(welcome);
+	
+	Ext.Object.each(Instances.panels, function(name, example) {
+		pages.push(example);
+	});
+	
+	Ext.Object.each(Images.panels, function(name, example) {
+		pages.push(example);
+	});
+
+	Ext.Object.each(Snapshots.panels, function(name, example) {
+		pages.push(example);
+	});
+
+	if(account_type === 'premium')
+	{
+		Ext.Object.each(Load_balancers.panels, function(name, example) {
+			pages.push(example);
+		});
+
+		Ext.Object.each(Elastic_IPs.panels, function(name, example) {
+			pages.push(example);
+		});
+	}
+	
+	var active_menu = function(){
+		for(var i = pages.length; i--;)
 		{
-			items.push(Load_balancers.get_grid());
-			items.push(Elastic_IPs.get_grid());
+			if(pages[i].id === active_menu_item + '-panel') return i;
 		}
-		return {
-			get_items: function(){ return items },
-			get_active: function(){
-				for(var i = items.length; i--;)
-				{
-					if(items[i].id === active_menu_item + '-panel') return i;
-				}
-				return 0; // welcome - default
-			}
-		}
+		return 0; // welcome - default
 	}();
 
 	var tree_panel = Ext.create('Ext.tree.Panel', {
@@ -46,13 +67,13 @@ Ext.onReady(function(){
         split: true,
         height: 300,
         minSize: 150,
-        
-        // tree-specific configs:
         rootVisible: false,
-        lines: false,
-        useArrows: true,
+        autoScroll: true,
         
         store: Ext.create('Ext.data.TreeStore', {
+			root: {
+				expanded: true
+			},
 	    	proxy: {
 	    		type: 'ajax',
 	    		url: '/console/menu'
@@ -66,23 +87,20 @@ Ext.onReady(function(){
         region: 'center',
 		autoScroll: true,
 		html: '<h2>Welcome to TenBrain!</h2><p>When you select a menu item, additional details will display here.</p>'
-    },
-	helper;
+    };
     
-    tree_panel.on('selectionchange', function(m, selections){
-    	if(selections.length){
-	    	var node = selections[0],
-	    		id = node.internalId;
-	    	if(node.isLeaf()){	// ignore clicks on folders
-	    		Ext.getCmp('content-panel').layout.setActiveItem(id + '-panel');
-	    		if(!helper){
-					// create default empty div
-	    			helper = Ext.getCmp('details-panel').body.update('').setStyle('background', '#fff').createChild();
-	    		}
-	    		helper.hide().update(Ext.getDom(id + '-details').innerHTML).slideIn('l', {stopFx: true, duration: .2});
-	    	}
-    	}
-    });
+    var detail_el;
+	tree_panel.getSelectionModel().on('select', function(selModel, record) {
+		if (record.get('leaf')) {
+			Ext.getCmp('content-panel').layout.setActiveItem(record.getId() + '-panel');
+			 if (!detail_el) {
+				var bd = Ext.getCmp('details-panel').body;
+				bd.update('').setStyle('background','#fff');
+				detail_el = bd.createChild(); //create default empty div
+			}
+			detail_el.hide().update(Ext.getDom(record.getId() + '-details').innerHTML).slideIn('l', {stopAnimation:true,duration: 200});
+		}
+	});
 	
     Ext.create('Ext.container.Viewport', {
 		layout: 'border',
@@ -107,8 +125,8 @@ Ext.onReady(function(){
 			region: 'center',
 			layout: 'card',
 			margins: '2 5 5 0',
-			items: menu.get_items(),
-			activeItem: menu.get_active(),
+			items: pages,
+			activeItem: active_menu,
 			defaults: {
 				border: false
 			}
