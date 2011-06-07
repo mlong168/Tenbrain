@@ -25,5 +25,13 @@ $application = new Zend_Application(
     APPLICATION_ENV,
     APPLICATION_PATH . '/configs/application.ini'
 );
-$application->bootstrap()
-            ->run();
+
+/** Cronjobs don’t need all the extra’s **/
+if(!defined("_CRONJOB_") || _CRONJOB_ == false)
+{
+	$application->bootstrap()->run();
+}
+else
+{
+	$application->bootstrap();
+}

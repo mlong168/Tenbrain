@@ -40,6 +40,7 @@ class Paypal_Form_Creditcard extends Zend_Form
                             'required' => TRUE,
 							'maxlength' => 16,
         					'size' => 16,
+									'autocomplete' => 'OFF',
 							'validators' => array(
 								new Paypal_Validate_CreditCard(array(
 										Paypal_Validate_CreditCard::VISA,
@@ -78,6 +79,7 @@ class Paypal_Form_Creditcard extends Zend_Form
         					'maxlength' => 4,
         					'size' => 4,
         					'class'	=>	$this->inputClassName,
+									'autocomplete' => 'OFF',
                             'required' => TRUE,
 							'validators' => array(
         						new Paypal_Validate_CVV2(),

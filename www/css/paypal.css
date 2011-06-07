@@ -17,9 +17,11 @@ form#payment ul.errors{
 	margin: 0.2em 0;
 }
 .control.paypal {
-	display: block;
-	background: none;
-	outline: none;
+	background: #EFF3F2;
+  border: medium none;
+  padding: 5px;
+	display: inline;
+	margin-left: 5px;
 }
 .text.paypal {
 	display: block;
@@ -45,6 +47,7 @@ form#payment ul.errors{
 	text-align: center;
 }
 #submit-element{
+	margin-top: 20px;
 	text-align: center;
 }
 .selection.payment.type {
@@ -53,14 +56,14 @@ form#payment ul.errors{
 }
 .pay_cc {
     background: url("/css/images/pay_cc.png") no-repeat scroll 0 0 transparent;
-    height: 53px;
+    height: 67px;
 }
 .pay_cc.onetime {
     background-position: 0 0;
-    width: 102px;
+    width: 80px;
 }
 .pay_cc.monthly {
-    background-position: -112px 0;
+    background-position: -105px 0;
     width: 80px;
 }
 .payment.plan {
@@ -69,9 +72,38 @@ form#payment ul.errors{
 }
 .payment.label {
 	font-size: 0.9em;
-	color: #098ED3;
-	margin: 0.3em 0
+	/*color: #098ED3;*/
+	margin: 0.3em 0;
+	float: left;
+	width: 170px;
+	text-align: right;
 }
 #year-element ul{
 	display: inline-block;
+}
+
+.payment .amount-field {
+	margin-bottom: 10px;
+}
+
+.payment.descr {
+		font-size: 0.85em;
+		margin-top: 20px;
+}
+
+/*.payment .selection_image
+{
+	margin-left: 75px;
+}*/
+
+.payment .amount-field dt {
+	display: inline;
+	float: left;
+	width: 230px;
+	text-align: right;
+}
+
+.payment .amount-field dd {
+	display: inline;
+	margin-left: 5px;
 }
