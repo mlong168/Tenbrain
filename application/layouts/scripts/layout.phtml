@@ -50,10 +50,8 @@
 					</span>
 					<input type="submit" id="sign_in" class="login_submit centered" value="Sign in" />
 				</p>
-				<p class="form_contents centered">
-					<span class="third_party_header">Sign in with your account from:</span>
-				</p>
-				<div class="form_contents">
+				<p class="form_contents third_party_header">Sign in with your account from:</p>
+				<div id="third_party_small">
 					<ul class="signin_social">
 						<?php foreach($lt->third_party_auth_providers as $provider) : ?>
 						<li class="control third_party small <?php echo $provider; ?>">

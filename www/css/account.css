@@ -40,19 +40,37 @@ h2, h3 {
 	vertical-align: middle;
 }
 
+#third_party_small, #third_party_big {
+	float: right;
+	position: relative;
+	left: -50%;
+	text-align: left;
+}
+
+.signin_social {
+	list-style-type: none;
+	position: relative;
+	left: 50%;
+	margin: 0;
+	padding: 0;
+}
+
 .third_parties {
 	list-style-type: none;
-	width: 300px;
-	margin: 0 auto;
+	position: relative;
+	left: 50%;
+	margin: 0;
+	padding: 0;
 }
 
 .third_party {
 	float: left;
+	position: relative;
 }
 .third_party.big {
 	width: 43px;
 	height: 44px;
-	margin-left: 1em;
+	margin: 0 0.5em;
 }
 .third_party.big.facebook { background-position: 1px -213px; }
 .third_party.big.facebook:hover { background-position: 0 -261px; }
@@ -66,7 +84,7 @@ h2, h3 {
 .third_party.small {
 	width: 26px;
 	height: 26px;
-	margin-right: 20px;
+	margin: 0 10px;
 }
 .third_party.small.facebook { background-position: 0 -312px; }
 .third_party.small.facebook:hover { background-position: 0 -343px; }
@@ -85,12 +103,6 @@ h2, h3 {
 	text-indent: -9999px;
 	outline: none;
 	text-align: left;
-}
-
-.signin_social {
-	list-style-type: none;
-	margin: 0;
-	padding: 0;
 }
 
 .openid_url {
