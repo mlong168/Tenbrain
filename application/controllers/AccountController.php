@@ -438,14 +438,20 @@ class AccountController extends Zend_Controller_Action
         $openid = new Application_Model_DbTable_OpenIdAccounts();
         
         if (! $this->session->user_data)
-            $this->_redirect('account/sign_in');
+        	$this->_redirect('account/sign_in');
         $form = new Application_View_Helper_Connect();
-        $this->view->form = $form;
         $user_data = $this->session->user_data[0];
         $user = $this->get_user_by_provider($user_data["provider"], 
         $user_data["provider_id"]);
+        
         if ($user)
             $this->_redirect('account/' . $user_data["provider"] . '_connect');
+            
+        $form->username->setValue($user_data['username']);
+        $form->email->setValue($user_data['email']);
+
+        $this->view->form = $form;
+
         if ($this->getRequest()->isPost()) {
             if ($form->isValid($_POST)) {
                 unset($this->session->user_data);
