@@ -207,10 +207,20 @@ class AccountController extends Zend_Controller_Action
 	public function twitterConnectAction ()
     {
         $config = $this->getInvokeArg('bootstrap')->getOption('twitter');
-        $consumer = new Zend_Oauth_Consumer($config);
-        $token = $consumer->getRequestToken();
-        $this->session->request_token = serialize($token);
-        $consumer->redirect();
+
+		$twitteroauth = new TwitterOAuth($config['consumerKey'], $config['consumerSecret']);
+		
+		$request_token = $twitteroauth->getRequestToken($config['callbackUrl']);
+		$_SESSION['oauth_token'] = $request_token['oauth_token'];
+		$_SESSION['oauth_token_secret'] = $request_token['oauth_token_secret'];
+
+		if($twitteroauth->http_code==200){
+			$url = $twitteroauth->getAuthorizeURL($request_token['oauth_token']);
+			header('Location: '. $url);
+		} else {
+			die('Something wrong happened.');
+		}
+		die;
     }
 	
     public function forgotPasswordAction ()
@@ -253,46 +263,46 @@ class AccountController extends Zend_Controller_Action
     {
     	$auth = Zend_Auth::getInstance();
         $config = $this->getInvokeArg('bootstrap')->getOption('twitter');
-        $consumer = new Zend_Oauth_Consumer($config);
-        $access_token = $consumer->getAccessToken($this->_request->getQuery(), 
-        unserialize($this->session->request_token));
-        $twitter_service = new Zend_Service_Twitter(
-        array('accessToken' => $access_token));
-        $response = $twitter_service->account->verifyCredentials();
+        $twitteroauth = new TwitterOAuth($config['consumerKey'], $config['consumerSecret'], $_SESSION['oauth_token'], $_SESSION['oauth_token_secret']);
+		$access_token = $twitteroauth->getAccessToken($_GET['oauth_verifier']);
+
+		$_SESSION['access_token'] = $access_token;
+		$user_info = $twitteroauth->get('account/verify_credentials');
         // LOGIN
-    			$twitter = new Application_Model_DbTable_TwitterAccounts();
-				if($userid = $twitter->get_user($response->id))
-				{
-					if ( ! $auth->hasIdentity())
-					{
-						// LOGIN
-		                $auth = Zend_Auth::getInstance();
-		                $accounts = new Application_Model_DbTable_Accounts();
-				        $authAdapter = new Zend_Auth_Adapter_DbTable($accounts->getAdapter(), 
-				        'accounts');
-				        $authAdapter->setIdentityColumn('id')
-				            ->setCredentialColumn('password')
-				            ->setIdentity($userid)
-				            ->setCredential("");
-				        $result = $auth->authenticate($authAdapter);
-		                if ($result->isValid()) {
-		                    $storage = new Zend_Auth_Storage_Session();
-		                    $storage->write($authAdapter->getResultRowObject());
-		                    $this->_redirect('console');
-		                } else {
-		                    $this->view->errorMessage = 'Invalid username or password. Please try again';
-		                }
-					}
+		$twitter = new Application_Model_DbTable_TwitterAccounts();
+		$userid = $twitter->get_user($user_info->id_str);
+		if($userid)
+		{
+			if ( ! $auth->hasIdentity())
+			{
+				// LOGIN
+				$auth = Zend_Auth::getInstance();
+				$accounts = new Application_Model_DbTable_Accounts();
+				$authAdapter = new Zend_Auth_Adapter_DbTable($accounts->getAdapter(), 
+				'accounts');
+				$authAdapter->setIdentityColumn('id')
+					->setCredentialColumn('password')
+					->setIdentity($userid)
+					->setCredential("");
+				$result = $auth->authenticate($authAdapter);
+				if ($result->isValid()) {
+					$storage = new Zend_Auth_Storage_Session();
+					$storage->write($authAdapter->getResultRowObject());
 					$this->_redirect('console');
+				} else {
+					$this->view->errorMessage = 'Invalid username or password. Please try again';
 				}
-        if ($response) {
+			}
+			$this->_redirect('console');
+		}
+        if ($user_info) {
             $this->session->user_data = array(
-            array('provider' => 'twitter', 'provider_id' => (int) $response->id, 
-            'username' => (string) $response->screen_name, 
-            'token' => (string) $access_token->oauth_token, 
-            'secret' => (string) $access_token->oauth_token_secret), 
-            array('fullname' => $access_token->name, 
-            'picture' => $access_token->profile_image_url));
+            array('provider' => 'twitter', 'provider_id' => (int) $user_info->id_str, 
+            'username' => (string) $user_info->screen_name, 
+            'token' => (string) $access_token['oauth_token'], 
+            'secret' => (string) $access_token['oauth_token_secret']), 
+            array('fullname' => $access_token['name'], 
+            'picture' => $access_token['profile_image_url']));
             $this->_redirect('account/connect_create');
         }
     }
@@ -307,10 +317,10 @@ class AccountController extends Zend_Controller_Action
             die("ERROR: Please enter a valid OpenID.");
         }
 		$consumer = new Auth_OpenID_Consumer($store);
+		$domain = $_SERVER['SERVER_NAME'];
 		
 		if ($this->getRequest()->getParam('janrain_nonce'))
 		{
-			$domain = $_SERVER['SERVER_NAME'];
 			$response = $consumer->complete("http://".$domain."/account/google_connect");
 			if ($response->status == Auth_OpenID_SUCCESS) 
 			{
@@ -321,7 +331,6 @@ class AccountController extends Zend_Controller_Action
 				{
 					if ( ! $auth->hasIdentity())
 					{
-						// LOGIN
 		                $auth = Zend_Auth::getInstance();
 		                $accounts = new Application_Model_DbTable_Accounts();
 				        $authAdapter = new Zend_Auth_Adapter_DbTable($accounts->getAdapter(), 
