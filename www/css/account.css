@@ -49,8 +49,8 @@ h2, h3 {
 
 .signin_social {
 	list-style-type: none;
-	position: relative;
-	left: 50%;
+	/*position: relative;
+	left: 50%;*/
 	margin: 0;
 	padding: 0;
 }
@@ -84,7 +84,7 @@ h2, h3 {
 .third_party.small {
 	width: 26px;
 	height: 26px;
-	margin: 0 10px;
+	margin-right: 20px;
 }
 .third_party.small.facebook { background-position: 0 -312px; }
 .third_party.small.facebook:hover { background-position: 0 -343px; }
