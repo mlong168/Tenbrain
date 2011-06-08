@@ -44,7 +44,7 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
 							  'gc_probability' => '1',
 							  'hash_bits_per_character' => '5',
 							  'hash_function' => '0',
-							  'name' => 'Tenbrain_SESSID',
+							  'name' => 'PHPSESSID',
 							  'referer_check' => '',
 							  'save_handler' => 'user',
 							  'save_path' => '',
