@@ -1,7 +1,7 @@
 form#payment, .payment.container {
 	display: block;
 	margin: 0 auto;
-	width: 450px;
+	width: 500px;
 	text-align: left;
 }
 form#payment label{
@@ -80,7 +80,12 @@ form#payment ul.errors{
 	text-align: right;
 }
 #year-element ul{
-	display: inline-block;
+	display: block;
+	padding-left: 0px;
+}
+
+#year-element ul li {
+	padding-left: 0px;
 }
 
 .payment .amount-field {
@@ -107,4 +112,20 @@ form#payment ul.errors{
 .payment .amount-field dd {
 	display: inline;
 	margin-left: 5px;
+}
+
+.field-descr {
+	text-align: left;
+	padding-left: 240px;
+	font-size: 0.8em;
+}
+
+ul.errors {
+	margin-top: 5px;
+	margin-bottom: 5px;
+}
+
+ul.errors li {
+	text-align: left;
+	padding-left: 200px;
 }

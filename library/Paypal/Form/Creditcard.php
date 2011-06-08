@@ -14,7 +14,7 @@ class Paypal_Form_Creditcard extends Zend_Form
 	public function __construct($amount = null)
 	{
 		parent::__construct(); 
-		$this->amount = $amount;
+		$this->amount = round(($amount+0.3)/(1 - 0.029), 2);
 		$this->init();
 	}
 	
@@ -82,8 +82,7 @@ class Paypal_Form_Creditcard extends Zend_Form
 									'autocomplete' => 'OFF',
                             'required' => TRUE,
 							'validators' => array(
-        						new Paypal_Validate_CVV2(),
-        						new Zend_Validate_Digits()
+        						new Paypal_Validate_CVV2()
         )));
         $cvv2->setAutoInsertNotEmptyValidator(false);
 		$this->setLabelDecorator($cvv2);

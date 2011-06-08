@@ -33,7 +33,7 @@ class Paypal_DoDirectPayment
 		
 		// Add request-specific fields to the request string.
 		$nvpStr =	"&PAYMENTACTION=$paymentType&AMT=$amount&CREDITCARDTYPE=$creditCardType&ACCT=$creditCardNumber".
-					"&EXPDATE=$padDateMonth$expDateYear&CVV2=$cvv2Number&CURRENCYCODE=$currencyID";
+					"&EXPDATE=$padDateMonth$expDateYear&CVV2=$cvv2Number&CURRENCYCODE=$currencyID&FEESPAYER=SENDER";
 		
 		// Execute the API operation; see the PPHttpPost function above.
 		$httpPost = new Paypal_HttpPost();

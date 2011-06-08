@@ -12,6 +12,13 @@ class Paypal_Validate_CVV2 extends Zend_Validate_Abstract
 	 */
 	const MINLEN = 3;
 	
+	/**
+     * Digits filter used for validation
+     *
+     * @var Zend_Filter_Digits
+     */
+	protected static $_filter = null;
+	
 	 /**
      * Validation failure message template definitions
      *
@@ -36,6 +43,16 @@ class Paypal_Validate_CVV2 extends Zend_Validate_Abstract
     		$this->_error(self::TOO_SHORT);
             return false;
     	}
+			
+			if (null === self::$_filter) {
+					require_once 'Zend/Filter/Digits.php';
+					self::$_filter = new Zend_Filter_Digits();
+			}
+
+			if ($value !== self::$_filter->filter($value)) {
+					$this->_error(self::NOT_DIGITS);
+					return false;
+			}
     	
     	return true;
     }
