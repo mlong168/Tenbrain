@@ -32,17 +32,15 @@ $(function(){
 				opacity: helper.css('opacity')
 			},
 			end = {
-				width: initials.width * 7 + 'px',
-				height: initials.height * 6 + 'px',
+				width: (initials.width + 7) + 'px',
+				height: initials.height + 'px',
 				opacity: '1'
 			};
 			
 		helper.hover(function(){
-			helper.animate(end, 'slow');
+			helper.animate(end, 'fast');
 		}, function(){
-			setTimeout(function(){
-				helper.animate(start, 'fast');
-			}, 500);
+			helper.animate(start, 'fast');
 		}).click(function(){
 			overlays.back.fadeTo('fast', 0.5, function(){
 				overlays.front.show();
