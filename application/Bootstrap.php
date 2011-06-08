@@ -45,6 +45,15 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
 				'action'		=> 'details'
 		)));
 		
+		$hostRoute = new Zend_Controller_Router_Route_Hostname('payment.tenbrain.com', 
+        array(
+            'controller' => 'pay',
+            'action' => 'index'
+            )
+    );
+		$plainPathRoute = new Zend_Controller_Router_Route(':controller/:action/*', array('controller' => 'pay', 'action' => 'index'));
+		$router->addRoute('payment', $hostRoute->chain($plainPathRoute));
+		
 		unset($front_controller);
     }
 	
@@ -74,7 +83,7 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
 		}
 	}
 	
-	protected function _initSession()
+	/*protected function _initSession()
 	{
 		$dbconfig = $this->getOption('resources');
 		$config['db'] = $dbconfig['db'];
@@ -135,5 +144,5 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
 		Zend_Session::setSaveHandler(new Zend_Session_SaveHandler_DbTable($config['SaveHandler']));
 		Zend_Session::setOptions($config['options']);
 		Zend_Session::start();
-	}
+	}*/
 }
