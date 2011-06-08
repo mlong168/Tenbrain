@@ -297,8 +297,8 @@ class AccountController extends Zend_Controller_Action
 		}
         if ($user_info) {
             $this->session->user_data = array(
-            array('provider' => 'twitter', 'provider_id' => (int) $user_info['id_str'], 
-            'username' => (string) $user_info['screen_name'], 
+            array('provider' => 'twitter', 'provider_id' => (int) $user_info->id_str, 
+            'username' => (string) $user_info->screen_name, 
             'token' => (string) $access_token['oauth_token'], 
             'secret' => (string) $access_token['oauth_token_secret']), 
             array('fullname' => $access_token['name'], 
