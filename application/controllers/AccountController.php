@@ -446,9 +446,10 @@ class AccountController extends Zend_Controller_Action
         
         if ($user)
             $this->_redirect('account/' . $user_data["provider"] . '_connect');
-            
-        $form->username->setValue($user_data['username']);
-        $form->email->setValue($user_data['email']);
+        if(isset($user_data['username']))
+        	$form->username->setValue($user_data['username']);
+        if(isset($user_data['email']))
+        	$form->email->setValue($user_data['email']);
 
         $this->view->form = $form;
 
