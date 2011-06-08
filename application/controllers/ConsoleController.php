@@ -29,7 +29,7 @@ class ConsoleController extends Zend_Controller_Action
 			'cp/snapshots',
 			'cp/load_balancers',
 			'cp/elastic_ips',
-			// 'cp/profile',
+			'cp/profile',
 			'cp/transferer'
 		);
 		
@@ -102,6 +102,7 @@ class ConsoleController extends Zend_Controller_Action
 		// load balancers:
 		$menu []= array(
 			'text'		=> 'Load Balancers',
+			'expanded'	=> true,
 			'children'	=> array(
 				array(
 					'text'	=> 'Load Balancers',
@@ -114,6 +115,7 @@ class ConsoleController extends Zend_Controller_Action
 		// elastic IP's
 		$menu []= array(
 			'text'		=> 'Elastic IPs',
+			'expanded'	=> true,
 			'children'	=> array(
 				array(
 					'text'	=> 'Elastic IPs',
@@ -125,16 +127,11 @@ class ConsoleController extends Zend_Controller_Action
 		
 		$profile_menu = array(
 			'text'		=> 'Your Profile',
-			'expanded'	=> $profile_active,
+			'expanded'	=> true,
 			'children'	=> array(
 				array(
 					'text'	=> 'Profile Information',
 					'id'	=> 'account_profile',
-					'leaf'	=> true
-				),
-				array(
-					'text'	=> 'Account Settings',
-					'id'	=> 'account_settings',
 					'leaf'	=> true
 				),
 				array(

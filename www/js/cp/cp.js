@@ -26,30 +26,21 @@ Ext.onReady(function(){
 		contentEl: 'welcome-div'  // pull existing content from the page
 	};
 	
-	var pages = [];
+	var pages = [],
+		add_pages = function(Containers){	// Containers must be an array
+			for(var i = Containers.length; i--;)
+			{
+				Ext.Object.each(Containers[i].panels, function(name, example) {
+					pages.push(example);
+				});
+			}
+		};
 	pages.push(welcome);
 	
-	Ext.Object.each(Instances.panels, function(name, example) {
-		pages.push(example);
-	});
-	
-	Ext.Object.each(Images.panels, function(name, example) {
-		pages.push(example);
-	});
-
-	Ext.Object.each(Snapshots.panels, function(name, example) {
-		pages.push(example);
-	});
-
+	add_pages([Instances, Images, Snapshots, Account]);
 	if(account_type === 'premium')
 	{
-		Ext.Object.each(Load_balancers.panels, function(name, example) {
-			pages.push(example);
-		});
-
-		Ext.Object.each(Elastic_IPs.panels, function(name, example) {
-			pages.push(example);
-		});
+		add_pages([Load_balancers, Elastic_IPs]);
 	}
 	
 	var active_menu = function(){
@@ -65,7 +56,7 @@ Ext.onReady(function(){
     	title: 'Menu',
         region: 'north',
         split: true,
-        height: 300,
+        height: 330,
         minSize: 150,
         rootVisible: false,
         autoScroll: true,
@@ -91,9 +82,17 @@ Ext.onReady(function(){
     
     var detail_el;
 	tree_panel.getSelectionModel().on('select', function(selModel, record) {
-		if (record.get('leaf')) {
-			Ext.getCmp('content-panel').layout.setActiveItem(record.getId() + '-panel');
-			 if (!detail_el) {
+		var panel_id = record.getId() + '-panel';
+		if(record.get('leaf'))
+		{
+			if(!Ext.getCmp(panel_id))
+			{
+				Ext.Msg.alert('Access error', 'This feature is only available for paid accounts, or is currently being implemented. Sorry for that');
+				return false;
+			}
+			Ext.getCmp('content-panel').layout.setActiveItem(panel_id);
+			if(!detail_el)
+			{
 				var bd = Ext.getCmp('details-panel').body;
 				bd.update('').setStyle('background','#fff');
 				detail_el = bd.createChild(); //create default empty div
