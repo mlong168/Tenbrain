@@ -54,16 +54,17 @@ html, body {
 }
 
 #signin_opener.active {
-	background: transparent;
-	/* color: #1A9ED9; */
-	color: #fff;
+	-webkit-border-radius: 0.7em 0.7em 0 0;
+	-moz-border-radius: 0.7em 0.7em 0 0;
+	border-radius: 0.7em 0.7em 0 0;
 }
+
 
 #signin_controls {
 	display: none;
 	position: absolute;
 	right: 0;
-	top: 0;
+	top: 1.4em;
 	z-index: 10;
 	width: 200px;
 	padding: 10px;
@@ -71,6 +72,9 @@ html, body {
 /*	background: #25B4E8;*/
 	background: #3da6bc;
 	border: none;
+	-webkit-border-radius: 0.7em 0 0.7em 0.7em;
+	-moz-border-radius: 0.7em 0 0.7em 0.7em;
+	border-radius: 0.7em 0 0.7em 0.7em;
 }
 
 #signin_controls p, #signin_controls label {
@@ -101,7 +105,7 @@ html, body {
 
 .third_party_header {
 	font-size: 12px;
-	text-align: center;
+	text-align: left;
 }
 
 #footer_icon_hider {
@@ -314,7 +318,10 @@ html, body {
 	color: #fff;
 	border: none;
 	font-weight: bold;
-	padding: 0.1em 0.4em 0.2em;
+	padding: 0.2em 0.6em 0.3em;
+	-webkit-border-radius: 0.7em;
+	-moz-border-radius: 0.7em;
+	border-radius: 0.7em;
 }
 
 .control.input {
@@ -412,41 +419,10 @@ html, body {
 	position: absolute;
 	z-index: 5;
 	right: 0; top: 240px;
-	width: 38px;
+	width: 33px;
 	height: 36px;
-/*	background: #009CDC url('/css/images/helper.png') no-repeat right top;*/
-	background: #3da6bc;
-/*	opacity: 0.5;*/
-	color: white;
-	overflow: hidden;
+	background: transparent url('./images/ask.png') no-repeat;
 	cursor: pointer;
-}
-
-#question {
-	position: absolute;
-	z-index: 6;
-	top: 0; right: 0;
-	width: 30px;
-	height: 30px;
-	padding: 1px 4px 5px;
-	font: bold 30px Arial, Helvetica, sans-serif;
-	text-align: center;
-}
-
-#helper .help_header {
-	display: inline-block;
-	text-align: center;
-	margin: 0.8em 0 0 2.5em;
-	font-weight: bold;
-	border-bottom: 2px dashed white;
-}
-
-#helper .help_message {
-	display: block;
-	text-align: justify;
-	text-indent: 1.5em;
-	margin: 1em;
-	overflow-y: auto;
 }
 
 #big_helper {

@@ -295,14 +295,21 @@ class AccountController extends Zend_Controller_Action
 			}
 			$this->_redirect('console');
 		}
-        if ($user_info) {
+        if ($user_info)
+        {
             $this->session->user_data = array(
-            array('provider' => 'twitter', 'provider_id' => (int) $user_info->id_str, 
-            'username' => (string) $user_info->screen_name, 
-            'token' => (string) $access_token['oauth_token'], 
-            'secret' => (string) $access_token['oauth_token_secret']), 
-            array('fullname' => $access_token['name'], 
-            'picture' => $access_token['profile_image_url']));
+	            array(
+					'provider' => 'twitter',
+					'provider_id' => (int) $user_info->id_str, 
+	            	'username' => (string) $user_info->screen_name, 
+	            	'token' => (string) $access_token['oauth_token'], 
+	            	'secret' => (string) $access_token['oauth_token_secret']
+				), 
+	            array(
+					// 'fullname' => $access_token['name'], 
+            		// 'picture' => $access_token['profile_image_url']
+				)
+				);
             $this->_redirect('account/connect_create');
         }
     }
@@ -431,14 +438,21 @@ class AccountController extends Zend_Controller_Action
         $openid = new Application_Model_DbTable_OpenIdAccounts();
         
         if (! $this->session->user_data)
-            $this->_redirect('account/sign_in');
+        	$this->_redirect('account/sign_in');
         $form = new Application_View_Helper_Connect();
-        $this->view->form = $form;
         $user_data = $this->session->user_data[0];
         $user = $this->get_user_by_provider($user_data["provider"], 
         $user_data["provider_id"]);
+        
         if ($user)
             $this->_redirect('account/' . $user_data["provider"] . '_connect');
+        if(isset($user_data['username']))
+        	$form->username->setValue($user_data['username']);
+        if(isset($user_data['email']))
+        	$form->email->setValue($user_data['email']);
+
+        $this->view->form = $form;
+
         if ($this->getRequest()->isPost()) {
             if ($form->isValid($_POST)) {
                 unset($this->session->user_data);
@@ -457,7 +471,7 @@ class AccountController extends Zend_Controller_Action
                     case "facebook":
                         $provider_data["account_id"] = $account_id;
                         $provider_data["facebook_id"] = $user_data["provider_id"];
-						$provider_data["linkedon"] = date();
+						$provider_data["linkedon"] = time();
                         $facebook->insert($provider_data);
                         break;
                     case "twitter":
@@ -465,13 +479,13 @@ class AccountController extends Zend_Controller_Action
                         $provider_data["twitter_id"] = $user_data["provider_id"];
                         $provider_data["oauth_token"] = $user_data["token"];
                         $provider_data["oauth_token_secret"] = $user_data["secret"];
-						$provider_data["linkedon"] = date();
+						$provider_data["linkedon"] = time();
                         $twitter->insert($provider_data);
                         break;
                     case "openid":
                     	$provider_data["account_id"] = $account_id;
                         $provider_data["openid"] = $user_data["provider_id"];
-						$provider_data["linkedon"] = date();
+						$provider_data["linkedon"] = time();
                         $openid->insert($provider_data);
                         break;
                     default:
