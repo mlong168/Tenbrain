@@ -191,7 +191,7 @@ var Snapshots = function(){
 			xtype: 'combo',
 			fieldLabel: 'Server Type',
 			editable: false,
-			store: new Ext.data.JsonStore({
+			store: Ext.create('Ext.data.Store', {
 				model: 'Server_types',
 				proxy: {
 					type: 'ajax',

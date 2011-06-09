@@ -705,4 +705,124 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 		}
 		return $zones;
 	}
+	
+	public function get_elastic_ips()
+	{
+		$response = $this->ec2->describe_addresses();
+		$list = $response->body->query('descendant-or-self::publicIp');		
+		$results = $list->map(function($node){
+			return $node->parent();
+		});
+		
+		$ips = array();
+		$ips['instances'] = array();
+		$results->each(function($node, $i, &$ips){
+			$instance_id = (string) $node->instanceId;
+			$ip = (string) $node->publicIp;
+			if(empty($instance_id))
+			{
+				$ips []= array(
+					'address'		=> $ip,
+					'instance'		=> '',
+					'instance_dns'	=> ''
+				);
+			}
+			else
+			{			
+				$ips['instances'] []= $instance_id;
+				$ips[$instance_id] = $ip;
+			}
+		}, $ips);
+		
+		if(count($ips['instances']))
+		{
+			$response = $this->ec2->describe_instances(array('InstanceId' => $ips['instances']));
+			$list = $response->body->query('descendant-or-self::instanceId');		
+			$results = $list->map(function($node){
+				return $node->parent();
+			});
+			
+			$results->each(function($node, $i, &$ips){
+				$id = (string) $node->instanceId;
+				$name = $node->tagSet->xpath("descendant-or-self::item[key='Name']/value");
+				$name = $name ? (string) $name[0] : '<i>not set</i>';
+				$ips []= array(
+					// 'address'		=> (string) $node->ipAddress,
+					'address'		=> $ips[$id],
+					'instance'		=> $name . ' (' . $id . ')',
+					'instance_dns'	=> (string) $node->dnsName
+				);
+				unset($ips[$id]);
+			}, $ips);
+		}
+		unset($ips['instances']);
+		
+		// set the proper ids:
+		foreach($ips as $id => &$value) $value['id'] = $id;
+		
+		return $ips;
+	}
+	
+	public function allocate_address()
+	{
+		$response = $this->ec2->allocate_address();
+		return $response->isOK() ? (string) $response->body->publicIp : false;
+	}
+	
+	public function get_short_instances_list()
+	{
+		$response = $this->ec2->describe_instances(array(
+			'Filter' => array(
+				array('Name' => 'instance-state-name', 'Value' => array('running'))
+			)
+		));
+		$this->test_response($response);
+
+		$instances = array();
+		$list = $response->body->query("descendant-or-self::instanceId");
+		$results = $list->map(function($node){
+			return $node->parent();
+		});
+
+		$results->each(function($node, $i, &$instances){
+			$name = $node->tagSet->xpath("descendant-or-self::item[key='Name']/value");
+			$name = $name ? (string) $name[0] : '<i>not set</i>';
+			$id = (string) $node->instanceId;
+			$instances[] = array(
+				'id'				=> $i,
+				'instance_id'		=> $id,
+				'instance_name'		=> $name . ' (' . $id . ')'
+			);
+		}, $instances);
+		
+		return $instances;
+	}
+	
+	public function associate_ip($instance_id, $address)
+	{
+		$response = $this->ec2->associate_address($instance_id, $address);
+		$this->test_response($response);
+		
+		return $response->isOK();
+	}
+	
+	public function disassociate_ip($address)
+	{
+		$response = $this->ec2->disassociate_address($address);
+		$this->test_response($response);
+		
+		return $response->isOK();
+	}
+	
+	public function release_ip($addresses)
+	{
+		if(is_string($addresses)) $addresses = array($addresses);
+		$success = true;
+		foreach($addresses as $address)
+		{
+			$response = $this->ec2->release_address($address);
+			if(!$response->isOK()) $success = false;
+		}
+		return $success;
+	}
 }

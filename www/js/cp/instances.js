@@ -722,6 +722,10 @@ var Instances = function(){
 				title: 'Servers that have previously been terminated',
 				layout: 'fit',
 				store: store.terminated,
+				viewConfig: {
+					emptyText: '<p style="text-align: center">You do not have any terminated server so far</p>',
+					loadingText: undefined
+				},
 				columns: [
 					{text: "Name", dataIndex: 'name', flex: 1},
 					{text: "Provider", dataIndex: 'provider', width: 100},
@@ -730,10 +734,6 @@ var Instances = function(){
 				],
 				listeners: {
 					activate: Helpers.first_time_loader
-				},
-				viewConfig: {
-					emptyText: '<p style="text-align: center">You do not have any terminated server so far</p>',
-					loadingText: undefined
 				},
 				dockedItems: [{
 					xtype: 'toolbar',
