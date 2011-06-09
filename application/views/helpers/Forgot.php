@@ -22,7 +22,7 @@ class Application_View_Helper_Forgot extends Zend_Form {
         
         $signup = $this->createElement('submit', 'submit', array(
                             'class' => 'login_submit underlined_dash'
-        ))->setDecorators(array('ViewHelper'))->addDecorator('Errors')->setLabel('Sign In');
+        ))->setDecorators(array('ViewHelper'))->addDecorator('Errors')->setLabel('Send Instructions');
         
 		$recaptchaKeys = Zend_Registry::get('config.recaptcha');
 		
@@ -37,7 +37,7 @@ class Application_View_Helper_Forgot extends Zend_Form {
         $captcha = $this->createElement('Captcha', 'ReCaptcha',
                 array('captcha'=>array('captcha'=>'ReCaptcha',
                                         'service'=>$recaptcha)
-                ))->removeDecorator('Errors') ;
+                ));
 		
 		
         $this->addElements(array(

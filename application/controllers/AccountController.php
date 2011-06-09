@@ -246,10 +246,8 @@ class AccountController extends Zend_Controller_Action
         		$this->view->display_message = true;
 			}
 		}
-		else 
-		{
-			$this->view->form = $forgot_form;
-		}
+		
+		$this->view->form = $forgot_form;
     }
 	
 	public function generateNewPasswordAction ()
