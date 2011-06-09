@@ -12,10 +12,11 @@ class Application_View_Helper_ChangePassword extends Zend_Form {
 	            ->setLabel('Choose your password:')
 	            ->setRequired(true);
 	
+	    $pass = isset($_POST['password']) ? $_POST['password'] : "";
 	    $password2 = new Zend_Form_Element_Password('password-confirm');
 	    $password2->addValidator('StringLength', false, array(8,24))
 	            ->setLabel('Confirm your password:')
-	            ->addValidator(new Zend_Validate_Identical($_POST['password']))
+	            ->addValidator(new Zend_Validate_Identical($pass))
 	            ->setRequired(true);
 	            
 	    $submit = new Zend_Form_Element_Submit('submit');
