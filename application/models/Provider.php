@@ -3,10 +3,17 @@
 abstract class Application_Model_Provider
 {
 	public $name;
+	protected $user_id;
 	protected $account_server_count_limits = array();
 	
 	protected function __construct()
 	{
+		$auth = Zend_Auth::getInstance()->getIdentity();
+		if(!$auth)
+		{
+			$this->die_with_error('Please relogin');
+		}
+		$this->user_id = $auth->id;
 		$this->account_server_count_limits = $this->load_account_server_count_limits();
 	}
 	

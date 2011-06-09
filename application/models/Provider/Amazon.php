@@ -11,7 +11,6 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 
 	private $ec2;
 	private $storage;
-	private $user_id;
 	
 	private $available_types = array(
 		't1.micro',
@@ -33,7 +32,6 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 		parent::__construct();
 		
 		$this->name = 'Amazon';
-		$this->user_id = Zend_Auth::getInstance()->getIdentity()->id;
 		$this->storage = new Application_Model_Servers();
 		$this->ec2 = new AmazonEC2(self::TENBRAIN_API_KEY, self::TENBRAIN_API_SECRET);
 	}

@@ -6,14 +6,11 @@ class Application_Model_Provider_GoGrid extends Application_Model_Provider
 	public $state = 'running';
 	private $premium = true;
 	private $default_type = "512MB";
-	private $user_id;
 	public $name = 'GoGrid';
 	
 	function __construct()
 	{
 		parent::__construct();
-		
-		$this->user_id = Zend_Auth::getInstance()->getIdentity()->id;
 		
 		$this->name = "GoGrid";
 		$this->gogrid = new ZendExt_GoGridClient();
