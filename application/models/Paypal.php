@@ -19,7 +19,7 @@ class Application_Model_Paypal extends Zend_Db_Table_Abstract
      */
     protected $details;
     
-    public function db_save($data) 
+    public function db_save($data, $payment_type) 
     {
     	$this->details = $data;
     	$auth = Zend_Auth::getInstance();
@@ -37,7 +37,7 @@ class Application_Model_Paypal extends Zend_Db_Table_Abstract
     	
     	if($this->isPaymentSuccessful($bind['ack']))
     	{
-    		$this->upgradeAccount();
+    		$this->upgradeAccount($payment_type);
     	}
     	
     	
@@ -76,12 +76,13 @@ class Application_Model_Paypal extends Zend_Db_Table_Abstract
 		return false;
     }
     
-    public function upgradeAccount()
+    public function upgradeAccount($payment_type)
     {
-    	#TODO: upgrage account accourding to money amount
-			$amount_paid = floatval($this->details["AMT"]);
-			$sum_per_day = 1; // 1$ dollar per day
-			$paid_days = floor($amount_paid/$sum_per_day);
+    	//upgrage account accourding to payment type. get period in db
+			$payment_type_role = new Application_Model_DbTable_PaymentTypeRole;
+			$curr_payment_type = $payment_type_role->getPaymentType($payment_type);
+
+			$paid_days = $curr_payment_type->time_period;
 			$exp_date = date("Y-m-d", strtotime("+".$paid_days." days"));
 			
 			$account_role_exp = new Application_Model_AccountRoleExp();
@@ -93,6 +94,7 @@ class Application_Model_Paypal extends Zend_Db_Table_Abstract
 				$new_exp_date = date("Y-m-d", strtotime("+".$paid_days." days", strtotime($existing_account->expiration_date)));
 				
 				$data = array(
+					"role_id" => $curr_payment_type->acl_role_id,
 					"expiration_date" => $new_exp_date
 				);
 				$where = $account_role_exp->getAdapter()->quoteInto('id = ?', $existing_account->id);
@@ -102,7 +104,7 @@ class Application_Model_Paypal extends Zend_Db_Table_Abstract
 			{
 				$bind = array(
 					"account_id" => Zend_Auth::getInstance()->getIdentity()->id,
-					"role_id" => 2,
+					"role_id" => $curr_payment_type->acl_role_id,
 					"expiration_date" => $exp_date
 				);
 				

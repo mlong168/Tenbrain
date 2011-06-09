@@ -3,10 +3,50 @@
 	<div>
 		<form action="" method="post" accept-charset="utf-8" >
 		<div class="payment container">
-			<!--<div class="payment plan">Choose your payment plan: </div><br>-->
-			<div class="payment amount-field"><div class="payment label">Enter number of days</div> <?php echo $this->form->time_amount;?></div>
-			<div class="payment amount-field"><div class="payment label">Or amount of money</div><?php echo $this->form->money_amount;?></div>
-			<div class="payment descr"> Minimum onetime payment is 10$ </div>
+			<!--<div class="payment plan">Choose your payment plan: </div><br>
+			<div class="payment amount-field"><div class="payment label">Enter number of days</div> <?php //echo $this->form->time_amount;?></div>
+			<div class="payment amount-field"><div class="payment label">Or amount of money</div><?php //echo $this->form->money_amount;?></div>
+			<div class="payment descr"> Minimum onetime payment is 10$ </div>-->
+			<div id="payment_type-element">
+			<div class="type-field">
+				<input type="radio" value="single_day_pay" id="payment_type-singledaypay" name="payment_type" checked="yes">
+				<label for="payment_type-singledaypay">
+					<span>Single day pay - $1 a day</span>
+					<div class="type-descr">2 micro instances with LB + one Elastic IP for AWS + One Backup for one day</div>
+				</label>
+			</div>
+			<div class="type-field">
+				<input type="radio" value="fiver" id="payment_type-fiver" name="payment_type">
+				<label for="payment_type-fiver">
+					<span>Fiver - $5</span>
+					<div class="type-descr">4 instances LB and Elastic IP + One Backup for one week</div>
+				</label>
+			</div>
+			<div class="type-field">
+				<input type="radio" value="ten_micro" id="payment_type-tenmicro" name="payment_type">
+				<label for="payment_type-tenmicro">
+					<span>Ten micro - $10</span>
+					<div class="type-descr">5 micro instance with full functionality for one week</div>
+				</label>
+			</div>
+			<div class="type-field">
+				<input type="radio" value="ten_up" id="payment_type-tenup" name="payment_type">
+				<label for="payment_type-tenup">
+					<span>Ten Up -  &gt; $10</span>
+					<div class="type-descr">up to 10 micro instances with full functionality for two weeks.</div>
+				</label>
+				<div class="type-descr">Please select the price for this plan:
+					<span>
+						<select id="tenup_amount" name="tenup_amount" class="control paypal">
+							<option value="15">$15</option>
+							<option value="20">$20</option>
+							<option value="25">$25</option>
+							<option value="30">$30</option>
+						</select>
+					</span>
+					</div>
+			</div>
+			</div>
 			<?php echo $this->form->submit; ?>
 		</div>
 		</form>

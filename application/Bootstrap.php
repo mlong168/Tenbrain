@@ -108,7 +108,7 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
 				'action'		=> 'details'
 		)));
 		
-		$hostRoute = new Zend_Controller_Router_Route_Hostname('payment.tenbrain.com', 
+		$hostRoute = new Zend_Controller_Router_Route_Hostname('payments.tenbrain.com', 
         array(
             'controller' => 'pay',
             'action' => 'index'

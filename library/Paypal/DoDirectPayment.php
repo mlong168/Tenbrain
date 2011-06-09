@@ -18,6 +18,8 @@ class Paypal_DoDirectPayment
 		$cc_year = $cc_info['year'];
 		$cc_cvv2 = $cc_info['cvv2'];
 		
+		$payment_type = $cc_info['payment_type'];
+		
 		// Set request-specific fields.
 		$paymentType = urlencode('Sale');				// 'Authorization' or 'Sale'
 		$creditCardType = urlencode(strtoupper($cc_type));
@@ -39,14 +41,14 @@ class Paypal_DoDirectPayment
 		$httpPost = new Paypal_HttpPost();
 		$this->details = $httpPost->httpPost('DoDirectPayment', $nvpStr);
 		
-		return $this->SaveToDB();
+		return $this->SaveToDB($payment_type);
 	}
 	
 	
-	private function SaveToDB()
+	private function SaveToDB($payment_type)
 	{
 		$table = new Application_Model_Paypal();
-		return $table->db_save($this->details);
+		return $table->db_save($this->details, $payment_type);
 	}
 	
 	private function CheckMoney($amount)
@@ -54,13 +56,14 @@ class Paypal_DoDirectPayment
 		$amount = floatval($amount);
 		if(is_float($amount))
 		{
-			if($amount < $this->minMoneyAmount)
+			/*if($amount < $this->minMoneyAmount)
 			{
 				return $this->minMoneyAmount;
-			}
+			}*/
 			return $amount;
 		}
-		return $this->minMoneyAmount;
+		
+		return $minMoneyAmount;
 	}
 	
 
