@@ -166,11 +166,7 @@ var Load_balancers = function() {
 		},{
 			name: 'name',
 			type: 'string'
-		},{
-			name: 'address',
-			type: 'string'
-		}
-		]
+		}	]
 	});
 
 	var instances_to_register_store = Ext.create('Ext.data.Store', {
@@ -246,13 +242,14 @@ var Load_balancers = function() {
 					provider = field.lastValue,
 					is_gogrid = provider === 'GoGrid';
 
+					servers_selection.setDisabled(false);
 					servers_selection.setLoading(true);
 					if(instances_to_register_store.proxy.extraParams.provider !== provider) {
-						servers_selection.reset();
 						instances_to_register_store.proxy.extraParams.provider = provider;
 						instances_to_register_store.load({
 							callback: function() {
 								servers_selection.setLoading(false);
+								servers_selection.refresh()
 							}
 						})
 					}
@@ -287,12 +284,15 @@ var Load_balancers = function() {
 		},{
 			xtype: 'itemselector',
 			name: 'instances[]',
-			// disabled: true,
 			store: instances_to_register_store,
 			displayField: 'name',
 			valueField: 'id',
-			value: []
-
+			value: [],
+			buttons: ['add', 'remove'],
+			buttonsText: {
+				add: 'Add server to load balancer',
+				remove: 'Remove from the list'
+			}
 			// used in al old superboxselect:
 			// displayFieldTpl: '{name} ({address})'
 		}
@@ -336,12 +336,16 @@ var Load_balancers = function() {
 		plain: 'true',
 		items: deploy_form,
 		bodyStyle: 'padding:5px;',
-		modal : true
+		modal : true,
+		listeners: {
+			show: function(){
+				var s =  this.down('form').getForm().findField('instances[]');
+				s.setDisabled(true);
+				s.clearAll();
+			}
+		}
 	});
 
-	Ext.onReady( function() {
-		deploy_form.up('window').show()
-	})
 	var instances_to_register_within_lb_store = Ext.create('Ext.data.Store', {
 		model: 'Servers_to_register',
 		proxy: {
@@ -619,7 +623,6 @@ var Load_balancers = function() {
 						handler: function() {
 							var form = deploy_form.setHeight(110).getForm().reset();
 							form.findField('address').disable().hide();
-							form.findField('instances[]').setDisabled(true);
 							deploy_form.up('window').show().center();
 						}
 					}, '->',{

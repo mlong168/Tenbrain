@@ -74,6 +74,31 @@ Ext.define('Ext.ux.form.ItemSelector', {
             fromField.store.add(models);
         }
     },
+    
+    refresh: function(){
+        var me = this,
+            toField = me.toField,
+            fromField = me.fromField,
+            models;
+
+        if (toField) {
+            // Clear both field stores
+            toField.store.removeAll();
+            fromField.store.removeAll();
+
+            // Clone the contents of the main store into the fromField
+            models = [];
+            me.store.each(function(model) {
+                models.push(model.copy(model.getId()));
+            });
+            fromField.store.add(models);
+        }
+    },
+    
+    clearAll: function(){
+    	this.toField.store.removeAll();
+    	this.fromField.store.removeAll();
+    },
 
     onRender: function(ct, position) {
         var me = this,
@@ -88,7 +113,7 @@ Ext.define('Ext.ux.form.ItemSelector', {
                 hideLabel: true
             },
             fromConfig = Ext.apply({
-                listTitle: 'Available',
+                listTitle: 'Servers available for load balancing',
                 store: Ext.create('Ext.data.Store', {model: me.store.model}), //blank store to begin
                 listeners: {
                     boundList: {
@@ -98,7 +123,7 @@ Ext.define('Ext.ux.form.ItemSelector', {
                 }
             }, me.multiselects[0], commonConfig),
             toConfig = Ext.apply({
-                listTitle: 'Selected',
+                listTitle: 'Selected servers',
                 store: Ext.create('Ext.data.Store', {model: me.store.model}), //blank store to begin
                 listeners: {
                     boundList: {
