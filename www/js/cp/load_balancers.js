@@ -178,8 +178,8 @@ var Load_balancers = function(){
 		url: '/common/create_load_balancer',
 		frame: true,
 		border: false,
-		height: 110,
-		minHeight: 110,
+		height: 285,
+		minHeight: 285,
 		pollForChanges: true,
 		baseCls: 'x-plain',
 		defaults: {
@@ -247,26 +247,18 @@ var Load_balancers = function(){
 			forceSelection: true,
 			triggerAction: 'all',
 		}, {
-			// xtype: 'superboxselect',
-			disabled: true,
-			editable: false,
-			msgTarget: 'under',
-			allowAddNewData: false,
-			fieldLabel: 'Servers',
-			blankText: 'Please select one or more servers',
-			emptyText: 'Select one or more servers',
-			listEmptyText: 'No servers are available to be registered',
-			// resizable: true,
+			xtype: 'itemselector',
 			name: 'instances[]',
+			// disabled: true,
 			store: instances_to_register_store,
-			mode: 'remote',
 			displayField: 'name',
-			displayFieldTpl: '{name} ({address})',
 			valueField: 'id',
-			triggerAction: 'all',
-			forceFormValue: false
-			// extraItemCls: 'x-tag',
-		}],
+			value: []
+			
+			// used in al old superboxselect:
+			// displayFieldTpl: '{name} ({address})'
+		}
+		],
 		buttons: [{
 			text: 'Proceed',
 			formBind: true,
@@ -296,14 +288,13 @@ var Load_balancers = function(){
 			}
 		}]
 	});
-
+	
 	Ext.create('Ext.window.Window', {
 		title: 'Create load balancer',
 		layout: 'fit',
 		closeAction: 'hide',
-		width: 350,
-		minWidth: 300,
-		// minHeight: 200,
+		width: 500,
+		minWidth: 500,
 		plain: 'true',
 		items: deploy_form,
 		bodyStyle: 'padding:5px;',
@@ -561,7 +552,7 @@ var Load_balancers = function(){
 						handler: function(){
 							var form = deploy_form.setHeight(110).getForm().reset();
 							form.findField('address').disable().hide();
-							form.findField('instances[]').disable();
+							// form.findField('instances[]').disable();
 							deploy_form.up('window').show().center();
 						}
 					}, '->', {

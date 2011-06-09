@@ -258,16 +258,17 @@ html, body {
 
 #info_space {
 	width: 550px;
-	height: 210px;
+/*	height: 210px;*/
 	margin: 3em auto 1.5em;
-	padding: 15px;
-	border: 7px solid white;
+	padding: 1.5em 1.5em 2em 1.5em;
+/*	border: 7px solid white;*/
 	background-color: #f4f2f2;
-	-webkit-box-shadow: 0 0 10px 1px #b1b1b1;
+	/*-webkit-box-shadow: 0 0 10px 1px #b1b1b1;
 	-moz-box-shadow: 0 0 10px 1px #b1b1b1;
-	box-shadow: 0 0 10px 1px #b1b1b1;
+	box-shadow: 0 0 10px 1px #b1b1b1;*/
 	font-size: 13px;
 	overflow-y: auto;
+	text-align: justify;
 }
 
 #info_space img {
