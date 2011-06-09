@@ -123,7 +123,7 @@ class Application_Model_DbTable_Accounts extends Zend_Db_Table_Abstract
 	    $wellcome_body = $settings_model->getSetting('wellcome_email');
 		$wellcome_email_subject = $settings_model->getSetting('wellcome_email_subject');
 		
-	    $wellcome_body = str_replace('%USERNAEM%', $username, $wellcome_body);
+	    $wellcome_body = str_replace('%USERNAME%', $username, $wellcome_body);
 	    $m = new Zend_Mail();
 	    $m->addTo($email);
 	    $m->setFrom('support@tenbrain.com', 'Tenbrain Support');
