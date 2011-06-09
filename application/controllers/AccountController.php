@@ -27,29 +27,39 @@ class AccountController extends Zend_Controller_Action
         $this->_redirect('account/sign_in');
     }
 	
-	private function send_welcome_email($email)
+    public function changePasswordAction()
+    {
+    	$account_model = new Application_Model_DbTable_Accounts();
+    	$token = $this->getRequest()->getParam('token');
+    	$user_id = $this->getRequest()->getParam('id');
+    	
+    	$change_password = new Application_View_Helper_ChangePassword();
+    	
+    	$valid = $account_model->valid_token($user_id,$token,'resetsenton');
+    	if($valid)
+		{
+	    	if($this->getRequest()->isPost())
+	    	{
+	    		if($change_password->isValid($_POST))
+	    		{
+	    			$data = $change_password->getValues();
+            		$account_model->change_password($user_id, md5($data['password']));
+            		
+            		$this->view->message = "Your password has been changed.";
+	    		}
+	    	}
+		}
+		else
+		{
+			$this->view->error = "Invalid token.";
+		}
+		$this->view->form = $change_password;
+    }
+    
+	private function send_welcome_email($email,$username)
 	{
-    	$settings = new Application_Model_DbTable_Settings();
-		$mail = $settings->getSetting('email');
-		$mail_subject = $settings->getSetting('email_subject');
-		mail($email,$mail_subject,$mail);
-	}
-	
-	private function send_forgot_email($email)
-	{
-    	$settings = new Application_Model_DbTable_Settings();
-		$mail = $settings->getSetting('forgot');
-		$mail_subject = $settings->getSetting('forgot_email_subject');
-		mail($email,$mail_subject,$mail);
-	}
-	
-	private function send_password_mail($email,$pass)
-	{
-		$settings = new Application_Model_DbTable_Settings();
-		$mail = $settings->getSetting('new_pass');
-		//insert pass
-		$mail_subject = $settings->getSetting('new_pass_email_subject');
-		mail($email,$mail_subject,$mail);
+    	$account_model = new Application_Model_DbTable_Accounts();
+    	$account_model->send_welcome_email($email,$username);
 	}
 	
     public function signInAction ()
@@ -109,7 +119,7 @@ class AccountController extends Zend_Controller_Action
                 $userdata['username'] = $data['username'];
                 
                 $accounts->insert($userdata);
-				//$this->send_welcome_email($userdata['email']);
+				$this->send_welcome_email($userdata['email'],$userdata['username']);
                 // LOGIN
                 $auth = Zend_Auth::getInstance();
                 $authAdapter = new ZendExt_Auth_Adapter_MultiColumnDbTable(
@@ -225,16 +235,20 @@ class AccountController extends Zend_Controller_Action
 	
     public function forgotPasswordAction ()
     {
-    	$form = new Application_View_Helper_Forgot();
-        $this->view->form = $form;
-		
+    	$forgot_form = new Application_View_Helper_Forgot();
+    	
         if ($this->getRequest()->isPost()) {
-            if ($form->isValid($_POST)) {
+            if ($forgot_form->isValid($_POST)) {
+            	$data = $forgot_form->getValues();
         		$accounts = new Application_Model_DbTable_Accounts();
-				$secure_key = $accounts->generate_forgot_key($email);
-				$this->send_forgot_email($email,$key);
-				$this->view->message = "Please view email box";
+        		$accounts->send_reset_message($data['email']);
+        		
+        		$this->view->display_message = true;
 			}
+		}
+		else 
+		{
+			$this->view->form = $forgot_form;
 		}
     }
 	

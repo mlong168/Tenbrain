@@ -7,6 +7,8 @@
 class Application_View_Helper_Forgot extends Zend_Form {
     
     public function init() {
+    	$accounts = new Application_Model_DbTable_Accounts();
+    	$dbRecordExists = new ZendExt_Validate_DbRecordExists($accounts, 'email');
         
         $email = $this->createElement('text', 'email', array(
         					'class'	=>	'control input',
@@ -16,8 +18,8 @@ class Application_View_Helper_Forgot extends Zend_Form {
 					                'messages' => array('isEmpty' => 'The Email field is required.')
 					            )),
 					        )
-        ))->addValidator('EmailAddress',true)->setDecorators(array('ViewHelper'))->addDecorator('Errors');
-		
+        ))->addValidator('EmailAddress',true)->addValidator($dbRecordExists)->setDecorators(array('ViewHelper'))->addDecorator('Errors');
+        
         $signup = $this->createElement('submit', 'submit', array(
                             'class' => 'login_submit underlined_dash'
         ))->setDecorators(array('ViewHelper'))->addDecorator('Errors')->setLabel('Sign In');
