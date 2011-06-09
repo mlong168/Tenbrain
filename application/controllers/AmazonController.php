@@ -56,14 +56,70 @@ class AmazonController extends Zend_Controller_Action
 		return false;
 	}
 	
-	public function setUserCredentialsAction()
+	public function setUserApiCredentialsAction()
 	{
+		echo Zend_Json::encode(array('success' => true));
+		return true;
 		$request = $this->getRequest();
 		$key = $request->getParam('key');
 		$secret_key = $request->getParam('secret_key');
 		
 		$amazon_model = new Application_Model_Provider_Amazon();
 		$amazon_model->set_user_aws_credentials($key, $secret_key);
+	}
+
+	function elasticIpsAction()
+	{
+		echo Zend_Json::encode(array(
+			'success'		=> true,
+			'elastic_ips'	=> $this->amazon->get_elastic_ips()
+		));
+	}
+
+	function allocateAddressAction()
+	{
+		$address = $this->amazon->allocate_address();
+		echo Zend_Json::encode(array(
+			'success' => (bool) $address,
+			'address' => $address
+		));
+	}
+
+	function getShortInstancesListAction()	// for associating with an elastic IP
+	{
+		echo Zend_Json::encode(array(
+			'success'	=> true,
+			'instances' => $this->amazon->get_short_instances_list()
+		));
+	}
+
+	function associateElasticIpAction()
+	{
+		$request = $this->getRequest();
+		echo Zend_Json::encode(array(
+			'success'	=> $this->amazon->associate_ip(
+				$request->getParam('instance_id'),
+				$request->getParam('address')
+			)
+		));
+	}
+
+	function disassociateAddressAction()
+	{
+		$request = $this->getRequest();
+		echo Zend_Json::encode(array(
+			'success'	=> $this->amazon->disassociate_ip($request->getParam('address'))
+		));
+	}
+
+	function releaseAddressesAction()
+	{
+		$request = $this->getRequest();
+		$ips = Zend_Json::decode($request->getParam('addresses'));
+
+		echo Zend_Json::encode(array(
+			'success'	=> $this->amazon->release_ip($ips)
+		));
 	}
 
 }

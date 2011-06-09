@@ -5,15 +5,14 @@ var Elastic_IPs = function(){
 			id: 'associate',
 			text: 'Associate',
 			handler: function(item){
-				var address = menu.selected_record.get('address');
+				var address = menu.selected_record.get('address'),
+					modal_window = associator.up('window');
 				menu.hide();
 				associator.getForm().reset().setValues({
 					address: address
 				});
-				modal_window
-					.setTitle('Associate server with an IP address ' + address)
-					.setSize(370, 102).show().center()
-					.getLayout().setActiveItem('elastic_ip_associator');					
+				modal_window.setTitle('Associate server with an IP address ' + address);
+				modal_window.show().center();
 			}
 		}, {
 			id: 'disassociate',
@@ -44,7 +43,7 @@ var Elastic_IPs = function(){
 							response = Ext.decode(response.responseText);
 							var s = response.success;
 							Ext.Msg.alert(title, s ? success : response.error_message || error);
-							ip_store.reload();
+							ip_store.load();
 						},
 						failure: function(){
 							Ext.Msg.alert(title, error);
@@ -81,7 +80,7 @@ var Elastic_IPs = function(){
 							response = Ext.decode(response.responseText);
 							var s = response.success;
 							Ext.Msg.alert(title, s ? success : response.error_message || error);
-							ip_store.reload();
+							ip_store.load();
 						},
 						failure: function(){
 							Ext.Msg.alert(title, error);
@@ -93,28 +92,45 @@ var Elastic_IPs = function(){
 		selected_record: null
 	});
 	
-	var associator = new Ext.FormPanel({
-		id: 'elastic_ip_associator',
-		labelWidth: 60,
-		frame: true,
+	Ext.define('Short_instance_list', {
+		extend: 'Ext.data.Model',
+		fields: [
+			{name: 'instance_id',	type: 'string'},
+			{name: 'instance_name',	type: 'string'}
+		]
+	});
+	
+	var associator = Ext.create('Ext.form.Panel', {
 		url: '/amazon/associate_elastic_ip',
-		monitorValid: true,
+		frame: true,
+		baseCls: 'x-plain',
+		border: false,
+		height: 60,
+		minHeight: 60,
+		pollForChanges: true,
+		
 		items: [{
 			xtype: 'combo',
-			width: 250,
-			fieldLabel: 'Instance',
+			anchor: '100%',
+			labelWidth: 80,
+			fieldLabel: 'Server',
 			allowBlank: false,
 			editable: false,
-			store: new Ext.data.JsonStore({
-				url: '/amazon/get_short_instances_list',
-				successProperty: 'success',
-				root: 'instances',
-				fields: ['instance_id', 'instance_name']
+			store: Ext.create('Ext.data.Store', {
+				model: 'Short_instance_list',
+				proxy: {
+					type: 'ajax',
+					url: '/amazon/get_short_instances_list',
+					reader: {
+						type: 'json',
+						root: 'instances'
+					},
+					
+				},
 			}),
-			mode: 'remote',
+			queryMode: 'remote',
 			name: 'instance_name',
 			displayField: 'instance_name',
-			hiddenName: 'instance_id', // POST-var name
 			valueField: 'instance_id', // POST-var value
 			emptyText: 'Select a server to associate',
 			forceSelection: true,
@@ -133,13 +149,14 @@ var Elastic_IPs = function(){
 					error = 'A problem has occured while associating an IP address',
 					name = associator.getForm().getFieldValues().name;
 
-				modal_window.hide();
-				Ext.Msg.wait('The IP address is being associated', title);
-				associator.getForm().submit({
+				this.up('window').hide();
+				this.up('form').getForm().submit({
+					waitTitle: title,
+					waitMsg: 'The IP address is being associated',
 					success: function(form, action){
 						var s = action.result.success;
 						Ext.Msg.alert(title, s ? success : error, function(){
-							ip_store.reload();
+							ip_store.load();
 						});
 					},
 					failure: function(form, action){
@@ -150,18 +167,20 @@ var Elastic_IPs = function(){
 		}, {
 			text: 'Cancel',
 			handler: function(){
-				modal_window.hide();
+				this.up('window').hide();
 			}
 		}]
 	});
 
-	var modal_window = new Ext.Window({
+	Ext.create('Ext.window.Window', {
 		title: 'Associate an elastic IP',
-		layout: 'card',
+		layout: 'fit',
 		closeAction: 'hide',
 		items: associator,
-		activeItem: 0,
-		border: false,
+		width: 370,
+		minWidth: 300,
+		plain: 'true',
+		bodyStyle: 'padding:5px;',
 		modal : true
 	});
 
@@ -198,11 +217,11 @@ var Elastic_IPs = function(){
 				store: ip_store,
 				selModel: checkbox_sm,
 				columns: [
-					{text: "Address", dataIndex: 'address', width: 100},
-					{text: "Server", dataIndex: 'instance', width: 120, renderer: function(value){
+					{text: "Address", dataIndex: 'address', width: 150},
+					{text: "Server", dataIndex: 'instance', width: 200, renderer: function(value){
 						return value || '<i>not associated</i>';
 					}},
-					{text: 'Test address', dataIndex: 'address', width: 100, renderer: function(value){
+					{text: 'Test address', dataIndex: 'address', width: 150, renderer: function(value){
 						return '<a target="_blank" href="http://' + value + '/">' + value + '</a>';
 					}},
 					{text: "Link to server", dataIndex: 'instance_dns', flex: 1, renderer: function(value){
@@ -218,8 +237,8 @@ var Elastic_IPs = function(){
 						var associated = !!record.get('instance');
 						
 						menu.selected_record = record;	
-						menu.get('disassociate').setDisabled(!associated);
-						menu.get('release').setDisabled(associated);
+						menu.down('#disassociate').setDisabled(!associated);
+						menu.down('#release').setDisabled(associated);
 						
 						e.preventDefault();				
 						menu.showAt(e.getXY());
@@ -248,7 +267,8 @@ var Elastic_IPs = function(){
 									method: 'POST',
 									success: function(response){
 										response = Ext.decode(response.responseText);
-										var s = response.success;
+										var s = response.success,
+											modal_window = associator.up('window');
 										Ext.Msg.alert(title, s ? success : response.error_message || error, function(){
 											if(!s) return false;
 											// view the association dialogue if things went fine
@@ -256,12 +276,10 @@ var Elastic_IPs = function(){
 											associator.getForm().reset().setValues({
 												address: address
 											});
-											modal_window
-												.setTitle('Associate a server with an IP address ' + address)
-												.setSize(370, 102).show().center()
-												.getLayout().setActiveItem('elastic_ip_associator');
+											modal_window.setTitle('Associate a server with an IP address ' + address);
+											modal_window.show().center();
 										});
-										ip_store.reload();
+										ip_store.load();
 									},
 									failure: function(){
 										Ext.Msg.alert(title, error);
@@ -275,12 +293,12 @@ var Elastic_IPs = function(){
 						cls: 'x-btn-text-icon',
 						iconCls: 'terminate',
 						handler: function(){
-							var selected = checkbox_sm.getSelections(), ips = [],
+							var selected = checkbox_sm.getSelection(), ips = [],
 								title = 'Release elastic IP addresses',
 								success = 'Selected elastic IPs address have been successfully released',
 								error = 'A problem has occurred when releasing one or more of the selected elastic IP addresses';
 		
-							if(!checkbox_sm.getCount())
+							if(selected.length === 0)
 							{
 								Ext.Msg.alert('Warning', 'Please select some addresses to perform the action');
 								return false;
@@ -289,7 +307,7 @@ var Elastic_IPs = function(){
 							Ext.MessageBox.confirm(title, 'Are you sure you want to release selected elastic IP addresses?', function(button){
 								if(button !== 'yes') return false;
 								for(var i = selected.length; i--;) ips.push(selected[i].data.address);
-		
+
 								Ext.Msg.wait('IP adresses are being released', title);
 								Ext.Ajax.request({
 									url: 'amazon/release_addresses',
@@ -297,7 +315,7 @@ var Elastic_IPs = function(){
 									success: function(response){
 										var r = Ext.decode(response.responseText), s = r.success;
 										Ext.Msg.alert(title, s ? success : response.error_message || error);
-										ip_store.reload();
+										ip_store.load();
 									},
 									failure: function(){
 										Ext.Msg.alert(title, error);
@@ -311,7 +329,7 @@ var Elastic_IPs = function(){
 						cls: 'x-btn-text-icon',
 						iconCls: 'restart',
 						handler: function(){
-							ip_store.reload();
+							ip_store.load();
 						}
 					}]
 				}]

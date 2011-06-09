@@ -240,7 +240,7 @@ var Instances = function(){
 	});
 	
 	
-	var instances_menu = new Ext.menu.Menu({
+	var instances_menu = Ext.create('Ext.menu.Menu', {
 		id: 'running_instances_menu',
 		items: [{
 			text: 'Connect',
@@ -273,11 +273,7 @@ var Instances = function(){
 									+ '&provider=' + params.provider
 									+ '&login_user=' + params.login_user
 									+ '&key_name=' + params.username || 'default';
-								if(iframes.getCount() !== 0)
-								{
-									iframes.get(0).destroy;
-									iframes.removeAll();
-								}
+								if(iframes.getCount() !== 0) iframes.clear();
 								iframes.add(Ext.create('Ext.Component', {
 									autoEl: {
 										tag: 'iframe',
@@ -463,7 +459,7 @@ var Instances = function(){
 					}
 				},
 				columns: [
-					{text: "Name", dataIndex: 'name', width: 150, renderer: function(value, metadata, record){
+					{text: "Name", dataIndex: 'name', width: 200, renderer: function(value, metadata, record){
 						if(record.data.state !== 'running') metadata.css = 'grid-loader';
 						return value;
 					}},
@@ -726,6 +722,10 @@ var Instances = function(){
 				title: 'Servers that have previously been terminated',
 				layout: 'fit',
 				store: store.terminated,
+				viewConfig: {
+					emptyText: '<p style="text-align: center">You do not have any terminated server so far</p>',
+					loadingText: undefined
+				},
 				columns: [
 					{text: "Name", dataIndex: 'name', flex: 1},
 					{text: "Provider", dataIndex: 'provider', width: 100},
@@ -734,10 +734,6 @@ var Instances = function(){
 				],
 				listeners: {
 					activate: Helpers.first_time_loader
-				},
-				viewConfig: {
-					emptyText: '<p style="text-align: center">You do not have any terminated server so far</p>',
-					loadingText: undefined
 				},
 				dockedItems: [{
 					xtype: 'toolbar',

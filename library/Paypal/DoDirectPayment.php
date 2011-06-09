@@ -51,8 +51,8 @@ class Paypal_DoDirectPayment
 	
 	private function CheckMoney($amount)
 	{
-		$amount = (int)$amount;
-		if(is_int($amount))
+		$amount = floatval($amount);
+		if(is_float($amount))
 		{
 			if($amount < $this->minMoneyAmount)
 			{
