@@ -30,7 +30,7 @@ var Account = function(){
 			passwords: create_page({
 				id: 'account_password',
 				title: 'Password management',
-				src: '/account/password'
+				src: '/profile/account_password'
 			})
 		}
 	}

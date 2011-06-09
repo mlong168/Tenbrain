@@ -15,6 +15,10 @@ class ProfileController extends Zend_Controller_Action
 		if(!$this->_acl->isUserAllowed('Console','view'))
 			$this->_redirect("account/sign_in");
 		$this->user = Zend_Auth::getInstance()->getIdentity();
+		
+		$helper = $this->_helper->getHelper('Layout');
+		$this->layout =$helper->getLayoutInstance();
+		$this->layout->disableLayout();
 	}
 
     public function indexAction ()
