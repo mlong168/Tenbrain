@@ -1,5 +1,5 @@
 var Transferer = function(){
-	
+
 	// function to be used as a submit button handler to credentials form:
 	var submit_credentials = function(){
 		var title = 'Registering your credentials',
@@ -22,154 +22,28 @@ var Transferer = function(){
 			}
 		});
 	};
-	
-	var add_existing_credentials = function(form, items){
-		items.push({
-			xtype: 'button',
-			disabled: false,
-			anchor: 'r',
-			text: 'Delete this credentials and all its data',
-			handler: function(){
-				var fieldset = this.up('fieldset');
-				fieldset.setLoading(true);
-				setTimeout(function(){
-					fieldset.setLoading(false);
-					Ext.Msg.alert('API credentials removal', 'Your credentials have been removed successfully', function(){
-						fieldset.collapse().disable();
-					})
-				}, 200);
-			}
-		});
-		var fieldset = Ext.create('Ext.form.FieldSet', {
-			checkboxToggle: true,
-			title: 'Existing credentials',
-			defaultType: 'textfield',
-			collapsed: true,
-			layout: 'anchor',
-			defaults: {
-				labelWidth: 70,
-			    anchor: '100%',
-			    disabled: true
-			},
-			items: items
-		});
-		var form_relayout = function(){
-			form.doLayout()
-		};
-		fieldset.checkboxCmp.addListener('change', form_relayout);
-		fieldset.addListener('destroy', form_relayout);
-		form.items.insert(form.items.length - 1, fieldset);
-		form_relayout();
-	}
-	
+
 	var amazon_credentials_form = Ext.create('Ext.form.Panel', {
-		id: 'amazon_credentials_form',
 		title: 'Amazon',
 		url: '/amazon/set_user_credentials',		
 		buttonAlign: 'center',
 		baseCls: 'x-plain',
 		autoHeight: true,
+		pollForChanges: true,
 		defaults: {
+			labelWidth: 70,
 			xtype: 'textfield',
 			allowBlank: false
 		},
 		items: [{
-			xtype: 'fieldset',
-			collapsible: true,
-			title: 'Enter new API credentials',
-			defaultType: 'textfield',
-			layout: 'anchor',
-			defaults: {
-				labelWidth: 70,
-			    anchor: '100%',
-			    allowBlank: false
-			},
-			items: [{
-				fieldLabel: 'Key',
-				name: 'key'
-			}, {
-				fieldLabel: 'Secret Key',
-				name: 'secret_key'
-			}, {
-				xtype: 'button',
-				text: 'Submit',
-				anchor: '15%',
-				handler: function(){
-					var form = this.up('form'), fieldset = this.up('fieldset');
-					form.setLoading(true);
-					Ext.Ajax.request({
-						url: 'amazon/set_user_api_credentials',
-						success: function(response){
-							form.setLoading(false);
-							response = Ext.decode(response.responseText);
-							if(!response.success) return false;
-							add_existing_credentials(form, [{
-									fieldLabel: 'Key',
-									name: 'key',
-									// value: fieldset.items.get('key').value
-									value: 'fieldset.items.get().value'
-								}, {
-									fieldLabel: 'Secret Key',
-									name: 'secret_key',
-									value: 'fkjlkdsfjlkds'
-								}]);
-			
-						},
-						failure: function(){
-							form.setLoading(false);
-						}
-					})
-				}
-			}, {
-				xtype: 'button',
-				text: 'Reset',
-				anchor: '15%'
-			}]
-		}]
-	});
-	
-	amazon_credentials_form.addListener('activate', function(){
-		var form = this;
-		form.setLoading(true);
-		Ext.Ajax.request({
-			url: 'amazon/get_user_api_credentials',
-			success: function(response){
-				form.setLoading(false);
-				response = Ext.decode(response);
-				if(!response.success) return false;
-				var credentials = response.credentials;
-				if(typeof credentials !== undefined && credentials.length !== 0)
-				{
-					add_existing_credentials(form, [{
-							fieldLabel: 'Key',
-							name: 'key',
-							value: credentials.key
-						}, {
-							fieldLabel: 'Secret Key',
-							name: 'secret_key',
-							value: credentials.secret_key
-						}]);
-				}
-
-			},
-			failure: function(){
-				form.setLoading(false);
-			}
-		})
-	})
-	
-	
-	var rackspace_credentials_form = Ext.create('Ext.form.Panel', {
-		title: 'Rackspace',
-		url: '/rackspace/set_user_credentials',		
-		buttonAlign: 'center',
-		baseCls: 'x-plain',
-		defaults: {
-			xtype: 'textfield',
-			anchor: '100%',
-			labelWidth: 70,
-			allowBlank: false
-		},
+			width: 300,
+			fieldLabel: 'Key',
+			name: 'key'
+		}, {
+			width: 400,
+			fieldLabel: 'Secret Key',
+			name: 'secret_key'
+		}],
 
 		buttons: [{
 			text: 'Proceed',
@@ -177,30 +51,41 @@ var Transferer = function(){
 			handler: submit_credentials
 		}, {
 			text: 'Cancel',
-			handler: function(){ this.up('window').hide(); }
+			handler: function(){ credentials_dialogue.hide(); }
 		}]
 	});
-	
-	
-	// add_togglable_fieldSet(rackspace_credentials_form, 'Existing credentials', [{
-			// fieldLabel: 'Username',
-			// name: 'username',
-			// disabled: true
-		// }, {
-			// fieldLabel: 'API Key',
-			// name: 'key',
-			// value: 'kfjlkgkjfskfsjglks',
-			// disabled: true
-		// }]);
-// 	
-	// add_togglable_fieldSet(rackspace_credentials_form, 'Enter new API credentials', [{
-			// fieldLabel: 'Username',
-			// name: 'username',
-		// }, {
-			// fieldLabel: 'API Key',
-			// name: 'key',
-		// }], false);
-	
+
+	var rackspace_credentials_form = Ext.create('Ext.form.Panel', {
+		title: 'Rackspace',
+		url: '/rackspace/set_user_credentials',		
+		buttonAlign: 'center',
+		baseCls: 'x-plain',
+		pollForChanges: true,
+		defaults: {
+			xtype: 'textfield',
+			labelWidth: 70,
+			allowBlank: false
+		},
+		items: [{
+			width: 200,
+			fieldLabel: 'Username',
+			name: 'username',
+		}, {
+			width: 300,
+			fieldLabel: 'API Key',
+			name: 'key',
+		}],
+
+		buttons: [{
+			text: 'Proceed',
+			formBind: true,
+			handler: submit_credentials
+		}, {
+			text: 'Cancel',
+			handler: function(){ credentials_dialogue.hide(); }
+		}]
+	});
+
 	var gogrid_credentials_form = Ext.create('Ext.form.Panel', {
 		title: 'GoGrid',
 		url: '/gogrid/set_user_credentials',		
@@ -230,9 +115,9 @@ var Transferer = function(){
 			handler: function(){ credentials_dialogue.hide(); }
 		}]
 	});
-	
+
 	var credentials_dialogue = Ext.create('Ext.window.Window', {
-		title: 'Your personal cloud account manager',
+		title: 'Cloud account credentials manager',
 		layout: 'fit',
 		width: 450,
 		minWidth: 400,
@@ -246,11 +131,7 @@ var Transferer = function(){
 			items: [amazon_credentials_form, rackspace_credentials_form, gogrid_credentials_form]
 		})
 	});
-	
-// Ext.onReady(function(){
-	// credentials_dialogue.show();
-// })
-	
+
 	Ext.define('Account_types', {
 		extend: 'Ext.data.Model',
 		fields: [
@@ -258,7 +139,7 @@ var Transferer = function(){
 			{name: 'description',	type: 'string'}
 		]
 	});
-	
+
 	var type_switcher = Ext.create('Ext.form.Panel', {
 		url: '/control_panel/change_user_account_type',
 		baseCls: 'x-plain',
@@ -300,7 +181,7 @@ var Transferer = function(){
 				var title = 'Account type change',
 					success = 'The type of your account has been successfully changed',
 					error = 'A problem has occurred while changing the type of your account';
-					
+
 				this.up('window').hide();
 				this.up('form').getForm().submit({
 					waitTitle: title,
@@ -320,7 +201,7 @@ var Transferer = function(){
 			}
 		}]
 	});
-	
+
 	Ext.create('Ext.window.Window', {
 		title: 'Change your account type',
 		layout: 'fit',
@@ -332,7 +213,7 @@ var Transferer = function(){
 		plain: 'true',
 		modal : true
 	});
-	
+
 	return {
 		manage_credentials: function(){
 			credentials_dialogue.show();
@@ -347,7 +228,7 @@ Ext.onReady(function(){
 	Ext.get('cloud_account_manager').addListener('click', function(){
 		Transferer.manage_credentials();
 	});
-	
+
 	Ext.get('account_type_changer').addListener('click', function(){
 		Transferer.manage_account_type();
 	});
