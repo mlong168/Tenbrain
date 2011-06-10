@@ -22,10 +22,33 @@ var Transferer = function(){
 			}
 		});
 	};
+	
+	var update_credentials = function(){
+		var panel = this,
+			form = panel.getForm(),
+			provider = panel.title.toLowerCase();
+		panel.setLoading(true);
+		Ext.Ajax.request({
+			url: '/' + provider + '/get_user_api_credentials',
+			success: function(response){
+				var fields = {
+					first: provider === 'rackspace' ? 'username' :'key',
+					second: provider === 'rackspace' ? 'key' :'secret_key'
+				};
+				panel.setLoading(false);
+				response = Ext.decode(response.responseText);
+				if(response.success)
+				{
+					form.findField(fields.first).setValue(response[fields.first]).setDisabled(true);
+					form.findField(fields.second).setValue(response[fields.second]).setDisabled(true);
+				}
+			}
+		})
+	}
 
 	var amazon_credentials_form = Ext.create('Ext.form.Panel', {
 		title: 'Amazon',
-		url: '/amazon/set_user_credentials',		
+		url: '/amazon/set_user_api_credentials',		
 		buttonAlign: 'center',
 		baseCls: 'x-plain',
 		autoHeight: true,
@@ -33,14 +56,16 @@ var Transferer = function(){
 		defaults: {
 			labelWidth: 70,
 			xtype: 'textfield',
-			allowBlank: false
+			allowBlank: false,
+			anchor: '100%'
+		},
+		listeners: {
+			activate: update_credentials
 		},
 		items: [{
-			width: 300,
 			fieldLabel: 'Key',
 			name: 'key'
 		}, {
-			width: 400,
 			fieldLabel: 'Secret Key',
 			name: 'secret_key'
 		}],
@@ -65,6 +90,9 @@ var Transferer = function(){
 			xtype: 'textfield',
 			labelWidth: 70,
 			allowBlank: false
+		},
+		listeners: {
+			activate: update_credentials
 		},
 		items: [{
 			width: 200,
@@ -95,6 +123,9 @@ var Transferer = function(){
 			xtype: 'textfield',
 			labelWidth: 70,
 			allowBlank: false
+		},
+		listeners: {
+			activate: update_credentials
 		},
 		items: [{
 			width: 200,
