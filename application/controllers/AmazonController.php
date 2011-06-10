@@ -58,14 +58,35 @@ class AmazonController extends Zend_Controller_Action
 	
 	public function setUserApiCredentialsAction()
 	{
-		echo Zend_Json::encode(array('success' => true));
-		return true;
 		$request = $this->getRequest();
 		$key = $request->getParam('key');
 		$secret_key = $request->getParam('secret_key');
 		
 		$amazon_model = new Application_Model_Provider_Amazon();
 		$amazon_model->set_user_aws_credentials($key, $secret_key);
+		
+		echo Zend_Json::encode(array('success' => true));
+		return true;
+	}
+	
+	public function getUserApiCredentialsAction()
+	{
+		$amazon_model = new Application_Model_Provider_Amazon();
+		$credentials = $amazon_model->get_user_aws_credentials();
+		if($credentials)
+		{
+			echo Zend_Json::encode(array(
+				'success'	=> true,
+				'key'		=> $credentials['key'],
+				'secret_key'=> $credentials['secret_key']
+			));
+		}
+		else
+		{
+			echo Zend_Json::encode(array('success' => false));
+		}
+		
+		return true;
 	}
 
 	function elasticIpsAction()

@@ -43,9 +43,9 @@ class PayController extends Zend_Controller_Action
     public function amountAction()
     {
     	$this->isAutorized();
-    	$payment_type = $this->getRequest()->getParam('type');
+    	$payment_method = $this->getRequest()->getParam('type');
     	
-    	if($payment_type != 'onetime')
+    	if($payment_method != 'onetime')
     	{
     		$this->_helper->Redirector->gotoUrl('pay');
     	}
@@ -54,22 +54,34 @@ class PayController extends Zend_Controller_Action
     	$this->view->form = $form;
     	
     	if ($this->getRequest()->isPost())
-		{
-			$params = $this->getRequest()->getParams();
-			if($this->view->form->isValid($params))
 			{
-				$amount = $params['money_amount'];
-				if ($amount < $this->minMoneyAmount)
+				$params = $this->getRequest()->getParams();
+				if($this->view->form->isValid($params))
 				{
-					$amount = $this->minMoneyAmount;
+					//$amount = $params['money_amount'];
+					if($params['payment_type'] == "ten_up")
+					{
+						$amount = $params['tenup_amount'];
+					}
+					else
+					{
+						$payment_type_role = new Application_Model_DbTable_PaymentTypeRole;
+						$curr_payment_type = $payment_type_role->getPaymentType($params['payment_type']);
+						
+						$amount = $curr_payment_type->price;
+					}
+					
+					/*if ($amount < $this->minMoneyAmount)
+					{
+						$amount = $this->minMoneyAmount;
+					}*/
+					$this->_helper->Redirector->gotoUrl('pay/creditcard/amount/'.$amount.'/paytype/'.$params['payment_type']);
 				}
-				$this->_helper->Redirector->gotoUrl('pay/creditcard/amount/'.$amount);
+				else
+				{
+					$this->view->errorElements = $this->view->form->getMessages();
+				}
 			}
-			else
-			{
-				$this->view->errorElements = $this->view->form->getMessages();
-			}
-		}
     }
     
     
@@ -78,13 +90,14 @@ class PayController extends Zend_Controller_Action
     	$this->isAutorized();
     	
     	$amount = $this->getRequest()->getParam('amount');
-    	if( !(isset($amount) && $amount >= $this->minMoneyAmount) )
+			$payment_type = $this->getRequest()->getParam('paytype');
+    	/*if( !(isset($amount) && $amount >= $this->minMoneyAmount) )
     	{
     		$this->_helper->Redirector->gotoUrl('pay');
-    	}
+    	}*/
     	
     	
-		$form = new Paypal_Form_Creditcard($amount);
+		$form = new Paypal_Form_Creditcard($amount, $payment_type);
 		$this->view->form = $form;
 		
 		if ($this->getRequest()->isPost())

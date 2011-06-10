@@ -3,13 +3,12 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<?php echo $this->headTitle() ?>
-	<?php echo $this->headLink()->appendStylesheet('/css/main.css') ?>
-	<?php echo $this->headLink()->appendStylesheet('/css/account.css') ?>
-	<?php echo $this->headLink()->appendStylesheet('/css/ext4/resources/css/ext-all.css') ?>
+	<?php $this->headLink()->appendStylesheet('/css/main.css') ?>
+	<?php $this->headLink()->appendStylesheet('/css/account.css') ?>
+	<?php $this->headLink()->appendStylesheet('/css/ext4/resources/css/ext-all.css') ?>
 	<?php echo $this->headLink()->appendStylesheet('/css/icons.css') ?>
 
 	<?php $lt = $this->layout() ?>
-	
 	<script type="text/javascript">
 		var active_menu_item = '<?php echo $lt->active_menu_item ?>';
 		var account_type = '<?php echo $lt->account_type ?>';

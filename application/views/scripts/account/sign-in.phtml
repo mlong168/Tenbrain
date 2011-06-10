@@ -1,34 +1,37 @@
 <div class="main big_content">
 	<div class="reg_form">
-		<h2>Sign In</h2>
 		<form action="" method="post" accept-charset="utf-8" class="account_form signin">			
-			<h3>Sign in with your TenBrain Account</h3>
+			<h3>Sign in with your TenBrain <br> Account</h3>
 
-				<p class="input_wrapper">
+				<p class="text_input_wrapper">
 					<label for="login">Username/Email</label>				
 					<?php echo $this->form->login; ?>
 				</p>
 				
-				<p class="input_wrapper">
+				<p class="text_input_wrapper">
 					<label for="password">Password</label>				
 					<?php echo $this->form->password; ?>
 				</p>
 
 				<p class="input_wrapper center account_error"></p>
 				
-				<p class="input_wrapper">
-					<?php echo $this->form->remember; ?>				
-					<label for="remember">Remember me</label>
-					<?php echo $this->form->submit; ?>			
-				</p>
+				<div class="sign_in_settings">
+					<div class="remember_forgot">
+						<?php echo $this->form->remember; ?>				
+						<label for="remember">Remember me</label>
+						<a href="/account/forgot_password" class="blue underlined_dash forgot">Forgot your password?</a>
+						</div>
+					<div class="sign_in_button">
+						<?php echo $this->form->submit; ?>			
+					</div>
+					
+					<div class="no_account">
+						<div class="no_account_text">Don't have an account?</div>
+						<a href="/account/sign_up" class="blue underlined_dash">Sign up now</a>			
+					</div>
+				</div>
 				
-				<p class="input_wrapper center">
-					<a href="/account/forgot_password" class="blue underlined_dash">Forgot your password?</a>			
-				</p>
 				
-				<p class="input_wrapper center">
-					Don't have an account? <a href="/account/sign_up" class="blue underlined_dash">Sign up now</a>			
-				</p>
 
 		</form>	
 	</div>

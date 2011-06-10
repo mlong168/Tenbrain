@@ -36,11 +36,11 @@ class Application_Model_Balancer
 
 	public function delete_load_balancer($load_balancer_id)
 	{
-		$this->cassie->use_column_families(array('USER_DELETED_LOADBALANCERS', 'USER_LOADBALANCERS'));
+		$this->cassie->use_column_families(array('USER_DELETED_LOADBALANCERS', 'USER_LOADBALANCERS', 'USER_LOADBALANCER_SERVERS'));
 		
-		$this->cassie->USER_DELETED_LOADBALANCERS->insert($this->user_id, 
-			array($load_balancer_id => ''));
+		$this->cassie->USER_DELETED_LOADBALANCERS->insert($this->user_id, array($load_balancer_id => ''));
 		$this->cassie->USER_LOADBALANCERS->remove($this->user_id, array($load_balancer_id));
+		$this->cassie->USER_LOADBALANCER_SERVERS->remove($load_balancer_id);
 	}
 	
 	public function get_user_load_balancer($load_balancer_id)
@@ -87,7 +87,7 @@ class Application_Model_Balancer
 		$balancers = $this->cassie->USER_LOADBALANCERS->get($this->user_id);
 		if(!empty($balancers))
 		{
-			$balancer_servers = $this->cassie->USER_LOADBALANCER_SERVERS->multiget($balancers);
+			$balancer_servers = $this->cassie->USER_LOADBALANCER_SERVERS->multiget(array_keys($balancers));
 			foreach($balancer_servers as $bs) $balanced_servers = array_merge($balanced_servers, array_keys($bs));
 		}
 		

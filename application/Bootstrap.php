@@ -32,7 +32,7 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
 							  'bug_compat_warn' => '',
 							  'cache_expire' => '180',
 							  'cache_limiter' => 'nocache',
-							  'cookie_domain' => '',
+							  'cookie_domain' => '.tenbrain.com',
 							  'cookie_httponly' => '',
 							  'cookie_lifetime' => $config['lifetime'],
 							  'cookie_path' => '/',
@@ -108,7 +108,7 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
 				'action'		=> 'details'
 		)));
 		
-		$hostRoute = new Zend_Controller_Router_Route_Hostname('payment.tenbrain.com', 
+		$hostRoute = new Zend_Controller_Router_Route_Hostname('payments.tenbrain.com', 
         array(
             'controller' => 'pay',
             'action' => 'index'

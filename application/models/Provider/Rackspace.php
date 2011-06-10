@@ -11,15 +11,11 @@ class Application_Model_Provider_Rackspace extends Application_Model_Provider
 	private $rack;
 	private $storage;
 	
-	private $user_id;
-	
 	function __construct(){
 		parent::__construct();
 		
 		$this->name = 'Rackspace';
 		$this->storage = new Application_Model_Servers();
-		
-		$this->user_id = Zend_Auth::getInstance()->getIdentity()->id;
 		
 		$rack_credentials = new Application_Model_DbTable_Credentials_Rackspace();
 		$credentials = $rack_credentials->get_credentials($this->user_id);
@@ -289,7 +285,7 @@ class Application_Model_Provider_Rackspace extends Application_Model_Provider
 		return true;
 	}
 	
-	public function delete_load_balancer($id)
+	public function delete_load_balancer($id, $tb_id)
 	{
 		
 	}

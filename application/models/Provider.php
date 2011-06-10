@@ -3,10 +3,17 @@
 abstract class Application_Model_Provider
 {
 	public $name;
+	protected $user_id;
 	protected $account_server_count_limits = array();
 	
 	protected function __construct()
 	{
+		$auth = Zend_Auth::getInstance()->getIdentity();
+		if(!$auth)
+		{
+			$this->die_with_error('Please relogin');
+		}
+		$this->user_id = $auth->id;
 		$this->account_server_count_limits = $this->load_account_server_count_limits();
 	}
 	
@@ -69,5 +76,5 @@ abstract class Application_Model_Provider
 	abstract public function modify_server($provider_server_id, $new_type, $tb_server_id, $all_params);
 	
 	abstract public function create_load_balancer($name, array $instances, $gogrid_lb_address);
-	abstract public function delete_load_balancer($id);
+	abstract public function delete_load_balancer($id, $tb_id);
 }

@@ -1,18 +1,3 @@
-Ext.Loader.setConfig({enabled: true});
-
-Ext.require([
-    'Ext.tip.QuickTipManager',
-    'Ext.container.Viewport',
-    'Ext.layout.*',
-    'Ext.form.Panel',
-    'Ext.form.Label',
-    'Ext.grid.*',
-    'Ext.data.*',
-    'Ext.tree.*',
-    'Ext.selection.*',
-    'Ext.tab.Panel'
-]);
-
 Ext.onReady(function(){
 	
 	Ext.tip.QuickTipManager.init();
@@ -38,6 +23,7 @@ Ext.onReady(function(){
 	pages.push(welcome);
 	
 	add_pages([Instances, Images, Snapshots, Account]);
+	var account_type = 'premium'
 	if(account_type === 'premium')
 	{
 		add_pages([Load_balancers, Elastic_IPs]);

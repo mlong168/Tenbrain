@@ -24,6 +24,11 @@ class ConsoleController extends Zend_Controller_Action
 		
 		$scripts = array(
 			'extjs4/ext-all-debug',
+			'ux/layout/component/form/MultiSelect',
+			'ux/layout/component/form/ItemSelector',
+			'ux/form/MultiSelect',
+			'ux/form/ItemSelector',
+			
 			'cp/instances',
 			'cp/images',
 			'cp/snapshots',

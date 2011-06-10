@@ -11,7 +11,6 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 
 	private $ec2;
 	private $storage;
-	private $user_id;
 	
 	private $available_types = array(
 		't1.micro',
@@ -33,7 +32,6 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 		parent::__construct();
 		
 		$this->name = 'Amazon';
-		$this->user_id = Zend_Auth::getInstance()->getIdentity()->id;
 		$this->storage = new Application_Model_Servers();
 		$this->ec2 = new AmazonEC2(self::TENBRAIN_API_KEY, self::TENBRAIN_API_SECRET);
 	}
@@ -48,6 +46,11 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 	
 	public function set_user_aws_credentials($key, $secret_key)
 	{
+		$existing = $this->get_user_aws_credentials();
+		if(!empty($existing))
+		{
+			$this->die_with_error("You have already entered your credentials");
+		}
 		$aws_userid = $this->get_aws_userid($key, $secret_key);
 		if(!$aws_userid)
 		{
@@ -632,34 +635,33 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 			)
 		), 'us-east-1d');
 		$this->test_response($response);
-		
 		$balancer_model = new Application_Model_Balancer();
 		$lb_id = $balancer_model->add_load_balancer(array(
-			'name'		=> $name,
-			'provider'	=> $this->name,
+			'name'				=> $name,
+			'provider'			=> $this->name,
 			'provider_lb_id'	=> $name,
-			// other:
-			// ''	=> $,
+			'dns_name'			=> $response->body->CreateLoadBalancerResult->DNSName,
 		)); 
 		
-		if($this->register_instances_within_load_balancer($name, array_values($servers)))
+		$provider_server_ids = array_values($servers);
+		$tb_server_ids = array_keys($servers);
+		if($this->register_instances_within_load_balancer($name, $provider_server_ids))
 		{
-			$balancer_model->add_servers_to_lb($lb_id, array_keys($servers));
+			$balancer_model->add_servers_to_lb($lb_id, $tb_server_ids);
 		}
 
 		return true;
 	}
 	
-	public function delete_load_balancer($id)
+	public function delete_load_balancer($id, $tb_id)
 	{
-		$name = $provider_lb_id;
-		
+		$name = $id;
 		$elb = $this->get_elb_handle();
 		$response = $elb->delete_load_balancer($name);
 		$this->test_response($response);
 		
 		$balancer_model = new Application_Model_Balancer();
-		$balancer_model->delete_load_balancer($id);
+		$balancer_model->delete_load_balancer($tb_id);
 		
 		return true;
 	}

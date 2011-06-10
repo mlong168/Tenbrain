@@ -10,11 +10,13 @@ class Paypal_Form_Creditcard extends Zend_Form
 							'Amex' => 'American Express',
 	);
 	protected $amount;
+	protected $payment_type;
 	
-	public function __construct($amount = null)
+	public function __construct($amount = null, $payment_type = null)
 	{
 		parent::__construct(); 
-		$this->amount = round(($amount+0.3)/(1 - 0.029), 2);
+		$this->amount = round(($amount+0.3)/(1 - 0.029), 2); // include Paypal fees. $0.30 fixed fee + 2.90%
+		$this->payment_type = $payment_type;
 		$this->init();
 	}
 	
@@ -87,6 +89,9 @@ class Paypal_Form_Creditcard extends Zend_Form
         $cvv2->setAutoInsertNotEmptyValidator(false);
 		$this->setLabelDecorator($cvv2);
 		
+				$payment_type = $this->createElement('hidden', 'payment_type');
+				$payment_type->setValue($this->payment_type);
+		
         $signup = $this->createElement('submit', 'submit', array(
                             'class' => 'login_submit underlined_dash',
         ))
@@ -100,6 +105,7 @@ class Paypal_Form_Creditcard extends Zend_Form
                     $expMonth,
                     $expYear,
                     $cvv2,
+										$payment_type,
                     $signup,
         );
         
