@@ -112,8 +112,8 @@ class CommonController extends Zend_Controller_Action
 	
 	function restoreBackupToCorrespondingInstanceAction()
 	{
-		$backup_id = $this->getRequest()->getParam('backup_id');
-		$backup_model = new Application_Model_Backups();
+		$backup_id 		= $this->getRequest()->getParam('backup_id');
+		$backup_model 	= new Application_Model_Backups();
 
 		$_backup = $backup_model->get_backup_by_id($backup_id);
 		if(!$_backup)
@@ -124,17 +124,19 @@ class CommonController extends Zend_Controller_Action
 	
 	function restoreBackupToNewInstanceAction()
 	{
-		$backup_id = $this->getRequest()->getParam('backup_id');
-		$name = $this->getRequest()->getParam('name');
-		$server_type = $this->getRequest()->getParam('server_type');
-		$ip = $this->getRequest()->getParam('ip_address');
+		$backup_id 		= $this->getRequest()->getParam('backup_id');
+		$name 			= $this->getRequest()->getParam('name');
+		$server_type 	= $this->getRequest()->getParam('server_type');
+		$ip 			= $this->getRequest()->getParam('ip_address');
 		
 		$backup_model = new Application_Model_Backups();
 		$backup = $backup_model->get_backup_by_id($backup_id);
 		$settings = array('name' => $name, 'type' =>  $server_type, 'ip' => $ip);
 		$result = $this->providers[$backup['provider']]->restore_backup_to_new_server($backup_id, $settings);
 		
-		return $result ? $this->successfull_response('Snapshot has been deleted successfully') : $this->failure_response('Problem'); 
+		return $result 
+			? $this->successfull_response('Snapshot has been deleted successfully') 
+			: $this->failure_response('Problem'); 
 	}
 	
 	function deleteBackupAction()
@@ -161,10 +163,10 @@ class CommonController extends Zend_Controller_Action
 	{
 		$server_id = $this->getRequest()->getParam('server_id');
 		$server_model = new Application_Model_Servers();
-		$server = $server_model->get_servers_details(array($server_id), array('provider', 'provider_instance_id'));		
+		$server = $server_model->get_servers_details(array($server_id), array('provider', 'provider_server_id'));		
 		$server = $server[0];
 		
-		$backups = $this->providers[$server['provider']]->get_backups($server['provider'], $server['provider_instance_id']);
+		$backups = $this->providers[$server['provider']]->get_backups($server['provider'], $server['provider_server_id']);
 		
 		echo json_encode(array(
 			'success'	=> true,

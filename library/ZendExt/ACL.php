@@ -135,6 +135,25 @@ class ZendExt_ACL extends Zend_Acl
     public function isUserAllowed($resource, $permission) 
     { 
         return ($this->isAllowed($this->_user, $resource, $permission)); 
-    } 
+    }
+    
+	public function isUserAllowedCount($resource, $permission, $count) 
+    { 
+        $isAllowed = $this->isUserAllowed($resource, $permission);
+        if(!$isAllowed)
+        	return false;
+        
+        $role_id = $this->_getUserRoleId;
+        $permission = $this->_db->fetchAll(
+	        $this->_db->select()
+	            ->from('acl_resources')
+	            ->from('acl_permissions')
+	            ->where('acl_resources.resource = "' . $resource . '"')
+	            ->where('acl_permissions.role_id = "' . $role_id . '"')
+	            ->where('acl_permissions.permission = "' . $permission . '"')
+	            ->where('acl_permissions.count >= "' . $count . '"'));
+        
+         return $permission != null;
+    }
 }
 ?>

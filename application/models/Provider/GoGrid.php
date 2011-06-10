@@ -469,7 +469,7 @@ class Application_Model_Provider_GoGrid extends Application_Model_Provider
 		}
 		
 		$server_model = new Application_Model_Servers();
-		$server_model->remove_servers($server_ids);
+		$server_model->remove_servers(array_keys($server_ids));
 		
 		return true;
 	}

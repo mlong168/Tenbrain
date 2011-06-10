@@ -423,9 +423,7 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 		$backup_model = new Application_Model_Backups();
 		
 		$backup = $backup_model->get_backup_by_provider_id($provider_backup_id);
-		$server = $server_model->get_user_server_by_provider_id($backup['server_id']);
-
-		$response = $this->ec2->run_instances($server['image_id'], 1, 1, array(
+		$response = $this->ec2->run_instances($backup['image_id'], 1, 1, array(
 			'KeyName'		=> $this->get_user_key_pair(),
 			'InstanceType'	=> $type,
 
@@ -563,7 +561,7 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 		
 		$response = $this->ec2->describe_instances(array('InstanceId' => $server_id));
 		$this->test_response($response);
-
+		
 		$server = $response->body->instancesSet()->first();
 		if(!$server->count()) $this->die_with_error('The backup could not be created from an server yet');
 
@@ -590,7 +588,8 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 			'provider' => 'Amazon',
 			'description' => $description,
 		
-			'server_id' => $server_id
+			'server_id' => $server_id,
+			'image_id' => $image_id
 		);
 		
 		$backup_model->add_backup($backup_image);
