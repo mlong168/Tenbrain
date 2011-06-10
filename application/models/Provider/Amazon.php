@@ -46,6 +46,11 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 	
 	public function set_user_aws_credentials($key, $secret_key)
 	{
+		$existing = $this->get_user_aws_credentials();
+		if(!empty($existing))
+		{
+			$this->die_with_error("You have already entered your credentials");
+		}
 		$aws_userid = $this->get_aws_userid($key, $secret_key);
 		if(!$aws_userid)
 		{
