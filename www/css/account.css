@@ -10,8 +10,28 @@ h2, h3 {
 .account_form {
 	margin: 0 auto;
 }
-.account_form.signup{ width: 300px; }
+.account_form.signup{ width: 550px; }
 .account_form.signin{ width: 550px; }
+
+.signup .login_submit {
+	margin-left: 220px;
+}
+
+.have_account {
+	padding-left: 150px;
+	margin: 1em 0 0.2em 0;
+}
+.have_account a {
+	margin: 0;
+	padding-top: 3px;
+}
+
+.have_account_text {
+	color: #8e8e8e;
+	font-style: italic;
+	font-weight: bold;
+	font-size: 0.9em;
+}
 
 .input_wrapper {
 	/*text-align: right;*/

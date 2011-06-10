@@ -1,20 +1,19 @@
 <div class="main big_content">
 	<div class="reg_form">
-		<h2>Sign Up</h2>
-		<h3>Create your TenBrain Account</h3>
+		<h3>Create your TenBrain <br/ > Account</h3>
 		<form action="" method="post" accept-charset="utf-8" class="account_form signup">
-			<p class="input_wrapper">
-				<label for="username">Username</label>:
+			<p class="text_input_wrapper">
+				<label for="username">Username</label>
 				<?php echo $this->form->username; ?>
 			</p>
 
-			<p class="input_wrapper">
-				<label for="password">Password</label>:	
+			<p class="text_input_wrapper">
+				<label for="password">Password</label>
 				<?php echo $this->form->password; ?>
 			</p>
 
-			<p class="input_wrapper">
-				<label for="email">Email</label>:
+			<p class="text_input_wrapper">
+				<label for="email">Email</label>
 				<?php echo $this->form->email; ?>
 			</p>
 			
@@ -22,14 +21,14 @@
 				<?php echo $this->form->ReCaptcha; ?>
 			</div>
 
-			<p class="input_wrapper">
+			<div class="input_wrapper">
 				<?php echo $this->form->submit; ?>	
-			</p>
+			</div>
 		</form>
-		<p class="input_wrapper center">
-			Already have an account? 
+		<div class="have_account">
+			<div class="have_account_text">Already have an account?</div>
 			<a href="/account/sign_in" class="blue underlined_dash">Sign in now</a>
-		</p>
+		</div>
 	</div>
 	
 	<h3>Sign up with your account from:</h3>
