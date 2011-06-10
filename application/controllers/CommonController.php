@@ -119,7 +119,7 @@ class CommonController extends Zend_Controller_Action
 		if(!$_backup)
 			return $this->failure_response('Problem'); 
 		$backup = $this->providers[$_backup['provider']]->restore_backup_to_corresponding_server($backup_id);
-		return $backup ? $this->successfull_response('Snapshot has been deleted successfully') : $this->failure_response('Problem'); 
+		echo $backup ? $this->successfull_response('Snapshot has been deleted successfully') : $this->failure_response('Problem'); 
 	}
 	
 	function restoreBackupToNewInstanceAction()
@@ -134,7 +134,7 @@ class CommonController extends Zend_Controller_Action
 		$settings = array('name' => $name, 'type' =>  $server_type, 'ip' => $ip);
 		$result = $this->providers[$backup['provider']]->restore_backup_to_new_server($backup_id, $settings);
 		
-		return $result 
+		echo $result 
 			? $this->successfull_response('Snapshot has been deleted successfully') 
 			: $this->failure_response('Problem'); 
 	}

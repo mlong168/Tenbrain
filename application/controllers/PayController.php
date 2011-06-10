@@ -135,6 +135,8 @@ class PayController extends Zend_Controller_Action
     	$auth = Zend_Auth::getInstance();
   		if (!$auth->hasIdentity())
   		{
+			$redirect = new Zend_Session_Namespace('sign_in_redirect');
+			$redirect->url = 'http://payments.tenbrain.com';
   			$this->_helper->Redirector->gotoUrl('account/sign_in');
   		}
     }
