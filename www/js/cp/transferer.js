@@ -48,7 +48,7 @@ var Transferer = function(){
 
 	var amazon_credentials_form = Ext.create('Ext.form.Panel', {
 		title: 'Amazon',
-		url: '/amazon/set_user_api_credentials',		
+		url: '/amazon/set_user_api_credentials',
 		buttonAlign: 'center',
 		baseCls: 'x-plain',
 		autoHeight: true,
@@ -260,7 +260,7 @@ Ext.onReady(function(){
 		Transferer.manage_credentials();
 	});
 
-	Ext.get('account_type_changer').addListener('click', function(){
-		Transferer.manage_account_type();
-	});
+	// Ext.get('account_type_changer').addListener('click', function(){
+		// Transferer.manage_account_type();
+	// });
 });
