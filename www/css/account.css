@@ -3,20 +3,85 @@ h2, h3 {
 }
 
 .reg_form {
-	width: 500px;
-	margin: 0 auto;
+	width: 550px;
+	margin: 70px auto;
 }
 
 .account_form {
 	margin: 0 auto;
 }
 .account_form.signup{ width: 300px; }
-.account_form.signin{ width: 400px; }
+.account_form.signin{ width: 550px; }
 
 .input_wrapper {
-	text-align: right;
+	/*text-align: right;*/
 	padding: 0;
 	margin: 1em 0 0.2em 0;
+}
+
+.text_input_wrapper {
+	margin-top: 25px;
+}
+
+.text_input_wrapper label {
+	text-align: right;
+	float: left;
+	width: 150px;
+	padding-right: 5px;
+	padding-top:2px;
+	font-size: 0.95em;
+}
+
+.text_input_wrapper input {
+	background: url("/css/images/input_field.png") no-repeat scroll 0 0 transparent;
+	width: 300px !important;
+	background-position: 0px 0px !important;
+}
+
+.remember_forgot {
+	float: left;
+	font-size: 0.9em;
+	padding-left: 155px;
+}
+
+.remember_forgot input {
+	padding-top: 3px;
+}
+
+.sign_in_button {
+	float:right;
+	padding-top: 10px;
+}
+
+.sign_in_button input {
+		margin-right:0px !important;
+}
+
+.sign_in_settings {
+	width: 455px;
+}
+
+.forgot {
+	display: block;
+	padding-top: 5px;
+}
+
+.no_account{
+	padding-top: 25px;
+	padding-left: 155px;
+	clear: both;
+	font-size: 0.9em;
+}
+
+.no_account a {
+	margin: 0px;
+	padding-left: 0px;
+}
+
+.no_account_text {
+	color: #8e8e8e;
+	font-style: italic;
+	font-weight: bold;
 }
 
 .center {
