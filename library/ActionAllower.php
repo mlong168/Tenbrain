@@ -65,7 +65,7 @@ class ActionAllower
 		return count($servers);
     }
     
-    public function isAllowedToDeployServer()
+    public function isAllowedToDeployServer($bool_response = false)
     {
     	if($this->isAllowedAll())
     		return true;
@@ -74,10 +74,14 @@ class ActionAllower
     	$isAllowed = $this->_acl->isUserAllowedCount("Server", "deploy", $count);
 
     	if(!$isAllowed)
+    	{
+    		if($bool_response)
+    			return false;
     		$this->failure_response("This action is limited.");
+    	}
     }
     
-	public function isAllowedToCreateBackup()
+	public function isAllowedToCreateBackup($bool_response = false)
     {
     	if($this->isAllowedAll())
     		return true;
@@ -85,19 +89,25 @@ class ActionAllower
     	$count = $this->get_backup_count();
     	$isAllowed = $this->_acl->isUserAllowedCount("Backups", "create", $count);
     	
-    	if(!$isAllowed)
-	    	$this->failure_response("This action is limited.");
+   		if(!$isAllowed)
+    	{
+    		if($bool_response)
+    			return false;
+    		$this->failure_response("This action is limited.");
+    	}
     }
     
-	public function isAllowedToCreateElasticIP()
+	public function isAllowedToCreateElasticIP($bool_response = false)
     {
     	if($this->isAllowedAll())
     		return true;
     		
+    	if($bool_response)
+    			return false;	
     	$this->failure_response("This action is limited.");
     }
     
-	public function isAllowedToCreateMicroInstance()
+	public function isAllowedToCreateMicroInstance($bool_response = false)
     {
     	if($this->isAllowedAll())
     		return true;
@@ -105,8 +115,12 @@ class ActionAllower
     	$count = $this->get_micro_count();
     	$isAllowed = $this->_acl->isUserAllowedCount("Server", "deploy_micro", $count);
     	
-    	if(!$isAllowed)
+   		if(!$isAllowed)
+    	{
+    		if($bool_response)
+    			return false;
     		$this->failure_response("This action is limited.");
+    	}
     }
     
 	public function isAllowedAll()
@@ -115,19 +129,25 @@ class ActionAllower
     		return true;
     }
     
-    public function isAllowedGoGridFunctionality()
+    public function isAllowedGoGridFunctionality($bool_response = false)
     {
     	$credentials = $this->get_user_credentials('GoGrid');
     	if($this->_acl->isUserAllowed('Action','GoGrid') && $credentials)
     		return true;
+    		
+    	if($bool_response)
+    		return false;
     	$this->failure_response("This action is limited.");
     }
     
-	public function isAllowedRackspaceFunctionality()
+	public function isAllowedRackspaceFunctionality($bool_response = false)
     {
     	$credentials = $this->get_user_credentials('Rackspace');
     	if($this->_acl->isUserAllowed('Action','Rackspace') && $credentials)
     		return true;
+    		
+    	if($bool_response)
+    		return false;
     	$this->failure_response("This action is limited.");
     }
     
