@@ -18,7 +18,7 @@ public function get_credentials($user_id)
 			->from($this->_name)
 			->where('account_id = ?', $user_id);
 			
-		$result = $this->getAdapter()->fetchOne($select);
+		$result = $this->getAdapter()->fetchRow($select);
 		
 		return $result ? array(
 			'key'			=> $result['key'],
