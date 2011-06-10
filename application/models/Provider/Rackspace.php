@@ -285,7 +285,7 @@ class Application_Model_Provider_Rackspace extends Application_Model_Provider
 		return true;
 	}
 	
-	public function delete_load_balancer($id)
+	public function delete_load_balancer($id, $tb_id)
 	{
 		
 	}

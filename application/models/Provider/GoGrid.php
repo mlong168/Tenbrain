@@ -527,7 +527,7 @@ class Application_Model_Provider_GoGrid extends Application_Model_Provider
 		return $lb_pid;
 	}
 	
-	public function delete_load_balancer($id)
+	public function delete_load_balancer($id, $tb_id)
 	{
 		$balancer_model = new Application_Model_Balancer();
 

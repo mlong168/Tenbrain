@@ -411,7 +411,12 @@ class CommonController extends Zend_Controller_Action
 	{
 		$balancer_model = new Application_Model_Balancer();
 		$balancers = $balancer_model->get_user_load_balancers();
-		echo $this->successfull_response(array('balancers' => $balancers));
+		$out = array();
+		foreach($balancers as $id => $balancer)
+		{
+			$out []= array_merge(array('id' => $id), $balancer);
+		}
+		echo $this->successfull_response(array('balancers' => $out));
 		return false;
 	}
 	
@@ -448,6 +453,24 @@ class CommonController extends Zend_Controller_Action
 		echo $success
 			? $this->successfull_response()
 			: $this->failure_response('We are sorry, an error has occurred');
+		return false;
+	}
+	
+	public function deleteLoadBalancerAction()
+	{
+		$request = $this->getRequest();
+		$id = $request->getParam('lb_id');
+		
+		$balancer_model = new Application_Model_Balancer();
+		$balancer = $balancer_model->get_user_load_balancer($id);
+		if(is_array($balancer))
+		{
+			$provider = $balancer['provider'];
+			$provider_lb_id = $balancer['provider_lb_id'];
+			$this->providers[$provider]->delete_load_balancer($provider_lb_id, $id);
+		}
+		
+		echo $this->successfull_response();
 		return false;
 	}
 	

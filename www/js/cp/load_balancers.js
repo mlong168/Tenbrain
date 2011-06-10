@@ -468,12 +468,10 @@ var Load_balancers = function() {
 				},{
 					text: 'Delete load balancer',
 					handler: function() {
-						var grid = lb_menu.ref_grid,
-						id = lb_menu.selected_record.get('id'),
-						provider = lb_menu.selected_record.get('provider').toLowerCase(),
-						title = 'Delete load balancer',
-						success = 'Load balancer was deleted successfully',
-						error = 'A problem has occurred when deleting the load balancer';
+						var id = lb_menu.selected_record.get('id'),
+							title = 'Delete load balancer',
+							success = 'Load balancer was deleted successfully',
+							error = 'A problem has occurred when deleting the load balancer';
 
 						lb_menu.hide();
 						Ext.MessageBox.confirm(title, 'Are you sure you want delete this load balancer?', function(button) {
@@ -482,9 +480,9 @@ var Load_balancers = function() {
 
 							Ext.Msg.wait('The load balancer is being deleted', title);
 							Ext.Ajax.request({
-								url: provider + '/delete_load_balancer',
+								url: 'common/delete_load_balancer',
 								params: {
-									id: id,
+									lb_id: id,
 								},
 								success: function(response) {
 									response = Ext.decode(response.responseText);
@@ -510,7 +508,7 @@ var Load_balancers = function() {
 		extend: 'Ext.data.Model',
 		fields: [{
 			name: 'id',
-			type: 'int'
+			type: 'string'
 		},{
 			name: 'name',
 			type: 'string'
@@ -519,7 +517,7 @@ var Load_balancers = function() {
 			type: 'string'
 		},{
 			name: 'dns_name',
-			type: 'boolean'
+			type: 'string'
 		},{
 			name: 'state',
 			type: 'string'
@@ -534,7 +532,7 @@ var Load_balancers = function() {
 			url: '/common/list_load_balancers',
 			reader: {
 				type: 'json',
-				root: 'load_balancers'
+				root: 'balancers'
 			}
 		}
 	});
@@ -606,10 +604,10 @@ var Load_balancers = function() {
 				}
 				],
 				listeners: {
-					itemcontextmenu: function (grid, id, e) {
+					itemcontextmenu: function (view, record, item, index, e) {
 						e.preventDefault();
 						lb_menu.ref_grid = this;
-						lb_menu.selected_record = this.getStore().getAt(id);
+						lb_menu.selected_record = record;
 						lb_menu.showAt(e.getXY());
 					},
 					activate: Helpers.first_time_loader
