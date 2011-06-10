@@ -214,4 +214,13 @@ class Application_Model_DbTable_Accounts extends Zend_Db_Table_Abstract
 		return $password;
 	
 	}
+	
+	public function changeRole($user_id, $new_role_id)
+	{
+		$data = array(
+			"role_id" => $new_role_id,
+		);
+		$where_user_account = $this->getAdapter()->quoteInto("id = ?", $user_id);
+		$this->update($data, $where_user_account);
+	}
 }

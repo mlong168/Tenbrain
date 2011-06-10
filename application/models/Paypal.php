@@ -91,11 +91,11 @@ class Application_Model_Paypal extends Zend_Db_Table_Abstract
 
 			if(!empty($existing_account))
 			{			
-				$new_exp_date = date("Y-m-d", strtotime("+".$paid_days." days", strtotime($existing_account->expiration_date)));
+				//$new_exp_date = date("Y-m-d", strtotime("+".$paid_days." days", strtotime($existing_account->expiration_date)));
 				
 				$data = array(
 					"role_id" => $curr_payment_type->acl_role_id,
-					"expiration_date" => $new_exp_date
+					"expiration_date" => $exp_date
 				);
 				$where = $account_role_exp->getAdapter()->quoteInto('id = ?', $existing_account->id);
 				$account_role_exp->update($data, $where);
@@ -110,6 +110,10 @@ class Application_Model_Paypal extends Zend_Db_Table_Abstract
 				
 				$account_role_exp->insert($bind);
 			}
+			
+			//update account role_id field
+			$accounts = new Application_Model_DbTable_Accounts;
+			$accounts->changeRole(Zend_Auth::getInstance()->getIdentity()->id, $curr_payment_type->acl_role_id);
 			
     }
     

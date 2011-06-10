@@ -21,6 +21,10 @@ require("/home/yvershynin/tenbrain/www/index.php");
 			fwrite($log_file, "\t".$account_role->id." : Delete row \n");
 			$where = $account_role_exp->getAdapter()->quoteInto("id = ?", $account_role->id);
 			$account_role_exp->delete($where);
+			
+			$accounts = new Application_Model_DbTable_Accounts;
+			$accounts->changeRole($account_role->id, 10); // need to set to default role
+			
 			fwrite($log_file, "\t".$account_role->id." : Account role deleted. \n");
 		}
 		else if((strtotime($account_role->expiration_date) - $today)/(3600*24) == 3)
