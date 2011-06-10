@@ -118,9 +118,16 @@ class PayController extends Zend_Controller_Action
     {
     	$this->isAutorized();
     	$payment = new Application_Model_Paypal();
-    	$this->view->id = $this->getRequest()->getParam('id');
+    	if($this->getRequest()->getParam('id') != "")
+			{
+				$this->view->id = $this->getRequest()->getParam('id');
+			}
+			else
+			{
+				$this->view->id = substr($this->getRequest()->getRequestUri(), strrpos($this->getRequest()->getRequestUri(), "/")+1);
+			}
     	$details = $payment->db_load($this->view->id);
-		$this->view->details = $payment->isPaymentSuccessful($details['ack']);
+			$this->view->details = $payment->isPaymentSuccessful($details['ack']);
     }
     
     private function isAutorized()
