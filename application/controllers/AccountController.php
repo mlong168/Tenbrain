@@ -82,9 +82,15 @@ class AccountController extends Zend_Controller_Action
                 if ($result->isValid()) {
                     if ($data["remember"])
                         Zend_Session::rememberMe();
-                    $storage = new Zend_Auth_Storage_Session();
+					$accountsExpTable = new Application_Model_AccountRoleExp();
+					$storage = new Zend_Auth_Storage_Session();
                     $storage->write($authAdapter->getResultRowObject());
-					
+					$user = Zend_Auth::getInstance()->getIdentity();
+					if($accountsExpTable->isExpired($user->id, $user->role_id))
+					{
+						$user->role_id = 1;
+						$accounts->changeRole($user->id, 1);
+					}	
 					$redirect = new Zend_Session_Namespace('sign_in_redirect');
 					if(isset($redirect->url))
 					{
