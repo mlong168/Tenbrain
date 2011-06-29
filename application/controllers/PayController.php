@@ -45,15 +45,16 @@ class PayController extends Zend_Controller_Action
     	$this->isAutorized();
     	$payment_method = $this->getRequest()->getParam('type');
     	
-    	if($payment_method != 'onetime')
+    	/*if($payment_method != 'onetime')
     	{
     		$this->_helper->Redirector->gotoUrl('pay');
-    	}
+    	}*/
+    	if($payment_method == 'onetime'){
+			$form = new Paypal_Form_Amount();
+			$this->view->form = $form;
+			$this->view->monthly = false;
     	
-    	$form = new Paypal_Form_Amount();
-    	$this->view->form = $form;
-    	
-    	if ($this->getRequest()->isPost())
+			if ($this->getRequest()->isPost())
 			{
 				$params = $this->getRequest()->getParams();
 				if($this->view->form->isValid($params))
@@ -67,14 +68,9 @@ class PayController extends Zend_Controller_Action
 					{
 						$payment_type_role = new Application_Model_DbTable_PaymentTypeRole;
 						$curr_payment_type = $payment_type_role->getPaymentType($params['payment_type']);
-						
+
 						$amount = $curr_payment_type->price;
 					}
-					
-					/*if ($amount < $this->minMoneyAmount)
-					{
-						$amount = $this->minMoneyAmount;
-					}*/
 					$this->_helper->Redirector->gotoUrl('pay/creditcard/amount/'.$amount.'/paytype/'.$params['payment_type']);
 				}
 				else
@@ -82,6 +78,24 @@ class PayController extends Zend_Controller_Action
 					$this->view->errorElements = $this->view->form->getMessages();
 				}
 			}
+		}elseif($payment_method == 'monthly'){
+			$form = new Paypal_Form_Monthly();
+			$this->view->form = $form;
+			$this->view->monthly = true;
+			if($this->getRequest()->isPost()){
+				$params = $this->getRequest()->getParams();
+
+				if($this->view->form->isValid($params)){
+					$payment_type_role = new Application_Model_DbTable_PaymentTypeRole;
+					$curr_payment_type = $payment_type_role->getPaymentType($params['payment_type']);
+					$amount = $curr_payment_type->price;
+
+
+					$this->_redirect('pay/creditcard/amount/'.$amount.'/paytype/'.$params['payment_type']);
+				}else
+					$this->view->errorElements = $this->view->form->getMessages();
+			}
+		}
     }
     
     
