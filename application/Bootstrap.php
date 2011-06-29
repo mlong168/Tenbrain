@@ -100,6 +100,11 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
 			'controller'	=> 'misc',
 			'action'		=> 'about'
 		)));
+
+		$router->addRoute('blog', new Zend_Controller_Router_Route('blog', array(
+			'controller'	=> 'misc',
+			'action'		=> 'blog'
+		)));
 		
 		$router->addRoute('paypal_save', new Zend_Controller_Router_Route(
 			'/pay/details/:id', 

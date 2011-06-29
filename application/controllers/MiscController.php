@@ -23,5 +23,9 @@ class MiscController extends Zend_Controller_Action
 		$this->view->headTitle()->prepend('About us');
 	}
 
+	public function blogAction()
+	{
+		$this->view->headTitle()->prepend('Blog');
+	}
 
 }
