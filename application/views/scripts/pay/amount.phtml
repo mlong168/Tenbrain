@@ -8,6 +8,7 @@
 			<div class="payment amount-field"><div class="payment label">Or amount of money</div><?php //echo $this->form->money_amount;?></div>
 			<div class="payment descr"> Minimum onetime payment is 10$ </div>-->
 			<div id="payment_type-element">
+			<?if(!$this->monthly):?>
 			<div class="type-field">
 				<input type="radio" value="single_day_pay" id="payment_type-singledaypay" name="payment_type" checked="yes">
 				<label for="payment_type-singledaypay">
@@ -46,8 +47,33 @@
 					</span>
 					</div>
 			</div>
+			<?else:?>
+			<div id="payment_type-element">
+				<div class="type-field">
+					<input type="radio" value="some_features" id="payment_type-some_features" name="payment_type" checked="yes">
+					<label for="payment_type-singledaypay">
+						<span>Give Me Some Cloud Goodness</span>
+						<div class="type-descr">All current functionality</div>
+					</label>
+				</div>
+				<div class="type-field">
+					<input type="radio" value="more_features" id="payment_type-more_features" name="payment_type">
+					<label for="payment_type-fiver">
+						<span>Give Me Some More Cloud Features</span>
+						<div class="type-descr">Some more features</div>
+					</label>
+				</div>
+				<div class="type-field">
+					<input type="radio" value="all_features" id="payment_type-all_features" name="payment_type">
+					<label for="payment_type-tenmicro">
+						<span>Give Me Everything the Cloud Has to Offer</span>
+						<div class="type-descr">All the features</div>
+					</label>
+				</div>
 			</div>
+			<?endif;?>
 			<?php echo $this->form->submit; ?>
+			</div>
 		</div>
 		</form>
 	</div>
