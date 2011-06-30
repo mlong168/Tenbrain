@@ -8,6 +8,11 @@
 class PayController extends Zend_Controller_Action
 {
 	protected $minMoneyAmount = 10;
+	protected $monthlyPayments = array(
+		'some_features',
+		'more_features',
+		'all_features'
+	);
 	
 	private $selections = array(
 		'pay_cc'	=> 
@@ -82,11 +87,16 @@ class PayController extends Zend_Controller_Action
 			$form = new Paypal_Form_Monthly();
 			$this->view->form = $form;
 			$this->view->monthly = true;
+			$payment_type_role = new Application_Model_DbTable_PaymentTypeRole;
+			foreach($this->monthlyPayments as $monthlyPayment){
+				$row = $payment_type_role->getPaymentType($monthlyPayment);
+				$this->view->$monthlyPayment = $row['price'];
+			}
 			if($this->getRequest()->isPost()){
 				$params = $this->getRequest()->getParams();
 
 				if($this->view->form->isValid($params)){
-					$payment_type_role = new Application_Model_DbTable_PaymentTypeRole;
+					
 					$curr_payment_type = $payment_type_role->getPaymentType($params['payment_type']);
 					$amount = $curr_payment_type->price;
 
