@@ -53,21 +53,21 @@
 					<input type="radio" value="some_features" id="payment_type-some_features" name="payment_type" checked="yes">
 					<label for="payment_type-singledaypay">
 						<span>Give Me Some Cloud Goodness</span>
-						<div class="type-descr">All current functionality</div>
+						<div class="type-descr">All current functionality - <?=$this->some_features;?>$ per month</div>
 					</label>
 				</div>
 				<div class="type-field">
 					<input type="radio" value="more_features" id="payment_type-more_features" name="payment_type">
 					<label for="payment_type-fiver">
 						<span>Give Me Some More Cloud Features</span>
-						<div class="type-descr">Some more features</div>
+						<div class="type-descr">Some more features - <?=$this->more_features;?>$ per month</div>
 					</label>
 				</div>
 				<div class="type-field">
 					<input type="radio" value="all_features" id="payment_type-all_features" name="payment_type">
 					<label for="payment_type-tenmicro">
 						<span>Give Me Everything the Cloud Has to Offer</span>
-						<div class="type-descr">All the features</div>
+						<div class="type-descr">All the features - <?=$this->all_features;?>$ per month</div>
 					</label>
 				</div>
 			</div>
