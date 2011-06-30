@@ -450,6 +450,7 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 		$server_model->add_server(array(
 			'provider_server_id' 	=> $new_server_id,
 			'name' 					=> $name,
+            'type'                  => $type,
 			'provider' 				=> 'Amazon'
 		));
 		
