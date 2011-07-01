@@ -31,6 +31,70 @@ class Application_Model_Provider_GoGrid extends Application_Model_Provider
 		return $response->status === 'success';
 	}
 	
+    private function get_server_state( &$server ){
+        /*  server.state list:
+         * [{ "id":1,
+         *     "description":"Server is in active state.",
+         *     "name":"On",
+         *     "object":"option"
+         *  },
+         *  {  "id":2,
+         *      "description":"Server is in transient state...Starting.",
+         *      "name":"Starting",
+         *      "object":"option"
+         *  },
+         *  {   "id":3,
+         *      "description":"Server is in inactive state.",
+         *      "name":"Off",
+         *      "object":"option"
+         *  },
+         *  {   "id":4,
+         *      "description":"Server is in transient state...Stopping.",
+         *      "name":"Stopping",
+         *      "object":"option"
+         *  },
+         *  {   "id":5,
+         *      "description":"Server is in transient state...Restarting",
+         *      "name":"Restarting",
+         *      "object":"option"
+         *  },
+         *  {   "id":6,
+         *      "description":"Server is in transient state...Saving",
+         *      "name":"Saving",
+         *      "object":"option"
+         *  },
+         *  {   "id":7,
+         *      "description":"Server is in transient state...Restoring",
+         *      "name":"Restoring",
+         *      "object":"option"
+         *  },
+         *  {   "id":8,
+         *      "description":"Server is in transient state...Updating",
+         *      "name":"Updating","object":"option"
+         *  },
+         *  {   "id":9,
+         *      "description":"Server is in a transient state but is on...Saving",
+         *      "name":"On/Saving",
+         *      "object":"option"
+         *  },
+         *  {   "id":10,
+         *      "description":"Server is in a transient state but is off...Saving",
+         *      "name":"Off/Saving",
+         *      "object":"option"
+         *  }]
+         */
+        if( $server->state->id == 1 ){
+            return 'running';
+        }
+                
+        if( $server->state->id == 3 ){
+            return 'stopped';
+        }
+
+        $state = strtolower( str_replace('/','_', $server->state->name ) );
+        return empty( $state )? 'pending': $state;
+    }
+    
 	public function lookup($lookup)
 	{
 		$response = $this->gogrid->call('common.lookup.list', array(
@@ -133,10 +197,16 @@ class Application_Model_Provider_GoGrid extends Application_Model_Provider
 		else return false;
 	}
 	
-	public function list_servers($ids, $state)
+	public function list_servers($ids, $state = 'running' )
 	{
 		//if($state !== 'running') return array();
-		
+        $state = (string)$state;
+        
+		$possible_states_id = array(
+			'running'	=>array( 1, 9 ),
+			'stopped'	=>array( 2, 3, 4, 5, 6, 7, 8, 10 )
+		);
+
 		$response = $this->gogrid->call('grid.server.get', array(
 			'id' => array_keys($ids)
 		));
@@ -146,15 +216,20 @@ class Application_Model_Provider_GoGrid extends Application_Model_Provider
 		$servers = array();
 		foreach($response->list as $server)
 		{
-			$p_id = $server->id;
-			$ip = $server->ip->ip;
+            $server_state = $this->get_server_state( $server );
+            if( !in_array($server->state->id,  $possible_states_id[ $state ]) ){
+                continue;
+            }
+            
+			$p_id  = $server->id;
+			$ip    = $server->ip->ip;
 			$servers []= array(
 				'id'				=> $ids[$p_id],
 				'name'				=> $server->name,
 				'dns_name'			=> $ip,
 				'ip_address'		=> $ip,
 				'image_id'			=> $server->image->id,
-				'state'				=> $server->state->name === 'On' ? 'running' : 'stopped',
+				'state'				=> $server_state,
 				'type'				=> $server->ram->description,
 				'provider'			=> $this->name
 				// ''				=> $server->, 
@@ -222,7 +297,7 @@ class Application_Model_Provider_GoGrid extends Application_Model_Provider
 				$ip = $server->ip->ip;
 				if($id)
 				{
-					$state = $server->state->name === 'On' ? 'running' : 'terminated';
+					$state = $this->get_server_state( $server );
 				}
 				else
 				{

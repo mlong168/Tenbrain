@@ -215,6 +215,12 @@ class CommonController extends Zend_Controller_Action
 			if(!$pid && $provider === 'GoGrid')
 			{
 				$pid = $this->providers['GoGrid']->assign_server_id($id);
+                
+                // If the server do not have id - it not running
+                if( $state == 'running' ){
+                    continue;
+                }
+                
 				if(!$pid)
 				{
 					$out []= array(
