@@ -199,44 +199,54 @@ class Application_Model_Provider_GoGrid extends Application_Model_Provider
 	
 	public function list_servers($ids, $state = 'running' )
 	{
-		//if($state !== 'running') return array();
-        $state = (string)$state;
-        
-		$possible_states_id = array(
-			'running'	=>array( 1, 9 ),
-			'stopped'	=>array( 2, 3, 4, 5, 6, 7, 8, 10 )
-		);
+	    //if($state !== 'running') return array();
+	    $state = (string)$state;
 
-		$response = $this->gogrid->call('grid.server.get', array(
-			'id' => array_keys($ids)
-		));
-		$response = json_decode($response);
-		$this->test_response($response);
-		
-		$servers = array();
-		foreach($response->list as $server)
-		{
-            $server_state = $this->get_server_state( $server );
-            if( !in_array($server->state->id,  $possible_states_id[ $state ]) ){
-                continue;
-            }
-            
-			$p_id  = $server->id;
-			$ip    = $server->ip->ip;
-			$servers []= array(
-				'id'				=> $ids[$p_id],
-				'name'				=> $server->name,
-				'dns_name'			=> $ip,
-				'ip_address'		=> $ip,
-				'image_id'			=> $server->image->id,
-				'state'				=> $server_state,
-				'type'				=> $server->ram->description,
-				'provider'			=> $this->name
-				// ''				=> $server->, 
-			);
+	    $possible_states_id = array(
+		    'running'	=>array( 1, 9 ),
+		    'stopped'	=>array( 2, 3, 4, 5, 6, 7, 8, 10 )
+	    );
+
+	    $response = $this->gogrid->call('grid.server.get', array(
+		    'id' => array_keys($ids)
+	    ));
+
+	    $response = json_decode($response);
+	    $this->test_response($response);
+
+	    $servers = array();
+	    foreach($response->list as $server) {
+		$server_state = $this->get_server_state($server);
+		if (!in_array($server->state->id,  $possible_states_id[$state]) ){
+		    continue;
 		}
+
+		$p_id  = $server->id;
+		$ip    = $server->ip->ip;
+		$servers []= array(
+			'id'			=> $ids[$p_id],
+			'name'			=> $server->name,
+			'dns_name'		=> $ip,
+			'ip_address'		=> $ip,
+			'image_id'		=> $server->image->id,
+			'state'			=> $server_state,
+			'type'			=> $server->ram->description,
+			'provider'		=> $this->name
+			// ''			=> $server->,
+		);
+	    }
+
+	    # Force display only running/stopped states (allow pending)
+	    /*$aux = array();
+	    foreach($servers as $server) {
+		if ($state == "running" || $state == "stopped") {
+		    if ($server['state'] == $state || $server['state'] == "pending")
+			array_push($aux,$server);
+		}
+	    }
+	    $servers = $aux;*/
 		
-		return $servers;
+	    return $servers;
 	}
 	
 	public function assign_server_id($id)

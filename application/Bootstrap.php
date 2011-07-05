@@ -32,7 +32,7 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
 							  'bug_compat_warn' => '',
 							  'cache_expire' => '180',
 							  'cache_limiter' => 'nocache',
-							  'cookie_domain' => '.tenbrain.com',
+							  'cookie_domain' => $_SERVER['HTTP_HOST'],
 							  'cookie_httponly' => '',
 							  'cookie_lifetime' => $config['lifetime'],
 							  'cookie_path' => '/',
