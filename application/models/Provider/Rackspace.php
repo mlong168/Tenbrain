@@ -317,7 +317,7 @@ class Application_Model_Provider_Rackspace extends Application_Model_Provider
 			'name' => $name,
 			'description'	=> $description,
 			'provider'	=> 'Rackspace',
-		
+            'created_on'  => date('r'),
 			'server_id'	=>	(int)$server_id
 		));
 		return true;

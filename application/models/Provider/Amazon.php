@@ -591,7 +591,7 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 			'provider_backup_id' => $snap_id,
 			'provider' => 'Amazon',
 			'description' => $description,
-		
+            'created_on'  => date('r'),
 			'server_id' => $server_id,
 			'image_id' => $image_id
 		);

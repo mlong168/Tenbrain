@@ -139,7 +139,9 @@ class Application_Model_Backups
 					'provider_backup_id'	=> $user_backup['provider_backup_id'],
 					'name'					=> $user_backup['name'],
 					'server_id'				=> $user_backup['server_id'],
-					'provider'				=> $user_backup['provider']
+					'provider'				=> $user_backup['provider'],
+                    'created_on'            => $user_backup['created_on'],
+                    'description'           => $user_backup['description']
 				);
 			}
 			return $backups;

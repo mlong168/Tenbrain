@@ -823,7 +823,7 @@ class Application_Model_Provider_GoGrid extends Application_Model_Provider
 			'provider_backup_id'	=>	$backup_id,
 			'description'	=>	$description,
 			'provider'	=>	'GoGrid',
-
+            'created_on'  => date('r'),
 			'server_id'	=>	$server_id
 		));
 		return true;
