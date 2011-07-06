@@ -25,8 +25,8 @@ class AmazonController extends Zend_Controller_Action
 	
 	public function launchInstanceAction()
 	{
-		$allower = new ActionAllower();
-		$allower->isAllowedToCreateMicroInstance();
+		//$allower = new ActionAllower();
+		//$allower->isAllowedToCreateMicroInstance();
 		
 		$params = array(
 			'image_id'	=> $state = $this->getRequest()->getParam('image_id'),
