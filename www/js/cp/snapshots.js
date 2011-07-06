@@ -388,7 +388,7 @@ var Snapshots = function() {
 
 	var snapshot_menu = new Ext.menu.Menu({
 		items: [{
-			text: 'Restore and terminate corresponding server',
+			text: 'Restore to corresponding server',
 			handler: function() {
 				var snap_id = snapshot_menu.selected_record.get('id');
 				snapshot_menu.hide();

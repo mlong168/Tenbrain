@@ -503,11 +503,11 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 			$this->die_with_error('Sorry, a problem has occurred while restoring your backup');
 		}
 		
-		$response = $this->ec2->terminate_instances($old_server['id']);
+		/*$response = $this->ec2->terminate_instances($old_server['id']);
 		$this->test_response($response);
 		
 		$server_ids = $server_model->get_server_ids($old_server['id']);
-		$server_model->remove_server($server_ids[0]);
+		$server_model->remove_server($server_ids[0]);*/
 
 		return true;
 	}
