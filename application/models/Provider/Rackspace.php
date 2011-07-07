@@ -347,7 +347,15 @@ class Application_Model_Provider_Rackspace extends Application_Model_Provider
 			'provider' => 'Rackspace',
 			'provider_server_id' => $server->id,
 		
-			'ip' => $server->addresses->public[0]
+			'ip' => $server->addresses->public[0],
+
+			// rackspace-specific data:
+			'host_id'			=> $server->hostId,
+			'flavor_id'			=> $server->flavorId,
+			'root_password'		=> $server->adminPass,
+			'private_ip'		=> $server->addresses->private[0],
+			'public_ip'			=> $server->addresses->public[0]
+
 		);
 		//print_r($backup_details);
 		$server_model->add_server($backup_details);
