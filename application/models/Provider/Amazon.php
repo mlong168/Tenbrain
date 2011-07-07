@@ -600,17 +600,49 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
 
 		return true;
 	}
-	
+
+    private function get_backup_status( $provider_backup_id )
+    {
+        $response = $this->ec2->describe_snapshots(array(
+            'Filter' => array(
+                array(  'Name'  => 'volume-id', 
+                        'Value' => $this->get_backup_volume($provider_backup_id)),
+                             )
+            ));
+        $this->test_response($response);
+
+        $servers = array();
+        if(count($response->body->item()) > 1)
+        {
+            $list = $response->body->snapshotId();
+            $results = $list->map(function($node){ return $node->parent(); });
+            $results->each( function($node, $i, &$servers)
+                            {
+                                $servers[] = array(
+                                    'snapshotId'  => (string) $node->snapshotId,
+                                    'volumeId'    => (string) $node->volumeId,
+                                    'status'      => (string) $node->status,
+                                    'startTime'   => (string) $node->startTime,
+                                    'progress'    => (string) $node->progress,
+                                    'volumeSize'  => (string) $node->volumeSize,
+                                    'description' => (string) $node->description
+                                                  );
+                            },
+                            $servers
+                          );
+        }
+        return $servers;
+    }
+
 	public function created_backups()
 	{
 		$backup_model = new Application_Model_Backups();
 		$backups = $backup_model->get_available_backups($this->name);
-		//foreach($backups as $i => $backup)
-		//{
-			//$backup['status'] = 'deleted';
-			//$backup['status'] = $this->get_backup_status($backup['provider_backup_id']);
-			//$backups[$i] = $backup;
-		//}
+		foreach($backups as $i => $backup)
+		{
+            $snapshot = $this->get_backup_status( $backup['provider_backup_id'] );
+            $backups[$i]['status'] = $snapshot[0]['status'];
+		}
 		
 		return $backups;
 	}
