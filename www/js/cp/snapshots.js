@@ -1,3 +1,12 @@
+// custom Vtype for vtype:'Description'
+Ext.apply(Ext.form.field.VTypes, {
+    Description:  function(v) {
+        return /^[A-Za-z0-9_]+[A-Za-z0-9_\-\. ]*$/.test(v);
+    },
+    DescriptionText: 'Not a valid description. Must be in format /^[A-Za-z0-9_]+[A-Za-z0-9_\-\. ]*$/',
+    DescriptionMask: /[a-z\d\.\-_ ]/i
+});
+
 var Snapshots = function() {
 
 	Ext.define('Backups', {
@@ -111,7 +120,8 @@ var Snapshots = function() {
 			name: 'name'
 		},{
 			fieldLabel: 'Description',
-			name: 'description'
+			name: 'description',
+            vtype: 'Description'
 		}],
 
 		buttons: [{
