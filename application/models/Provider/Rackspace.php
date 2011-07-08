@@ -445,16 +445,17 @@ class Application_Model_Provider_Rackspace extends Application_Model_Provider
 		return $this->view_backups($provider, $instance_id);
 	}
 	
-	function get_backup_status($provider_backup_id)
+	private function get_backup_status($provider_backup_id)
 	{
-		$backup_model = new Application_Model_Backups();
-		$backup = $backup_model->get_backup_by_provider_id($provider_backup_id);
-		if(!$backup)
+		if( empty($provider_backup_id) ){
 			return false;
-		$backup = $this->rack->GET_request('images/' . $backup->provider_backup_id);
+        }
 
-		if(!isset($backup->image))
+		$backup = $this->rack->GET_request('images/' . $provider_backup_id);
+
+		if( !isset($backup->image) ){
 			return false;
+        }
 			
 		return $backup->image->status == "ACTIVE" ? 'completed' : $backup->image->status;
 	}
@@ -464,12 +465,10 @@ class Application_Model_Provider_Rackspace extends Application_Model_Provider
 		$backup_model = new Application_Model_Backups();
 		$backups = $backup_model->get_available_backups("Rackspace");
 		
-		//foreach($backups as $i => $backup)
-		//{
-			//$backup['status'] = 'deleted';
-			//$backup['status'] = $this->get_backup_status($backup->provider_backup_id);
-		//	$backups[$i] = $backup;
-		//}
+		foreach($backups as $i => $backup)
+		{
+			$backups[$i]['status'] = $this->get_backup_status( $backup['provider_backup_id'] );
+		}
 		
 		return $backups;
 	}
