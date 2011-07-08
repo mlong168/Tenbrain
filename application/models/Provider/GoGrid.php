@@ -95,6 +95,45 @@ class Application_Model_Provider_GoGrid extends Application_Model_Provider
         return empty( $state )? 'pending': $state;
     }
     
+    private function get_backuped_servers_status( Array $provider_backup_id_list )
+	{
+        /* This is a terrible solution. I know it. But I have no other way (at 
+         * least right now, 2011-07-08). The GoGrid's API-method grid.image.get 
+         * still has a beta status and buggy. So we cant to get status a single
+         * image - GoGrid return a error message. And this is all information 
+         * that we get from when we using the 'grid.image.get' method - no 
+         * information about status of image, an error message only.
+         */
+		if( empty($provider_backup_id_list) ){
+			return false;
+        }
+			
+		$response = $this->gogrid->call('grid.image.list', 
+                                         array(
+                                                'isPublic'   => 'false',
+                                                'image.type' => 'Web Server',
+                                              )
+                                       );
+		$response = json_decode($response);
+        $this->test_response($response);
+        
+        $result = array();
+        // Initialization all items by default value
+        foreach( $provider_backup_id_list as $imageId ){
+            $result[ $imageId ] = 'unknown';
+        }
+        
+        foreach( $response->list as $image ){
+            if( in_array($image->id, $provider_backup_id_list) ){
+                $result[ $image->id ] = ( $image->state->id == 2 ) 
+                                        ? 'completed'
+                                        : $image->state->name;
+            }
+        }
+        
+		return $result;
+	}
+    
 	public function lookup($lookup)
 	{
 		$response = $this->gogrid->call('common.lookup.list', array(
@@ -851,12 +890,22 @@ class Application_Model_Provider_GoGrid extends Application_Model_Provider
 	{
 		$backup_model = new Application_Model_Backups();
 		$backups = $backup_model->get_available_backups($this->name);
-		//foreach($backups as $i => $backup)
-		//{
-		//	$backup['status'] = 'deleted';
-		//	$backup['status'] = $this->get_backup_status($backup['provider_backup_id']);
-		//	$backups[$i] = $backup;
-		//}
+        
+        /* Simpler and easier to create an additional variable and initialise it,
+         * than for each backup re-read the list of all images by call GoGrid's API
+         */
+        $providerBackupIdList = array();
+		foreach($backups as $i => $backup)
+		{
+            $providerBackupIdList[] = $backup['provider_backup_id'];
+        }
+        
+        $statusList = $this->get_backuped_servers_status( $providerBackupIdList );
+        
+        foreach($backups as $i => $backup)
+        {
+			$backups[$i]['status'] = $statusList[ $backup['provider_backup_id'] ];
+		}
 		
 		return $backups;
 	}
