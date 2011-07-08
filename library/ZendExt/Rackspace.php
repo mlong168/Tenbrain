@@ -141,7 +141,7 @@ class ZendExt_Rackspace
 		curl_close($curl_session);
 		
 		$response =  new HttpMessage($response);
-		print_r($response);die;
+		//print_r($response);die;
 
 		if(!in_array($response->getResponseCode(), $success_response_codes)) return false;
 		$body = $response->getBody();
