@@ -132,7 +132,7 @@ class Application_Model_Provider_Rackspace extends Application_Model_Provider
 				'dns_name'			=> $ip,
 				'ip_address'		=> $ip,
 				'image_id'			=> $server->imageId,
-				'state'				=> $server->status === 'ACTIVE' ? 'running' : 'pending',
+				'state'				=> ( $server->status == 'ACTIVE' )? 'running' : $server->status,
 				'type'				=> $types[$server->flavorId],
 				'provider'			=> $this->name
 				// ''				=> $server->, 
