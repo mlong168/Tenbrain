@@ -490,7 +490,7 @@ var Snapshots = function() {
 								? 'Backup has been deleted successfully'
 								: 'A problem has occurred when deleting backup'
 								);
-								store.common.reload();
+								store.common.load();
 							},
 							failure: function() {
 								Ext.Msg.alert('Error', 'A problem has occurred when deleting backup');
