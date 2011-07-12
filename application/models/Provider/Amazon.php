@@ -605,8 +605,8 @@ class Application_Model_Provider_Amazon extends Application_Model_Provider
     {
         $response = $this->ec2->describe_snapshots(array(
             'Filter' => array(
-                array(  'Name'  => 'volume-id', 
-                        'Value' => $this->get_backup_volume($provider_backup_id)),
+                array(  'Name'  => 'snapshot-id', 
+                        'Value' => $provider_backup_id),
                              )
             ));
         $this->test_response($response);
