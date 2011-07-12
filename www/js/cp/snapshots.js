@@ -627,7 +627,7 @@ var Snapshots = function() {
 			return false;
 		},
 		show_instance_snapshots: function(instance_id, instance_name) {
-			var instance_snapshots = snapshot_instance_grid.up('window');
+			var instance_snapshots = instance_snapshots_grid.up('window');
 			instance_name = instance_name || '';
 			instance_snapshots.setTitle(instance_name.length
 			? 'Backups for server "' + instance_name + '"'
