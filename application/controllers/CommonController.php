@@ -56,7 +56,13 @@ class CommonController extends Zend_Controller_Action
 			$this->getRequest()->getParam('description')
 		);
 		
-		return $backup ? $this->successfull_response('Snapshot has been created successfully') : $this->failure_response('Problem'); 
+		if( empty($backup) ){
+		    echo $this->failure_response('Problem');
+		    return false;
+		}
+		
+		echo $this->successfull_response('Snapshot has been created successfully');
+		return true;
 	}
 	
 	function listBackupsAction()
