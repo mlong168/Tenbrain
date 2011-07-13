@@ -121,14 +121,21 @@ class Application_Model_Backups
 			}
 			if($server_id)
 			{
+				$server_backups = array();
 				foreach($user_backups as $id => $user_backup)
 				{
-					$server_backups[] = array(
-						'id'					=> $id,
-						'provider_backup_id'	=> $user_backup['provider_backup_id'],
-						'backup_name'			=> $user_backup['backup_name'],
-						'server_id'				=> $user_backup['server_id']
-					);
+					if( $user_backup['server_id'] == $server_id ){
+						$server_backups[] = array(
+							'id'					=> $id,
+							'provider_backup_id'	=> $user_backup['provider_backup_id'],
+							'backup_name'			=> $user_backup['backup_name'],
+							'server_id'				=> $user_backup['server_id'],
+							'name'					=> $user_backup['name'],
+							'provider'				=> $user_backup['provider'],
+							'created_on'			=> $user_backup['created_on'],
+							'description'			=> $user_backup['description'],
+						);
+					}
 				}
 				return $server_backups;
 			}
