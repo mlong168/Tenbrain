@@ -113,16 +113,12 @@ class Application_Model_Provider_Rackspace extends Application_Model_Provider
 		if($state !== 'running') return array();
 		
 		$out = array();
-		$flavors = $this->list_flavors();
-		$types = array();
-		foreach($flavors as $flavor)
-		{
-			$types[$flavor->id] = $flavor->name;
-		}
 		foreach($ids as $pid => $db_id)
 		{
-			$server = $this->rack->GET_request('servers/' . $pid);
-			if(!$server) continue;
+			$server = $this->check_server( $db_id, $pid );
+			if(!$server){
+				continue;
+			}
 			$server = $server->server;
 			$ip = $server->addresses->public[0];
 			
@@ -132,10 +128,9 @@ class Application_Model_Provider_Rackspace extends Application_Model_Provider
 				'dns_name'			=> $ip,
 				'ip_address'		=> $ip,
 				'image_id'			=> $server->imageId,
-				'state'				=> ( $server->status == 'ACTIVE' )? 'running' : $server->status,
-				'type'				=> $types[$server->flavorId],
+				'state'				=> $server->status,
+				'type'				=> $server->flavorName,
 				'provider'			=> $this->name
-				// ''				=> $server->, 
 			);
 		}
 		return $out;
@@ -195,6 +190,47 @@ class Application_Model_Provider_Rackspace extends Application_Model_Provider
 		return true;
 	}
 	
+	private function check_server( $provider_server_id, $server_id )
+	{
+		$response = $this->rack->GET_request('servers/' . $server_id);
+		if( !$response ){
+		return false;
+		}
+
+		// This fragment must be duplicated....
+		$type = $this->get_flavor_details( $response->server->flavorId );
+		$response->server->flavorName = $type->name;
+
+		if( $response->server->status == 'VERIFY_RESIZE')
+		{
+			$cofirm = array( 'confirmResize' => NULL );
+			$sucess_response = array(204);
+			$confirmResponse = $this->rack->POST_request('servers/'.$server_id.'/action' , $cofirm, $sucess_response);
+			if( !$confirmResponse ){
+				// ... otherwise at this point we have a problem
+				$response->server->status = 'RESIZE_FILED';
+				return $response;
+			}
+
+			$server = $this->storage->get_user_server( $provider_server_id );
+			$type = $this->get_flavor_details( $server['flavor_id_new']);
+			$all_params['flavor_id'] = $server['flavor_id_new'];
+			$all_params['type'] = $type->name;
+			
+			$this->storage->change_server($provider_server_id, $all_params);
+			
+			$response->server->flavorId = $server['flavor_id_new'];
+			$response->server->flavorName = $type->name;
+			$response->server->status = 'ACTIVE';
+		}
+	
+		if( $response->server->status == 'ACTIVE' ){
+			$response->server->status = 'running';
+		}
+
+		return $response;
+	}
+	
 	public function modify_server($server_id, $type, $tb_server_id, $all_params)
 	{
 		if(!is_numeric($type)) return false;
@@ -206,34 +242,14 @@ class Application_Model_Provider_Rackspace extends Application_Model_Provider
 			)
 		);
 		$response = $this->rack->POST_request('servers/' . $server_id . '/action' , $resize);
-		
-		$start_time = time();
-		$timeout = 60 * 20;
-
-		while($start_time + $timeout > time())
-		{
-			$response = $this->rack->GET_request('servers/' . $server_id);
-			if($response->server->status == 'VERIFY_RESIZE')
-			{
-				$cofirm = array(
-					'confirmResize' => NULL
-				);
-				
-				$sucess_response = array(204);
-				$response = $this->rack->POST_request('servers/'.$server_id.'/action' , $cofirm, $sucess_response);
-				
-				$type = $this->get_flavor_details($flavor_id);
-				$all_params['flavor_id'] = $flavor_id;
-				$all_params['type'] = $type->name;
-				$this->storage->change_server($tb_server_id, $all_params);
-			
-				break;
-			}
-			else
-			{
-				sleep(15);
-			}
+		if( $response !== true ){
+			return false;
 		}
+		
+		$all_params = array();
+		$all_params['flavor_id_new'] = $flavor_id;
+		$this->storage->change_server($tb_server_id, $all_params);
+		
 		return true;
 	}
 	
