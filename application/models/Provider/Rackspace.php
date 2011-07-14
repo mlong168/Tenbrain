@@ -208,7 +208,7 @@ class Application_Model_Provider_Rackspace extends Application_Model_Provider
 			$confirmResponse = $this->rack->POST_request('servers/'.$server_id.'/action' , $cofirm, $sucess_response);
 			if( !$confirmResponse ){
 				// ... otherwise at this point we have a problem
-				$response->server->status = 'RESIZE_FILED';
+				$response->server->status = 'RESIZE_FAILED';
 				return $response;
 			}
 
