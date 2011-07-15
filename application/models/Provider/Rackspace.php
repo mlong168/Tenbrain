@@ -95,6 +95,13 @@ class Application_Model_Provider_Rackspace extends Application_Model_Provider
 		$images = $images->images;
 		foreach($images as $image)
 		{
+			// Remove the 'windows*' and 'red hat*' images from list - they are too expensive
+			if( strpos( strtolower($image->name), 'windows' ) !== false ||
+				strpos( strtolower($image->name), 'red hat' ) !== false    )
+			{
+				continue;
+			}
+			
 			$out []= array(
 				'image_id'	=> $image->id,
 				'name'		=> $image->name,
