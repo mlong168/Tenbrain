@@ -246,13 +246,14 @@ var Load_balancers = function() {
 					servers_selection.setLoading(true);
 					if(instances_to_register_store.proxy.extraParams.provider !== provider) {
 						instances_to_register_store.proxy.extraParams.provider = provider;
-						instances_to_register_store.load({
-							callback: function() {
-								servers_selection.setLoading(false);
-								servers_selection.refresh()
-							}
-						})
 					}
+					instances_to_register_store.load({
+						callback: function() {
+							servers_selection.setLoading(false);
+							servers_selection.refresh()
+						}
+					})
+					
 					gg_address.setVisible(is_gogrid).setDisabled(!is_gogrid);
 					panel.setHeight(is_gogrid ? 315 : 285);
 				}
